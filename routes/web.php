@@ -17,6 +17,9 @@ Route::get('/dashboard', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
+    Route::post('/check-username', [LoginController::class, 'checkUsername']);
+    Route::post('/set-initial-password', [LoginController::class, 'setInitialPassword']);
+
 });
 
 // Logout route
