@@ -23,4 +23,7 @@ Route::middleware('guest')->group(function () {
 });
 
 // Logout route
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::post('/logout', [LoginController::class, 'logout'])
+    ->name('logout')
+    ->withoutMiddleware(['auth'])  // Allow the route to process without authentication
+    ->middleware(['web']);  // Keep the web middleware for session handling

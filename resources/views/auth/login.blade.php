@@ -1,190 +1,206 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        .hidden {
-            display: none;
-        }
-        .error-message {
-            color: red;
-            margin-top: 5px;
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        .btn {
-            padding: 0.5rem 1rem;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        .btn:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-    </style>
-</head>
-<body>
-    <div>
-        <form id="loginForm" method="POST">
-            @csrf
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" name="username" id="username" required>
-                <span id="usernameError" class="error-message"></span>
+@extends('layouts.auth')
+
+@section('title', 'Login - HOA Management System')
+
+@section('content')
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">Welcome Back</h2>
+                    
+                    <form id="loginForm" method="POST">
+                        @csrf
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" name="username" id="username" required>
+                            <div id="usernameError" class="invalid-feedback"></div>
+                        </div>
+                    
+                        <div class="mb-3" id="passwordGroup">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" name="password" id="password">
+                            <div id="passwordError" class="invalid-feedback"></div>
+                        </div>
+                    
+                        <div class="mb-3 d-none" id="newPasswordGroup">
+                            <label for="new_password" class="form-label">Set New Password</label>
+                            <input type="password" class="form-control" name="new_password" id="new_password">
+                            <div id="newPasswordError" class="invalid-feedback"></div>
+                        </div>
+                    
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">Login</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        
-            <div class="form-group" id="passwordGroup">
-                <label for="password">Password</label>
-                <input type="password" name="password" id="password">
-                <span id="passwordError" class="error-message"></span>
-            </div>
-        
-            <div class="form-group hidden" id="newPasswordGroup">
-                <label for="new_password">Set New Password</label>
-                <input type="password" name="new_password" id="new_password">
-                <span id="newPasswordError" class="error-message"></span>
-            </div>
-        
-            <button type="submit" class="btn" id="submitBtn">Login</button>
-        </form>
+        </div>
     </div>
+</div>
 
-    <script>
-        document.getElementById('username').addEventListener('blur', checkUsername);
-        document.getElementById('loginForm').addEventListener('submit', handleSubmit);
+<script>
+    document.getElementById('username').addEventListener('blur', checkUsername);
+    document.getElementById('loginForm').addEventListener('submit', handleSubmit);
 
-        let userState = {
-            exists: false,
-            hasPassword: false
-        };
+    let userState = {
+        exists: false,
+        hasPassword: false
+    };
 
-        async function checkUsername() {
-            const username = document.getElementById('username').value;
-            if (!username) return;
+    async function checkUsername() {
+        const username = document.getElementById('username').value.trim(); // Just trim whitespace, preserve case
+        if (!username) return;
 
-            try {
-                const response = await fetch('/check-username', {
+        try {
+            const response = await fetch('/check-username', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                },
+                body: JSON.stringify({ username })
+            });
+
+            const data = await response.json();
+            userState = {
+                exists: data.exists,
+                hasPassword: data.hasPassword
+            };
+
+            updateFormState();
+            
+            const usernameInput = document.getElementById('username');
+            const usernameError = document.getElementById('usernameError');
+            
+            if (!data.exists) {
+                usernameInput.classList.add('is-invalid');
+                usernameError.textContent = data.message;
+            } else {
+                usernameInput.classList.remove('is-invalid');
+                usernameError.textContent = '';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function updateFormState() {
+        const passwordGroup = document.getElementById('passwordGroup');
+        const newPasswordGroup = document.getElementById('newPasswordGroup');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (!userState.exists) {
+            passwordGroup.classList.add('d-none');
+            newPasswordGroup.classList.add('d-none');
+            submitBtn.disabled = true;
+            return;
+        }
+
+        submitBtn.disabled = false;
+
+        if (userState.hasPassword) {
+            passwordGroup.classList.remove('d-none');
+            newPasswordGroup.classList.add('d-none');
+        } else {
+            passwordGroup.classList.add('d-none');
+            newPasswordGroup.classList.remove('d-none');
+        }
+    }
+
+    async function handleSubmit(e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value;
+
+    if (!userState.hasPassword) {
+        const newPassword = document.getElementById('new_password').value;
+        
+        try {
+            // Show confirmation dialog before setting password
+            const result = await Swal.fire({
+                title: 'Confirm New Password',
+                text: 'Would you like to save this password?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, save it',
+                cancelButtonText: 'No, cancel'
+            });
+
+            if (result.isConfirmed) {
+                const response = await fetch('/set-initial-password', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
                     },
-                    body: JSON.stringify({ username })
+                    body: JSON.stringify({ 
+                        username: username, 
+                        new_password: newPassword 
+                    })
                 });
 
                 const data = await response.json();
-                userState = {
-                    exists: data.exists,
-                    hasPassword: data.hasPassword
-                };
 
-                updateFormState();
-
-                if (!data.exists) {
-                    document.getElementById('usernameError').textContent = data.message;
+                if (data.success) {
+                    await Swal.fire({
+                        title: 'Success',
+                        text: data.message,
+                        icon: 'success',
+                        timer: 7500,  // Increased from 1500 to 3000 milliseconds (3 seconds)
+                        timerProgressBar: true  // Adds a visual progress bar
+                    });
+                    document.getElementById('new_password').value = '';
+                    document.getElementById('password').value = '';
+                    userState.hasPassword = true;
+                    updateFormState();
                 } else {
-                    document.getElementById('usernameError').textContent = '';
+                    const newPasswordInput = document.getElementById('new_password');
+                    const newPasswordError = document.getElementById('newPasswordError');
+                    newPasswordInput.classList.add('is-invalid');
+                    newPasswordError.textContent = data.message || 'Failed to set password. Please try again.';
                 }
-            } catch (error) {
-                console.error('Error:', error);
             }
+        } catch (error) {
+            console.error('Error setting password:', error);
+            await Swal.fire({
+                title: 'Error',
+                text: 'An error occurred while setting the password. Please try again.',
+                icon: 'error'
+            });
         }
+    } else {
+        const password = document.getElementById('password').value;
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                },
+                body: JSON.stringify({ username, password })
+            });
 
-        function updateFormState() {
-            const passwordGroup = document.getElementById('passwordGroup');
-            const newPasswordGroup = document.getElementById('newPasswordGroup');
-            const submitBtn = document.getElementById('submitBtn');
-
-            if (!userState.exists) {
-                passwordGroup.classList.add('hidden');
-                newPasswordGroup.classList.add('hidden');
-                submitBtn.disabled = true;
-                return;
-            }
-
-            submitBtn.disabled = false;
-
-            if (userState.hasPassword) {
-                passwordGroup.classList.remove('hidden');
-                newPasswordGroup.classList.add('hidden');
+            const data = await response.json();
+            if (data.success) {
+                window.location.href = data.redirect;
             } else {
-                passwordGroup.classList.add('hidden');
-                newPasswordGroup.classList.remove('hidden');
+                const passwordInput = document.getElementById('password');
+                const passwordError = document.getElementById('passwordError');
+                passwordInput.classList.add('is-invalid');
+                passwordError.textContent = data.message;
             }
+        } catch (error) {
+            console.error('Error:', error);
+            await Swal.fire({
+                title: 'Error',
+                text: 'An error occurred during login. Please try again.',
+                icon: 'error'
+            });
         }
-
-        async function handleSubmit(e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-
-            if (!userState.hasPassword) {
-                // Handle initial password setup
-                const newPassword = document.getElementById('new_password').value;
-                console.log('Attempting to set new password for:', username);
-                
-                try {
-                    const response = await fetch('/set-initial-password', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
-                        },
-                        body: JSON.stringify({ 
-                            username: username, 
-                            new_password: newPassword 
-                        })
-                    });
-
-                    console.log('Response status:', response.status);
-                    const data = await response.json();
-                    console.log('Response data:', data);
-
-                    if (data.success) {
-                        alert(data.message);
-                        // Reset form for fresh login
-                        document.getElementById('new_password').value = '';
-                        document.getElementById('password').value = '';
-                        userState.hasPassword = true;
-                        updateFormState();
-                    } else {
-                        document.getElementById('newPasswordError').textContent = 
-                            data.message || 'Failed to set password. Please try again.';
-                    }
-                } catch (error) {
-                    console.error('Error setting password:', error);
-                    document.getElementById('newPasswordError').textContent = 
-                        'An error occurred. Please try again.';
-                }
-
-            } else {
-                // Handle normal login
-                const password = document.getElementById('password').value;
-                try {
-                    const response = await fetch('/login', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
-                        },
-                        body: JSON.stringify({ username, password })
-                    });
-
-                    const data = await response.json();
-                    if (data.success) {
-                        window.location.href = data.redirect;
-                    } else {
-                        document.getElementById('passwordError').textContent = data.message;
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                }
-            }
-        }
-    </script>
-</body>
-</html>
+    }
+}
+</script>
+@endsection

@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class SessionTimeout
@@ -15,6 +16,13 @@ class SessionTimeout
             $lastActivity = session('last_activity');
             $timeout = config('session.lifetime') * 60; // Convert minutes to seconds
 
+            Log::info('Session Check', [
+                'last_activity' => $lastActivity,
+                'current_time' => time(),
+                'diff' => $lastActivity ? time() - $lastActivity : null,
+                'timeout' => $timeout
+            ]);
+    
             if ($lastActivity && time() - $lastActivity > $timeout) {
                 Auth::logout();
                 session()->flush();

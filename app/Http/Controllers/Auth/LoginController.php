@@ -18,18 +18,15 @@ class LoginController extends Controller
 
     public function checkUsername(Request $request)
     {
-        $user = User::where('username', $request->username)->first();
+        $username = $request->input('username');
 
-        if (!$user) {
-            return response()->json([
-                'exists' => false,
-                'message' => 'Username not found in the system.'
-            ]);
-        }
+        // Use binary comparison for case sensitivity
+        $user = User::whereRaw('BINARY username = ?', [$username])->first();
 
         return response()->json([
-            'exists' => true,
-            'hasPassword' => !is_null($user->password)
+            'exists' => !is_null($user),
+            'hasPassword' => $user ? !is_null($user->password) : false,
+            'message' => !is_null($user) ? 'User found' : 'User not found'
         ]);
     }
 
@@ -93,9 +90,16 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        // Check if user is already logged out (session expired)
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+    
+        // Proceed with normal logout
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/');
+        
+        return redirect()->route('login');
     }
 }
