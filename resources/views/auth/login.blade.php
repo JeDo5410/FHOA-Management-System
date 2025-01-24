@@ -64,6 +64,7 @@
             });
 
             const data = await response.json();
+            console.log('User state after check:', data);  
             userState = {
                 exists: data.exists,
                 hasPassword: data.hasPassword
@@ -111,6 +112,7 @@
 
     async function handleSubmit(e) {
     e.preventDefault();
+    console.log('Current user state:', userState);  
     const username = document.getElementById('username').value;
 
     if (!userState.hasPassword) {
@@ -149,8 +151,8 @@
                         title: 'Success',
                         text: data.message,
                         icon: 'success',
-                        timer: 7500,  // Increased from 1500 to 3000 milliseconds (3 seconds)
-                        timerProgressBar: true  // Adds a visual progress bar
+                        timer: 7500,  
+                        timerProgressBar: true  
                     });
                     document.getElementById('new_password').value = '';
                     document.getElementById('password').value = '';
