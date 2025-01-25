@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Fortezza HOA Management System')</title>
+    <title>@yield('title', 'Fortezza HOA Financial Management System')</title>
     @php
         $isNgrok = str_contains(request()->getHost(), 'ngrok');
     @endphp
@@ -202,7 +202,7 @@
 </head>
 <body>
     <header class="header">
-        <h1>Fortezza HOA Management System</h1>
+        <h1>Fortezza HOA Financial Management System</h1>
         <div class="header-center">Login</div>
         <div style="width: 150px;"></div>
     </header>

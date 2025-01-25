@@ -17,7 +17,8 @@ return new class extends Migration
             $table->id();
             $table->string('username');
             $table->string('password')->nullable();
-            $table->string('role');
+            $table->integer('role');
+            $table->boolean('is_active')->default(true);
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));
         });
