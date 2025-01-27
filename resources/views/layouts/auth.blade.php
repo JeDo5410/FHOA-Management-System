@@ -49,7 +49,7 @@
 
         .header-center {
             position: absolute;
-            left: 50%;
+            right: 1%;
             transform: translateX(-50%);
             font-size: 1.2rem;
             font-weight: 500;
