@@ -11,7 +11,11 @@
         </button>
     </div>
 
-    <div class="card">
+    <!-- Active Users Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-success bg-opacity-10">
+            <h5 class="card-title mb-0 text-success">Active Users</h5>
+        </div>
         <div class="card-body">
             <table class="table">
                 <thead>
@@ -26,32 +30,83 @@
                 </thead>
                 <tbody>
                     @foreach($users as $user)
+                        @if($user->is_active)
+                        <tr>
+                            <td>{{ $user->id }}</td>
+                            <td>{{ $user->username }}</td>
+                            <td>
+                                <span class="badge {{ $user->role === 1 ? 'bg-primary' : 'bg-info' }}">
+                                    {{ $user->role === 1 ? 'Administrator' : 'Staff' }}
+                                </span>
+                            </td>
+                            <td>
+                                @if($user->password)
+                                    <span class="badge bg-secondary">Password Set</span>
+                                @else
+                                    <span class="badge bg-warning text-dark">No Password</span>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="badge bg-success">Active</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="openEditModal({{ $user->id }})">
+                                    Edit
+                                </button>
+                            </td>
+                        </tr>
+                        @endif
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Inactive Users Section -->
+    <div class="card">
+        <div class="card-header bg-danger bg-opacity-10">
+            <h5 class="card-title mb-0 text-danger">Inactive Users</h5>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
                     <tr>
-                        <td>{{ $user->id }}</td>
-                        <td>{{ $user->username }}</td>
-                        <td>
-                            <span class="badge {{ $user->role === 1 ? 'bg-primary' : 'bg-info' }}">
-                                {{ $user->role === 1 ? 'Administrator' : 'Staff' }}
-                            </span>
-                        </td>
-                        <td>
-                            @if($user->password)
-                                <span class="badge bg-secondary">Password Set</span>
-                            @else
-                                <span class="badge bg-warning text-dark">No Password</span>
-                            @endif
-                        </td>
-                        <td>
-                            <span class="badge {{ $user->is_active ? 'bg-success' : 'bg-danger' }}">
-                                {{ $user->is_active ? 'Active' : 'Inactive' }}
-                            </span>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-primary" onclick="openEditModal({{ $user->id }})">
-                                Edit
-                            </button>
-                        </td>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Password Status</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
+                </thead>
+                <tbody>
+                    @foreach($users as $user)
+                        @if(!$user->is_active)
+                        <tr class="table-danger bg-opacity-10">
+                            <td>{{ $user->id }}</td>
+                            <td>{{ $user->username }}</td>
+                            <td>
+                                <span class="badge {{ $user->role === 1 ? 'bg-primary' : 'bg-info' }}">
+                                    {{ $user->role === 1 ? 'Administrator' : 'Staff' }}
+                                </span>
+                            </td>
+                            <td>
+                                @if($user->password)
+                                    <span class="badge bg-secondary">Password Set</span>
+                                @else
+                                    <span class="badge bg-warning text-dark">No Password</span>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="badge bg-danger">Inactive</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="openEditModal({{ $user->id }})">
+                                    Edit
+                                </button>
+                            </td>
+                        </tr>
+                        @endif
                     @endforeach
                 </tbody>
             </table>

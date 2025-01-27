@@ -23,10 +23,19 @@ class LoginController extends Controller
         // Use binary comparison for case sensitivity
         $user = User::whereRaw('BINARY username = ?', [$username])->first();
 
+        // If user doesn't exist OR is deactivated, return exists=false
+        if (!$user || (int)$user->is_active !== 1) {
+            return response()->json([
+                'exists' => false,
+                'hasPassword' => false,
+                'message' => !$user ? 'User not found' : 'This account has been deactivated. Please contact your administrator.'
+            ]);
+        }
+
         return response()->json([
-            'exists' => !is_null($user),
-            'hasPassword' => $user ? !is_null($user->password) : false,
-            'message' => !is_null($user) ? 'User found' : 'User not found'
+            'exists' => true,
+            'hasPassword' => !is_null($user->password),
+            'message' => 'User found'
         ]);
     }
 
@@ -94,12 +103,12 @@ class LoginController extends Controller
         if (!Auth::check()) {
             return redirect()->route('login');
         }
-    
+
         // Proceed with normal logout
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
+
         return redirect()->route('login');
     }
 }
