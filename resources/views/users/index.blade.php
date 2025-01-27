@@ -62,6 +62,11 @@
         </div>
     </div>
 
+    @php
+        $inactiveUsers = $users->where('is_active', 0);
+    @endphp
+
+    @if($inactiveUsers->count() >0)
     <!-- Inactive Users Section -->
     <div class="card">
         <div class="card-header bg-danger bg-opacity-10">
@@ -112,6 +117,7 @@
             </table>
         </div>
     </div>
+    @endif
 </div>
 
 <!-- Add User Modal -->
