@@ -29,6 +29,19 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
 });
 
+Route::get('/refresh-csrf', function () {
+    return response()->json(['token' => csrf_token()]);
+});
+
+// In web.php
+Route::get('/check-session', function () {
+    return response()->json(['status' => 'valid']);
+});
+
+Route::get('/refresh-csrf', function () {
+    return response()->json(['token' => csrf_token()]);
+});
+
 // Logout route
 Route::post('/logout', [LoginController::class, 'logout'])
     ->name('logout')
