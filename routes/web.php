@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ResidentController;
 use App\Http\Controllers\UserController;
 
 // Root URL will redirect to dashboard
@@ -20,26 +21,29 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
     Route::post('/check-username', [LoginController::class, 'checkUsername']);
     Route::post('/set-initial-password', [LoginController::class, 'setInitialPassword']);
-
 });
 
 Route::middleware(['auth', 'admin'])->group(function () {
+    // Users routes
     Route::get('/users', [UserController::class, 'users'])->name('users.users_management');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-});
+    
+    // Residents routes
+    Route::prefix('residents')->group(function () {
+        Route::get('/', [ResidentController::class, 'residentsData'])->name('residents.residents_data');
+        Route::get('/search-address', [ResidentController::class, 'searchAddress'])->name('residents.search');
+        Route::get('/get-member-details/{mem_id}', [ResidentController::class, 'getMemberDetails'])->name('residents.details');
+        Route::post('/', [ResidentController::class, 'store'])->name('residents.store');
+    });
+}); 
 
 Route::get('/refresh-csrf', function () {
     return response()->json(['token' => csrf_token()]);
 });
 
-// In web.php
 Route::get('/check-session', function () {
     return response()->json(['status' => 'valid']);
-});
-
-Route::get('/refresh-csrf', function () {
-    return response()->json(['token' => csrf_token()]);
 });
 
 // Logout route

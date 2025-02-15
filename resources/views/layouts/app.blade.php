@@ -10,18 +10,21 @@
 
     <link href="{{ $isNgrok ? secure_asset('assets/lib/bootstrap/css/bootstrap.min.css') : asset('assets/lib/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ $isNgrok ? secure_asset('assets/lib/sweetalert2/css/sweetalert2.min.css') : asset('assets/lib/sweetalert2/css/sweetalert2.min.css') }}" rel="stylesheet">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <style>
         :root {
             --primary-color: #2c3e50;
             --accent-color: #3498db;
             --sidebar-width: 250px;
+            --header-height: 60px;
         }
         
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
             background-color: #f8f9fa;
             overflow-x: hidden;
+            padding-top: var(--header-height);
+            min-height: 100vh;
         }
 
         .header {
@@ -29,9 +32,11 @@
             padding: 0.75rem 1.5rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             position: fixed;
-            width: 100%;
-            z-index: 1030;
-            height: 60px;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
         }
 
         .header h1 {
@@ -41,15 +46,15 @@
         }
 
         .sidenav {
-            height: 100vh;
+            height: calc(100vh - var(--header-height));
             width: var(--sidebar-width);
             background-color: white;
             position: fixed;
-            top: 0;
+            top: var(--header-height);
             left: 0;
-            padding-top: 60px;
             box-shadow: 0 0 15px rgba(0,0,0,0.05);
             transition: all 0.3s ease;
+            overflow-y: auto;
         }
 
         .nav-link {
@@ -81,10 +86,10 @@
 
         .main-content {
             margin-left: var(--sidebar-width);
-            padding: 80px 2rem 2rem;
-            min-height: 100vh;
+            padding: 2rem;
+            min-height: calc(100vh - var(--header-height));
+            position: relative;
         }
-
         .logout-btn {
             background-color: #dc3545;
             color: white;
@@ -99,6 +104,11 @@
             transform: translateY(-1px);
         }
 
+        .user-greeting {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
         @media (max-width: 768px) {
             .sidenav {
                 width: 70px;
@@ -111,19 +121,11 @@
             }
             .header h1 {
                 font-size: 1.2rem;
-            } 
-        }
+            }
             .user-greeting {
-                color: var(--primary-color);
-                font-weight: 500;
+                font-size: 0.9rem;
             }
-            
-            @media (max-width: 768px) {
-                .user-greeting {
-                    font-size: 0.9rem;
-                }
-            }
-
+        }
     </style>
 </head>
 <body>
@@ -143,19 +145,23 @@
     </header>
     
     <nav class="sidenav">
-        <a href="/dashboard" class="nav-link {{ request()->is('dashboard') ? 'active' : '' }}">
-            <i class="bi bi-speedometer2"></i>
-            <span>Dashboard</span>
-        </a>
-        @php
-            $userRole = auth()->user()->role;
-        @endphp
-        
-        @if ($userRole === 1)
-            <a href="{{ route('users.users_management') }}" class="nav-link {{ request()->routeIs('users.users_management') ? 'active' : '' }}">
-                <i class="bi bi-people"></i>
-                <span>Users</span>
+            <a href="/dashboard" class="nav-link {{ request()->is('dashboard') ? 'active' : '' }}">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
             </a>
+            @php
+                $userRole = auth()->user()->role;
+            @endphp
+            
+            @if ($userRole === 1)
+                <a href="{{ route('users.users_management') }}" class="nav-link {{ request()->routeIs('users.users_management') ? 'active' : '' }}">
+                    <i class="bi bi-people"></i>
+                    <span>Users</span>
+                </a>
+                <a href="{{ route('residents.residents_data') }}" class="nav-link {{ request()->routeIs('residents.residents_data') ? 'active' : '' }}">
+                    <i class="bi bi-people"></i>
+                    <span>Resident Data</span>
+                </a>
         @endif
     </nav>
 
@@ -165,5 +171,6 @@
 
     <script src="{{ $isNgrok ? secure_asset('assets/lib/bootstrap/js/bootstrap.bundle.min.js') : asset('assets/lib/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ $isNgrok ? secure_asset('assets/lib/sweetalert2/js/sweetalert2.all.min.js') : asset('assets/lib/sweetalert2/js/sweetalert2.all.min.js') }}"></script>
+    @stack('scripts')
 </body>
 </html>
