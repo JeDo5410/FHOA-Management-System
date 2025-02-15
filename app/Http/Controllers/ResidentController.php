@@ -46,45 +46,19 @@ class ResidentController extends Controller
     public function getMemberDetails($mem_id)
     {
         try {
-            Log::info("Fetching details for member ID: {$mem_id}");
-    
             // Get latest member data entry
             $memberData = MemberData::where('mem_id', $mem_id)
                 ->orderBy('mem_transno', 'desc')
                 ->first();
-            
-            Log::info("Member data retrieved", [
-                'mem_id' => $mem_id,
-                'trans_no' => $memberData?->mem_transno ?? 'Not found'
-            ]);
     
-            // Get ALL vehicle records with detailed logging
-            $vehicles = CarSticker::where('mem_id', $mem_id)->get();
-            
-            // Log each vehicle's details
-            foreach ($vehicles as $vehicle) {
-                Log::info("Vehicle record retrieved", [
-                    'mem_id' => $mem_id,
-                    'vehicle_id' => $vehicle->id,
-                    'plate_no' => $vehicle->plate_no,
-                    'make' => $vehicle->make,
-                    'model' => $vehicle->model,
-                    'year' => $vehicle->year,
-                    'color' => $vehicle->color,
-                    'sticker_no' => $vehicle->sticker_no,
-                    'status' => $vehicle->status,
-                    'created_at' => $vehicle->created_at,
-                    'updated_at' => $vehicle->updated_at
-                ]);
-            }
-    
-            Log::info("Total vehicles found for member: " . $vehicles->count());
+            // Get ALL vehicle records - removed active filter
+            $vehicles = CarSticker::where('mem_id', $mem_id)
+                ->get();
     
             // Get member summary information
             $memberSum = MemberSum::find($mem_id);
-            
+    
             if (!$memberSum) {
-                Log::warning("Member summary not found for ID: {$mem_id}");
                 return response()->json(['error' => 'Member not found'], 404);
             }
     
@@ -95,15 +69,11 @@ class ResidentController extends Controller
             ]);
     
         } catch (\Exception $e) {
-            Log::error('Member details fetch error', [
-                'mem_id' => $mem_id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            Log::error('Member details fetch error: ' . $e->getMessage());
             return response()->json(['error' => 'Error fetching member details'], 500);
         }
     }
-    
+
     public function store(Request $request)
     {
         try {
