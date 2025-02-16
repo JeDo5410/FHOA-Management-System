@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountPayableController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ResidentController;
@@ -11,7 +12,7 @@ Route::get('/', function () {
 });
 
 // Dashboard route, protected by auth
-Route::get('/dashboard', function () {
+Route::get('/', function () {
     return view('dashboard');
 })->middleware('auth')->name('dashboard');
 
@@ -35,6 +36,12 @@ Route::middleware(['auth', 'admin'])->group(function () {
         Route::get('/search-address', [ResidentController::class, 'searchAddress'])->name('residents.search');
         Route::get('/get-member-details/{mem_id}', [ResidentController::class, 'getMemberDetails'])->name('residents.details');
         Route::post('/', [ResidentController::class, 'store'])->name('residents.store');
+    });
+
+    // Account Payables routes
+    Route::prefix('accounts')->group(function () {
+    Route::get('/payables', [AccountPayableController::class, 'index'])->name('accounts.payables');
+    Route::post('/payables/store', [AccountPayableController::class, 'store'])->name('accounts.payables.store');
     });
 }); 
 

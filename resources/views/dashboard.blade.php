@@ -3,7 +3,7 @@
 @section('title', 'Dashboard - HOA Management System')
 
 @section('content')
-    <div class="container-fluid">
+    {{-- <div class="container-fluid">
         <div class="row">
             <div class="col-12">
                 <div class="card shadow-sm">
@@ -27,5 +27,5 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
 @endsection

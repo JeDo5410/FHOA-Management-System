@@ -10,6 +10,8 @@
 
     <link href="{{ $isNgrok ? secure_asset('assets/lib/bootstrap/css/bootstrap.min.css') : asset('assets/lib/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ $isNgrok ? secure_asset('assets/lib/sweetalert2/css/sweetalert2.min.css') : asset('assets/lib/sweetalert2/css/sweetalert2.min.css') }}" rel="stylesheet">
+    <script href="{{ $isNgrok ? secure_asset('assets/jquery/jquery-3.7.1.min.js') : asset('assets/jquery/jquery-3.7.1.min.js') }}"></script>
+    <link href="{{ $isNgrok ? secure_asset('assets/select2/css/select2.min.css') : asset('assets/select2/css/select2.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <style>
         :root {
@@ -145,25 +147,30 @@
     </header>
     
     <nav class="sidenav">
-            <a href="/dashboard" class="nav-link {{ request()->is('dashboard') ? 'active' : '' }}">
-                <i class="bi bi-speedometer2"></i>
-                <span>Dashboard</span>
+        {{-- <a href="/dashboard" class="nav-link {{ request()->is('dashboard') ? 'active' : '' }}">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+        </a> --}}
+        @php
+            $userRole = auth()->user()->role;
+        @endphp
+        
+        @if ($userRole === 1)
+            <a href="{{ route('users.users_management') }}" class="nav-link {{ request()->routeIs('users.users_management') ? 'active' : '' }}">
+                <i class="bi bi-people"></i>
+                <span>Users</span>
             </a>
-            @php
-                $userRole = auth()->user()->role;
-            @endphp
-            
-            @if ($userRole === 1)
-                <a href="{{ route('users.users_management') }}" class="nav-link {{ request()->routeIs('users.users_management') ? 'active' : '' }}">
-                    <i class="bi bi-people"></i>
-                    <span>Users</span>
-                </a>
-                <a href="{{ route('residents.residents_data') }}" class="nav-link {{ request()->routeIs('residents.residents_data') ? 'active' : '' }}">
-                    <i class="bi bi-people"></i>
-                    <span>Resident Data</span>
-                </a>
+            <a href="{{ route('residents.residents_data') }}" class="nav-link {{ request()->routeIs('residents.residents_data') ? 'active' : '' }}">
+                <i class="bi bi-people"></i>
+                <span>Resident Data</span>
+            </a>
+            <a href="{{ route('accounts.payables') }}" class="nav-link {{ request()->routeIs('accounts.payables') ? 'active' : '' }}">
+                <i class="bi bi-cash"></i>
+                <span>Account Payable</span>
+            </a>
         @endif
     </nav>
+    
 
     <main class="main-content">
         @yield('content')
@@ -172,5 +179,33 @@
     <script src="{{ $isNgrok ? secure_asset('assets/lib/bootstrap/js/bootstrap.bundle.min.js') : asset('assets/lib/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ $isNgrok ? secure_asset('assets/lib/sweetalert2/js/sweetalert2.all.min.js') : asset('assets/lib/sweetalert2/js/sweetalert2.all.min.js') }}"></script>
     @stack('scripts')
+    
+    @if(session('success'))
+    <div class="toast-container position-fixed" style="top: 20px; right: 20px; z-index: 1060;">
+        <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-check-circle me-2"></i>
+                    {{ session('success') }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toast = document.getElementById('successToast');
+            if (toast) {
+                const bsToast = new bootstrap.Toast(toast, {
+                    animation: true,
+                    autohide: true,
+                    delay: 4000
+                });
+                bsToast.show();
+            }
+        });
+    </script>
+    @endif
 </body>
 </html>
