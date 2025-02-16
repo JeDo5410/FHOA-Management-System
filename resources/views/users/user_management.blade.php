@@ -211,31 +211,55 @@
 @endphp
 
 <script>
+// Initialize modals
 let addModal, editModal;
 
 document.addEventListener('DOMContentLoaded', function() {
-    addModal = new bootstrap.Modal(document.getElementById('addUserModal'));
-    editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
-
-    document.getElementById('addUserForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        saveUser();
+    // Initialize modals with proper backdrop and keyboard options
+    addModal = new bootstrap.Modal(document.getElementById('addUserModal'), {
+        backdrop: 'static',
+        keyboard: true
+    });
+    
+    editModal = new bootstrap.Modal(document.getElementById('editUserModal'), {
+        backdrop: 'static',
+        keyboard: true
     });
 
-    document.getElementById('editUserForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        updateUser();
+    // Add event listeners for modal hiding
+    document.getElementById('addUserModal').addEventListener('hidden.bs.modal', function () {
+        document.body.classList.remove('modal-open');
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+            backdrop.remove();
+        }
+    });
+
+    document.getElementById('editUserModal').addEventListener('hidden.bs.modal', function () {
+        document.body.classList.remove('modal-open');
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+            backdrop.remove();
+        }
     });
 });
 
-
+// Modified open functions
 function openAddModal() {
     document.getElementById('addUserForm').reset();
+    // Remove any lingering backdrops
+    const existingBackdrop = document.querySelector('.modal-backdrop');
+    if (existingBackdrop) {
+        existingBackdrop.remove();
+    }
+    document.body.classList.remove('modal-open');
+    
+    // Show modal
     addModal.show();
 }
 
 function openEditModal(userId) {
-    const user = @json($users).find(u => u.id === userId);
+    const user = users.find(u => u.id === userId);
     const form = document.getElementById('editUserForm');
     
     form.elements['user_id'].value = user.id;
@@ -243,6 +267,14 @@ function openEditModal(userId) {
     form.elements['role'].value = user.role;
     form.elements['is_active'].value = user.is_active ? '1' : '0';
     
+    // Remove any lingering backdrops
+    const existingBackdrop = document.querySelector('.modal-backdrop');
+    if (existingBackdrop) {
+        existingBackdrop.remove();
+    }
+    document.body.classList.remove('modal-open');
+    
+    // Show modal
     editModal.show();
 }
 
