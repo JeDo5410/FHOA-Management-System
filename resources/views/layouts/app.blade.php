@@ -147,30 +147,29 @@
     </header>
     
     <nav class="sidenav">
-        {{-- <a href="/dashboard" class="nav-link {{ request()->is('dashboard') ? 'active' : '' }}">
-            <i class="bi bi-speedometer2"></i>
-            <span>Dashboard</span>
-        </a> --}}
         @php
             $userRole = auth()->user()->role;
         @endphp
-        
+
+        {{-- User Management - Admin Only --}}
         @if ($userRole === 1)
             <a href="{{ route('users.users_management') }}" class="nav-link {{ request()->routeIs('users.users_management') ? 'active' : '' }}">
                 <i class="bi bi-people"></i>
                 <span>Users</span>
             </a>
-            <a href="{{ route('residents.residents_data') }}" class="nav-link {{ request()->routeIs('residents.residents_data') ? 'active' : '' }}">
-                <i class="bi bi-people"></i>
-                <span>Member Data</span>
-            </a>
-            <a href="{{ route('accounts.payables') }}" class="nav-link {{ request()->routeIs('accounts.payables') ? 'active' : '' }}">
-                <i class="bi bi-cash"></i>
-                <span>Account Payable</span>
-            </a>
         @endif
+
+        {{-- Common Routes for All Roles --}}
+        <a href="{{ route('residents.residents_data') }}" class="nav-link {{ request()->routeIs('residents.residents_data') ? 'active' : '' }}">
+            <i class="bi bi-people"></i>
+            <span>Member Data</span>
+        </a>
+        
+        <a href="{{ route('accounts.payables') }}" class="nav-link {{ request()->routeIs('accounts.payables') ? 'active' : '' }}">
+            <i class="bi bi-cash"></i>
+            <span>Account Payable</span>
+        </a>
     </nav>
-    
 
     <main class="main-content">
         @yield('content')

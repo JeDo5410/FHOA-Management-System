@@ -11,12 +11,7 @@ Route::get('/', function () {
     return redirect()->route('dashboard');
 });
 
-// Dashboard route, protected by auth
-Route::get('/', function () {
-    return view('dashboard');
-})->middleware('auth')->name('dashboard');
-
-// Guest middleware will redirect authenticated users away from login
+// Guest middleware group (unchanged)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
@@ -24,12 +19,21 @@ Route::middleware('guest')->group(function () {
     Route::post('/set-initial-password', [LoginController::class, 'setInitialPassword']);
 });
 
-Route::middleware(['auth', 'admin'])->group(function () {
-    // Users routes
+// Admin-only routes
+Route::middleware(['auth', 'role:1'])->group(function () {
+    // Users management routes
     Route::get('/users', [UserController::class, 'users'])->name('users.users_management');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-    
+});
+
+// Routes accessible by all authenticated users (Admin, Editor, Viewer)
+Route::middleware(['auth', 'role:1,2,3'])->group(function () {
+    // Dashboard
+    Route::get('/', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
     // Residents routes
     Route::prefix('residents')->group(function () {
         Route::get('/', [ResidentController::class, 'residentsData'])->name('residents.residents_data');
@@ -40,21 +44,24 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     // Account Payables routes
     Route::prefix('accounts')->group(function () {
-    Route::get('/payables', [AccountPayableController::class, 'index'])->name('accounts.payables');
-    Route::post('/payables/store', [AccountPayableController::class, 'store'])->name('accounts.payables.store');
+        Route::get('/payables', [AccountPayableController::class, 'index'])->name('accounts.payables');
+        Route::post('/payables/store', [AccountPayableController::class, 'store'])->name('accounts.payables.store');
     });
-}); 
-
-Route::get('/refresh-csrf', function () {
-    return response()->json(['token' => csrf_token()]);
 });
 
-Route::get('/check-session', function () {
-    return response()->json(['status' => 'valid']);
+// Utility routes accessible to all authenticated users
+Route::middleware(['auth'])->group(function () {
+    Route::get('/refresh-csrf', function () {
+        return response()->json(['token' => csrf_token()]);
+    });
+
+    Route::get('/check-session', function () {
+        return response()->json(['status' => 'valid']);
+    });
 });
 
-// Logout route
+// Logout route (unchanged)
 Route::post('/logout', [LoginController::class, 'logout'])
     ->name('logout')
-    ->withoutMiddleware(['auth'])  // Allow the route to process without authentication
-    ->middleware(['web']);  // Keep the web middleware for session handling
+    ->withoutMiddleware(['auth'])
+    ->middleware(['web']);

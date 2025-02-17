@@ -35,8 +35,12 @@
                             <td>{{ $user->id }}</td>
                             <td>{{ $user->username }}</td>
                             <td>
-                                <span class="badge {{ $user->role === 1 ? 'bg-primary' : 'bg-info' }}">
-                                    {{ $user->role === 1 ? 'Administrator' : 'Staff' }}
+                                <span class="badge 
+                                    @if($user->role === 1) bg-primary
+                                    @elseif($user->role === 2) bg-info
+                                    @else bg-secondary
+                                    @endif">
+                                    {{ $user->role === 1 ? 'Administrator' : ($user->role === 2 ? 'Editor' : 'Viewer') }}
                                 </span>
                             </td>
                             <td>
@@ -66,8 +70,8 @@
         $inactiveUsers = $users->where('is_active', 0);
     @endphp
 
-    @if($inactiveUsers->count() >0)
-    <!-- Inactive Users Section -->
+    @if($inactiveUsers->count() > 0)
+    <!-- Inactive Users Section (same changes for role display) -->
     <div class="card">
         <div class="card-header bg-danger bg-opacity-10">
             <h5 class="card-title mb-0 text-danger">Inactive Users</h5>
@@ -91,8 +95,12 @@
                             <td>{{ $user->id }}</td>
                             <td>{{ $user->username }}</td>
                             <td>
-                                <span class="badge {{ $user->role === 1 ? 'bg-primary' : 'bg-info' }}">
-                                    {{ $user->role === 1 ? 'Administrator' : 'Staff' }}
+                                <span class="badge 
+                                    @if($user->role === 1) bg-primary
+                                    @elseif($user->role === 2) bg-info
+                                    @else bg-secondary
+                                    @endif">
+                                    {{ $user->role === 1 ? 'Administrator' : ($user->role === 2 ? 'Editor' : 'Viewer') }}
                                 </span>
                             </td>
                             <td>
@@ -137,7 +145,8 @@
                     <div class="mb-3">
                         <label class="form-label">Role</label>
                         <select class="form-control" name="role" required>
-                            <option value="2">Staff</option>
+                            <option value="3">Viewer</option>
+                            <option value="2">Editor</option>
                             <option value="1">Admin</option>
                         </select>
                     </div>                    
@@ -176,7 +185,8 @@
                     <div class="mb-3">
                         <label class="form-label">Role</label>
                         <select class="form-control" name="role" required>
-                            <option value="2">Staff</option>
+                            <option value="3">Viewer</option>
+                            <option value="2">Editor</option>
                             <option value="1">Administrator</option>
                         </select>
                     </div>                    

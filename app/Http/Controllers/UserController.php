@@ -1,4 +1,5 @@
 <?php
+// File: app/Http/Controllers/UserController.php
 
 namespace App\Http\Controllers;
 
@@ -26,7 +27,7 @@ class UserController extends Controller
                     }
                 }
             ],
-            'role' => 'required|in:1,2'
+            'role' => 'required|in:1,2,3'  
         ]);
     
         User::create($validated);
@@ -38,7 +39,7 @@ class UserController extends Controller
         $rules = [
             'is_active' => 'required|boolean',
             'clear_password' => 'boolean',
-            'role' => 'required|in:1,2'
+            'role' => 'required|in:1,2,3'  
         ];
     
         // Only validate username if it has changed
