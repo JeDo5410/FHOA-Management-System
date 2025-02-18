@@ -233,6 +233,9 @@
 @endphp
 
 <script>
+// Make users data available to JavaScript
+const users = @json($users);
+
 // Initialize modals
 let addModal, editModal;
 
@@ -281,7 +284,15 @@ function openAddModal() {
 }
 
 function openEditModal(userId) {
+    // Convert userId to number since it might be coming as string from the onclick
+    userId = parseInt(userId);
     const user = users.find(u => u.id === userId);
+    
+    if (!user) {
+        console.error(`User with ID ${userId} not found!`);
+        return;
+    }
+    
     const form = document.getElementById('editUserForm');
     
     form.elements['user_id'].value = user.id;
@@ -289,6 +300,7 @@ function openEditModal(userId) {
     form.elements['username'].value = user.username;
     form.elements['role'].value = user.role;
     form.elements['is_active'].value = user.is_active ? '1' : '0';
+    form.elements['clear_password'].checked = false;
     
     // Remove any lingering backdrops
     const existingBackdrop = document.querySelector('.modal-backdrop');
@@ -300,7 +312,6 @@ function openEditModal(userId) {
     // Show modal
     editModal.show();
 }
-
 
 function saveUser() {
     const form = document.getElementById('addUserForm');
@@ -345,7 +356,12 @@ function saveUser() {
 
 function updateUser() {
     const form = document.getElementById('editUserForm');
-    const userId = form.elements['user_id'].value;
+    const userId = parseInt(form.elements['user_id'].value);
+    if (!userId) {
+        console.error('No user ID found in form');
+        return;
+    }
+    
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
     data.clear_password = form.elements['clear_password'].checked;
@@ -409,6 +425,5 @@ function performUpdate(userId, data) {
         });
     });
 }
-
 </script>
 @endsection
