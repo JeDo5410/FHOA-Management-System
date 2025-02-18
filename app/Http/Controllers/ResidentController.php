@@ -51,8 +51,12 @@ class ResidentController extends Controller
                 ->orderBy('mem_transno', 'desc')
                 ->first();
     
-            // Get ALL vehicle records - removed active filter
+            // Get only the latest vehicle records using a subquery for max timestamp
+            $latestVehiclesTimestamp = CarSticker::where('mem_id', $mem_id)
+                ->max('timestamp');
+                
             $vehicles = CarSticker::where('mem_id', $mem_id)
+                ->where('timestamp', $latestVehiclesTimestamp)
                 ->get();
     
             // Get member summary information
@@ -72,7 +76,7 @@ class ResidentController extends Controller
             Log::error('Member details fetch error: ' . $e->getMessage());
             return response()->json(['error' => 'Error fetching member details'], 500);
         }
-    }
+    }    
 
     public function store(Request $request)
     {
@@ -90,7 +94,7 @@ class ResidentController extends Controller
             $memberData = new MemberData();
             $memberData->mem_id = $memberSum->mem_id;
             $memberData->mem_typecode = $request->mem_typecode;
-            $memberData->mem_name = $request->members_name;
+            $memberData->mem_name = $request->mem_name;
             $memberData->mem_mobile = $request->contact_number;
             $memberData->mem_email = $request->email;
             $memberData->mem_SPA_Tenant = $request->tenant_spa;
@@ -98,9 +102,10 @@ class ResidentController extends Controller
             $memberData->user_id = auth()->id();
             
             // Handle residents and relationships
-            for ($i = 1; $i <= 10; $i++) {
-                $memberData->{"mem_Resident$i"} = $request->input("residents.$i.name");
-                $memberData->{"mem_Relationship$i"} = $request->input("residents.$i.relationship");
+            for ($i = 0; $i < 10; $i++) {
+                $dbFieldNumber = $i + 1; // Convert 0-based index to 1-based field numbering
+                $memberData->{"mem_Resident$dbFieldNumber"} = $request->input("residents.$i.name");
+                $memberData->{"mem_Relationship$dbFieldNumber"} = $request->input("residents.$i.relationship");
             }
             
             $memberData->save();
