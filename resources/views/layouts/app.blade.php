@@ -135,7 +135,7 @@
         <h1>Fortezza HOA Financial Management System</h1>
         <div class="d-flex align-items-center">
             <div class="me-4">
-                <span class="user-greeting">Welcome, {{ auth()->user()->username }}</span>
+                <span class="user-greeting">Welcome, {{ auth()->user()->fullname }}</span>
             </div>
             <form action="{{ route('logout') }}" method="POST" style="display: inline">
                 @csrf
@@ -160,10 +160,10 @@
         @endif
 
         {{-- Common Routes for All Roles --}}
-        {{-- <a href="{{ route('residents.residents_data') }}" class="nav-link {{ request()->routeIs('residents.residents_data') ? 'active' : '' }}">
+        <a href="{{ route('residents.residents_data') }}" class="nav-link {{ request()->routeIs('residents.residents_data') ? 'active' : '' }}">
             <i class="bi bi-people"></i>
             <span>Member Data</span>
-        </a> --}}
+        </a> 
         
         <a href="{{ route('accounts.payables') }}" class="nav-link {{ request()->routeIs('accounts.payables') ? 'active' : '' }}">
             <i class="bi bi-cash"></i>
