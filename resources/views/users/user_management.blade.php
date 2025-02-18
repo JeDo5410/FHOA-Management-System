@@ -21,6 +21,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>Full Name</th>
                         <th>Username</th>
                         <th>Role</th>
                         <th>Password Status</th>
@@ -33,6 +34,7 @@
                         @if($user->is_active)
                         <tr>
                             <td>{{ $user->id }}</td>
+                            <td>{{ $user->fullname }}</td>
                             <td>{{ $user->username }}</td>
                             <td>
                                 <span class="badge 
@@ -81,6 +83,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>Full Name</th>
                         <th>Username</th>
                         <th>Role</th>
                         <th>Password Status</th>
@@ -93,6 +96,7 @@
                         @if(!$user->is_active)
                         <tr class="table-danger bg-opacity-10">
                             <td>{{ $user->id }}</td>
+                            <td>{{ $user->fullname }}</td>
                             <td>{{ $user->username }}</td>
                             <td>
                                 <span class="badge 
@@ -139,6 +143,10 @@
             <div class="modal-body">
                 <form id="addUserForm">
                     <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" name="fullname" required>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Username</label>
                         <input type="text" class="form-control" name="username" required>
                     </div>
@@ -178,6 +186,10 @@
             <div class="modal-body">
                 <form id="editUserForm">
                     <input type="hidden" name="user_id">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" name="fullname" required>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">Username</label>
                         <input type="text" class="form-control" name="username" required>
@@ -273,6 +285,7 @@ function openEditModal(userId) {
     const form = document.getElementById('editUserForm');
     
     form.elements['user_id'].value = user.id;
+    form.elements['fullname'].value = user.fullname || '';
     form.elements['username'].value = user.username;
     form.elements['role'].value = user.role;
     form.elements['is_active'].value = user.is_active ? '1' : '0';
@@ -399,4 +412,3 @@ function performUpdate(userId, data) {
 
 </script>
 @endsection
-

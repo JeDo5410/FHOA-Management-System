@@ -18,6 +18,7 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'fullname' => 'required|string|max:255',
             'username' => [
                 'required',
                 function ($attribute, $value, $fail) {
@@ -27,7 +28,8 @@ class UserController extends Controller
                     }
                 }
             ],
-            'role' => 'required|in:1,2,3'  
+            'role' => 'required|in:1,2,3',
+            'is_active' => 'required|boolean'
         ]);
     
         User::create($validated);
@@ -37,6 +39,7 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $rules = [
+            'fullname' => 'required|string|max:255',
             'is_active' => 'required|boolean',
             'clear_password' => 'boolean',
             'role' => 'required|in:1,2,3'  
@@ -60,6 +63,7 @@ class UserController extends Controller
         $validated = $request->validate($rules);
     
         $updateData = [
+            'fullname' => $validated['fullname'],
             'is_active' => $validated['is_active'],
             'role' => $validated['role']
         ];
@@ -68,7 +72,7 @@ class UserController extends Controller
             $updateData['username'] = $validated['username'];
         }
     
-        if ($validated['clear_password']) {
+        if ($request->has('clear_password') && $validated['clear_password']) {
             $updateData['password'] = null;
         }
     
