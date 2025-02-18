@@ -163,7 +163,7 @@
         <a href="{{ route('residents.residents_data') }}" class="nav-link {{ request()->routeIs('residents.residents_data') ? 'active' : '' }}">
             <i class="bi bi-people"></i>
             <span>Member Data</span>
-        </a> 
+        </a>
         
         <a href="{{ route('accounts.payables') }}" class="nav-link {{ request()->routeIs('accounts.payables') ? 'active' : '' }}">
             <i class="bi bi-cash"></i>

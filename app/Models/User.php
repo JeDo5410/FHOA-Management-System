@@ -12,6 +12,7 @@ class User extends Authenticatable
     public const ROLE_VIEWER = 3;
 
     protected $fillable = [
+        'fullname',
         'username',
         'password',
         'role',
