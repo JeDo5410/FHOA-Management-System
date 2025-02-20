@@ -39,6 +39,7 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
         Route::get('/', [ResidentController::class, 'residentsData'])->name('residents.residents_data');
         Route::get('/search-address', [ResidentController::class, 'searchAddress'])->name('residents.search');
         Route::get('/get-member-details/{mem_id}', [ResidentController::class, 'getMemberDetails'])->name('residents.details');
+        Route::get('/validate-address/{addressId}', [ResidentController::class, 'validateAddress'])->name('residents.validate-address');
         Route::post('/', [ResidentController::class, 'store'])->name('residents.store');
     });
 

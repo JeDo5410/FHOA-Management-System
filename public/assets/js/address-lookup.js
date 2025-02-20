@@ -175,10 +175,10 @@ class AddressLookup {
     handleKeyboardNavigation(e, tab) {
         const container = this.dropdownContainers[tab];
         if (container.style.display === 'none') return;
-
+    
         const items = container.querySelectorAll('li');
         const currentIndex = Array.from(items).findIndex(item => item.classList.contains('active'));
-
+    
         switch (e.key) {
             case 'ArrowDown':
                 e.preventDefault();
@@ -191,12 +191,52 @@ class AddressLookup {
             case 'Enter':
                 e.preventDefault();
                 const activeItem = container.querySelector('li.active');
-                if (activeItem) activeItem.click();
+                const inputValue = this.addressInputs[tab].value;
+                
+                if (activeItem) {
+                    activeItem.click();
+                } else if (inputValue.length === 5) {
+                    this.handleDirectAddressLookup(inputValue);
+                }
                 break;
             case 'Escape':
                 e.preventDefault();
                 this.hideDropdowns();
                 break;
+        }
+    }
+
+    async handleDirectAddressLookup(addressId) {
+        try {
+            // First check local results
+            const localMatch = Array.from(this.dropdownContainers[this.activeTab].querySelectorAll('li'))
+                .find(li => li.querySelector('.address-id').textContent === addressId);
+    
+            if (localMatch) {
+                localMatch.click();
+                return;
+            }
+    
+            // If not found locally, make API call
+            const response = await fetch(`/residents/validate-address/${addressId}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+    
+            if (!response.ok) throw new Error('Address not found');
+            const addressData = await response.json();
+    
+            this.selectAddress({
+                mem_add_id: addressId,
+                mem_id: addressData.mem_id
+            });
+        } catch (error) {
+            console.error('Direct lookup error:', error);
+            this.showError('Address ID not found');
+            this.updateAddressFields('');
+            this.updateMemberInfo({});
         }
     }
 
@@ -329,7 +369,14 @@ class AddressLookup {
             const formattedAddress = this.translateAddressId(address.mem_add_id);
             this.updateAddressFields(formattedAddress);
             this.syncAddressInputs(address.mem_add_id);
-            
+    
+            // If we already have member data (from direct lookup), use it
+            if (address.memberData) {
+                this.populateForm(address.memberData);
+                return;
+            }
+    
+            // Otherwise fetch member details
             const response = await fetch(`/residents/get-member-details/${address.mem_id}`, {
                 headers: {
                     'Accept': 'application/json',
@@ -338,11 +385,9 @@ class AddressLookup {
             });
     
             if (!response.ok) throw new Error('Network response was not ok');
-            
             const data = await response.json();
             this.populateForm(data);
-            this.hideDropdowns(); // Changed from hideDropdown
-    
+            this.hideDropdowns();
         } catch (error) {
             console.error('Error fetching member details:', error);
             this.showError('Error loading member details');

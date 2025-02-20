@@ -16,7 +16,7 @@ class ResidentController extends Controller
     {
         // Get all member types for the radio buttons
         $memberTypes = MemType::all();
-        
+
         return view('residents.residents_data', compact('memberTypes'));
     }
 
@@ -24,7 +24,7 @@ class ResidentController extends Controller
     {
         try {
             $search = $request->input('query');
-            
+
             if (empty($search)) {
                 return response()->json([]);
             }
@@ -36,10 +36,51 @@ class ResidentController extends Controller
                 ->get();
 
             return response()->json($addresses);
-            
         } catch (\Exception $e) {
             Log::error('Address search error: ' . $e->getMessage());
             return response()->json(['error' => 'Error searching addresses'], 500);
+        }
+    }
+
+    public function validateAddress($addressId)
+    {
+        try {
+            // Validate address ID format first
+            if (!preg_match('/^\d{5}$/', $addressId)) {
+                return response()->json(['error' => 'Invalid address format'], 400);
+            }
+
+            // Find member by exact address ID match
+            $memberSum = MemberSum::where('mem_add_id', $addressId)->first();
+
+            if (!$memberSum) {
+                return response()->json(['error' => 'Address not found'], 404);
+            }
+
+            // Get latest member data entry
+            $memberData = MemberData::where('mem_id', $memberSum->mem_id)
+                ->orderBy('mem_transno', 'desc')
+                ->first();
+
+            // Get latest vehicle records
+            $latestVehiclesTimestamp = CarSticker::where('mem_id', $memberSum->mem_id)
+                ->max('timestamp');
+
+            $vehicles = CarSticker::where('mem_id', $memberSum->mem_id)
+                ->where('timestamp', $latestVehiclesTimestamp)
+                ->get();
+
+            return response()->json([
+                'mem_id' => $memberSum->mem_id,
+                'memberData' => [
+                    'memberSum' => $memberSum,
+                    'memberData' => $memberData,
+                    'vehicles' => $vehicles
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Address validation error: ' . $e->getMessage());
+            return response()->json(['error' => 'Error validating address'], 500);
         }
     }
 
@@ -50,46 +91,45 @@ class ResidentController extends Controller
             $memberData = MemberData::where('mem_id', $mem_id)
                 ->orderBy('mem_transno', 'desc')
                 ->first();
-    
+
             // Get only the latest vehicle records using a subquery for max timestamp
             $latestVehiclesTimestamp = CarSticker::where('mem_id', $mem_id)
                 ->max('timestamp');
-                
+
             $vehicles = CarSticker::where('mem_id', $mem_id)
                 ->where('timestamp', $latestVehiclesTimestamp)
                 ->get();
-    
+
             // Get member summary information
             $memberSum = MemberSum::find($mem_id);
-    
+
             if (!$memberSum) {
                 return response()->json(['error' => 'Member not found'], 404);
             }
-    
+
             return response()->json([
                 'memberSum' => $memberSum,
                 'memberData' => $memberData,
                 'vehicles' => $vehicles
             ]);
-    
         } catch (\Exception $e) {
             Log::error('Member details fetch error: ' . $e->getMessage());
             return response()->json(['error' => 'Error fetching member details'], 500);
         }
-    }    
+    }
 
     public function store(Request $request)
     {
         try {
             DB::beginTransaction();
-            
+
             // Get mem_id from member_sum using mem_add_id
             $memberSum = MemberSum::where('mem_add_id', $request->address_id)->first();
-            
+
             if (!$memberSum) {
                 return back()->with('error', 'Address ID not found');
             }
-    
+
             // Create new member_data entry
             $memberData = new MemberData();
             $memberData->mem_id = $memberSum->mem_id;
@@ -100,16 +140,16 @@ class ResidentController extends Controller
             $memberData->mem_SPA_Tenant = $request->tenant_spa;
             $memberData->mem_remarks = $request->member_remarks; // Updated field name
             $memberData->user_id = auth()->id();
-            
+
             // Handle residents and relationships
             for ($i = 0; $i < 10; $i++) {
                 $dbFieldNumber = $i + 1; // Convert 0-based index to 1-based field numbering
                 $memberData->{"mem_Resident$dbFieldNumber"} = $request->input("residents.$i.name");
                 $memberData->{"mem_Relationship$dbFieldNumber"} = $request->input("residents.$i.relationship");
             }
-            
+
             $memberData->save();
-    
+
             // Handle vehicle information
             if ($request->has('vehicles')) {
                 foreach ($request->vehicles as $vehicle) {
@@ -131,10 +171,9 @@ class ResidentController extends Controller
                     }
                 }
             }
-    
+
             DB::commit();
             return redirect()->route('residents.index')->with('success', 'Resident information saved successfully');
-    
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Error saving resident information');
