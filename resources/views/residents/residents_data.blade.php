@@ -339,7 +339,9 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                 <div class="row mt-4">
                     <div class="col-12 text-end">
                         <button type="button" class="btn btn-secondary btn-sm me-2" 
-                                onclick="window.history.back()">Cancel</button>
+                            onclick="showToast('info', 'Operation cancelled'); setTimeout(function() { window.location.href='{{ route('residents.residents_data') }}'; }, 1000);">
+                        Cancel
+                        </button>  
                         <button type="submit" class="btn btn-primary btn-sm">Save</button>
                     </div>
                 </div>
@@ -356,6 +358,16 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
             <div class="toast-body">
                 <i class="bi bi-check-circle me-2"></i>
                 <span id="successMessage">Operation completed successfully</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+    <!-- Info Toast -->
+    <div id="infoToast" class="toast align-items-center text-white bg-info border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-info-circle me-2"></i>
+                <span id="infoMessage">Information message</span>
             </div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
