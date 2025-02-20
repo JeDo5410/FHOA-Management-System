@@ -24,23 +24,32 @@ class ResidentController extends Controller
     {
         try {
             $search = $request->input('query');
-
+    
             if (empty($search)) {
                 return response()->json([]);
             }
-
-            // Search member_sum table for matching addresses
+    
+            // Search member_sum table for matching addresses and join with member_data to get names
             $addresses = MemberSum::where('mem_add_id', 'LIKE', $search . '%')
-                ->select('mem_id', 'mem_add_id')
+                ->join('member_data', function ($join) {
+                    $join->on('member_sum.mem_id', '=', 'member_data.mem_id')
+                        ->whereIn('member_data.mem_transno', function ($query) {
+                            $query->select(DB::raw('MAX(mem_transno)'))
+                                ->from('member_data')
+                                ->groupBy('mem_id');
+                        });
+                })
+                ->select('member_sum.mem_id', 'member_sum.mem_add_id', 'member_data.mem_name')
                 ->limit(10)
                 ->get();
-
+    
             return response()->json($addresses);
         } catch (\Exception $e) {
             Log::error('Address search error: ' . $e->getMessage());
             return response()->json(['error' => 'Error searching addresses'], 500);
         }
     }
+    
 
     public function validateAddress($addressId)
     {

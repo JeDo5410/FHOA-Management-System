@@ -356,8 +356,8 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
         padding: 0.25rem 1rem;
     }
     .col-form-label {
-        font-weight: 400;  /* Reduced from 500 */
-        font-size: 0.813rem;  /* Slightly smaller than previous 0.875rem */
+        font-weight: 400;
+        font-size: 0.813rem;
     }
     .table > :not(caption) > * > * {
         padding: 0.25rem;
@@ -389,7 +389,7 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
         color: #666;
         padding-bottom: 0.75rem !important;
     }
-    
+
     /* Base select styling */
     .form-select {
         color: #212529;
@@ -461,21 +461,94 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
         opacity: 1;
     }
 
-
+    /* Address Dropdown Styles - UPDATED */
     .address-dropdown {
-    position: absolute;
-    width: 100%;
-    max-height: 280px;
-    overflow-y: auto;
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    display: none;
-    z-index: 1050;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    margin-top: 4px;
-    scrollbar-width: thin;
-}
+        position: absolute;
+        width: 100%;
+        max-height: 280px;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        display: none;
+        z-index: 1050;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        margin-top: 4px;
+        scrollbar-width: thin;
+        padding: 0;
+    }
+
+    .address-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+    }
+
+    .address-list li {
+        padding: 10px 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #f3f4f6;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 0.875rem;
+        color: #1e293b;
+        width: 100%;
+    }
+
+    .address-list li:last-child {
+        border-bottom: none;
+    }
+
+    .address-list li:hover {
+        background-color: #f1f5f9;
+    }
+
+    .address-list li.active {
+        background-color: #f0f7ff;
+    }
+
+    .address-list li .d-flex {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin-bottom: 3px;
+        align-items: center;
+    }
+
+    .address-id {
+        font-weight: 500;
+        color: #1e293b;
+        font-size: 0.875rem;
+    }
+
+    .member-name {
+        font-size: 0.75rem;
+        color: #64748b;
+        text-align: right;
+    }
+
+    .address-formatted {
+        font-size: 0.75rem;
+        color: #64748b;
+        display: block;
+        width: 100%;
+    }
+
+    .address-list li:hover .address-id,
+    .address-list li:hover .member-name,
+    .address-list li:hover .address-formatted {
+        color: #2563eb;
+    }
+
+    .address-list li.active .address-id,
+    .address-list li.active .member-name,
+    .address-list li.active .address-formatted {
+        color: #2563eb;
+        font-weight: 500;
+    }
 
     .address-dropdown::-webkit-scrollbar {
         width: 6px;
@@ -490,67 +563,21 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
         border-radius: 3px;
     }
 
-    .address-list li {
-        padding: 8px 16px;
-        cursor: pointer;
-        font-size: 0.875rem;
-        color: #1e293b;
-        transition: all 0.2s ease;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-
-    .address-id {
-        font-weight: 500;
-        color: #1e293b;
-    }
-
-    .address-formatted {
-        font-size: 0.75rem;
-        color: #64748b;
-    }
-
-    .address-list li:hover .address-id,
-    .address-list li:hover .address-formatted {
-        color: #2563eb;
-    }
-
-    .address-list li.active .address-id,
-    .address-list li.active .address-formatted {
-        color: #2563eb;
-    }
-
-    .address-list li {
-        padding: 8px 16px;
-        cursor: pointer;
-        font-size: 0.875rem;
-        color: #1e293b;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-    }
-
-    .address-list li:hover {
-        background-color: #f1f5f9;
-    }
-
+    /* Loading and error states */
+    .dropdown-loading,
     .dropdown-error {
         padding: 12px 16px;
-        color: #dc2626;
-        font-size: 0.875rem;
         display: flex;
         align-items: center;
         gap: 8px;
     }
 
     .dropdown-loading {
-        padding: 12px 16px;
         color: #475569;
-        font-size: 0.875rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+    }
+
+    .dropdown-error {
+        color: #dc2626;
     }
 
     .error-icon {

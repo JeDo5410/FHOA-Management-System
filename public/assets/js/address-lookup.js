@@ -343,7 +343,10 @@ class AddressLookup {
             const li = document.createElement('li');
             const formattedAddress = this.translateAddressId(address.mem_add_id);
             li.innerHTML = `
-                <span class="address-id">${address.mem_add_id}</span>
+                <div class="d-flex">
+                    <span class="address-id">${address.mem_add_id}</span>
+                    <span class="member-name">${address.mem_name || 'Unnamed'}</span>
+                </div>
                 <span class="address-formatted">${formattedAddress}</span>
             `;
             li.addEventListener('click', () => {
@@ -356,10 +359,17 @@ class AddressLookup {
             });
             ul.appendChild(li);
         });
-
+    
+        // Clear previous contents and append the new list
         container.innerHTML = '';
         container.appendChild(ul);
         container.style.display = 'block';
+        
+        // Add active class to first item for keyboard navigation
+        const firstItem = ul.querySelector('li');
+        if (firstItem) {
+            firstItem.classList.add('active');
+        }
     }
 
 
