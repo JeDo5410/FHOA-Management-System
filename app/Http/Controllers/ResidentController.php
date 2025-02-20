@@ -182,9 +182,10 @@ class ResidentController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('residents.index')->with('success', 'Resident information saved successfully');
+            return redirect()->route('residents.residents_data')->with('success', 'Resident information saved successfully');
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Error saving resident information: ' . $e->getMessage());
             return back()->with('error', 'Error saving resident information');
         }
     }

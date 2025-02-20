@@ -232,11 +232,13 @@ class AddressLookup {
                 mem_add_id: addressId,
                 mem_id: addressData.mem_id
             });
+            this.showToastNotification('success', 'Address found and loaded successfully');
         } catch (error) {
             console.error('Direct lookup error:', error);
             this.showError('Address ID not found');
             this.updateAddressFields('');
             this.updateMemberInfo({});
+            this.showToastNotification('error', 'Address ID not found');
         }
     }
 
@@ -326,6 +328,7 @@ class AddressLookup {
         } catch (error) {
             console.error('Search error:', error);
             this.showError('Error searching addresses');
+            this.showToastNotification('error', 'Failed to search addresses');
         }
     }
 
@@ -383,6 +386,7 @@ class AddressLookup {
             // If we already have member data (from direct lookup), use it
             if (address.memberData) {
                 this.populateForm(address.memberData);
+                this.showToastNotification('success', 'Address data loaded successfully');
                 return;
             }
     
@@ -398,13 +402,39 @@ class AddressLookup {
             const data = await response.json();
             this.populateForm(data);
             this.hideDropdowns();
+            this.showToastNotification('success', 'Member details loaded successfully');
         } catch (error) {
             console.error('Error fetching member details:', error);
             this.showError('Error loading member details');
+            this.showToastNotification('error', 'Failed to load member details');
         }
     }
     
-    
+    showToastNotification(type, message) {
+        // Check if showToast function exists in global scope
+        if (typeof window.showToast === 'function') {
+            window.showToast(type, message);
+        } else if (typeof showToast === 'function') {
+            showToast(type, message);
+        } else {
+            // Fallback: try to find the toast elements and show them directly
+            const toastElement = document.getElementById(type + 'Toast');
+            const messageElement = document.getElementById(type + 'Message');
+            
+            if (toastElement && messageElement && typeof bootstrap !== 'undefined') {
+                messageElement.textContent = message;
+                const bsToast = new bootstrap.Toast(toastElement, {
+                    animation: true,
+                    autohide: true,
+                    delay: 4000
+                });
+                bsToast.show();
+            } else {
+                // Last resort: console message
+                console.log(`${type.toUpperCase()} NOTIFICATION: ${message}`);
+            }
+        }
+    }
 
     showError(message) {
         const container = this.dropdownContainers[this.activeTab];
@@ -518,6 +548,8 @@ class AddressLookup {
         document.querySelectorAll('input, select, textarea').forEach(element => {
             element.dispatchEvent(new Event('change', { bubbles: true }));
         });
+
+        this.showToastNotification('success', 'Member data loaded successfully');
     }    
 }
 
@@ -525,3 +557,21 @@ class AddressLookup {
 document.addEventListener('DOMContentLoaded', () => {
     new AddressLookup();
 });
+
+// Make showToast function available globally
+window.showToast = function(type, message) {
+    const toastElement = document.getElementById(type + 'Toast');
+    const messageElement = document.getElementById(type + 'Message');
+    
+    if (toastElement && messageElement) {
+        messageElement.textContent = message;
+        
+        const bsToast = new bootstrap.Toast(toastElement, {
+            animation: true,
+            autohide: true,
+            delay: 4000
+        });
+        
+        bsToast.show();
+    }
+};

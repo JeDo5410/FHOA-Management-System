@@ -343,6 +343,31 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
     </div>
 </div>
 
+<!-- Toast Container for Notifications -->
+<div class="toast-container position-fixed" style="top: 20px; right: 20px; z-index: 1060;">
+    <!-- Success Toast -->
+    <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-check-circle me-2"></i>
+                <span id="successMessage">Operation completed successfully</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+    
+    <!-- Error Toast -->
+    <div id="errorToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <span id="errorMessage">An error occurred</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 <style>
     .card {
         border-radius: 8px;
@@ -598,6 +623,21 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
             transform: rotate(360deg);
         }
     }
+
+    .toast {
+        transition: opacity 0.3s ease-in-out;
+    }
+    
+    /* Additional styling for toasts */
+    #successToast, #errorToast {
+        min-width: 280px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    }
+    
+    .toast-body {
+        font-size: 0.95rem;
+        padding: 0.75rem 1rem;
+    }
     </style>
     <script>
         document.querySelectorAll('.form-select').forEach(select => {
@@ -610,7 +650,51 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
             updatePlaceholderState();
         });
         </script>
-        <script src="{{ $isNgrok ? secure_asset('assets/js/address-lookup.js') : asset('assets/js/address-lookup.js') }}"></script>
-
+        <script src="{{ $isNgrok ? secure_asset('assets/js/address-lookup.js') : asset('assets/js/address-lookup.js') }}">
+    </script>
+    <script>
+        // Toast Notification Handler
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for flash messages from the session
+            @if(session('success'))
+                showToast('success', '{{ session('success') }}');
+            @endif
+            
+            @if(session('error'))
+                showToast('error', '{{ session('error') }}');
+            @endif
+            
+            // Handle form submission
+            const form = document.getElementById('residentForm');
+            if (form) {
+                form.addEventListener('submit', function() {
+                    // You can add form validation here if needed
+                    const addressId = document.getElementById('resident_addressId').value;
+                    if (!addressId) {
+                        showToast('error', 'Please enter an Address ID');
+                        event.preventDefault();
+                        return false;
+                    }
+                });
+            }
+        });
+        
+        function showToast(type, message) {
+            const toastElement = document.getElementById(type + 'Toast');
+            const messageElement = document.getElementById(type + 'Message');
+            
+            if (toastElement && messageElement) {
+                messageElement.textContent = message;
+                
+                const bsToast = new bootstrap.Toast(toastElement, {
+                    animation: true,
+                    autohide: true,
+                    delay: 4000
+                });
+                
+                bsToast.show();
+            }
+        }
+    </script>
         
 @endsection
