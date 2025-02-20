@@ -354,3 +354,29 @@ class PayableForm {
 document.addEventListener('DOMContentLoaded', () => {
     new PayableForm();
 });
+
+
+/**
+ * Display a toast notification
+ * @param {string} type - The type of toast (success, error, info)
+ * @param {string} message - The message to display
+ */
+function showToast(type, message) {
+    const toastElement = document.getElementById(type + 'Toast');
+    const messageElement = document.getElementById(type + 'Message');
+    
+    if (toastElement && messageElement) {
+        messageElement.textContent = message;
+        
+        const bsToast = new bootstrap.Toast(toastElement, {
+            animation: true,
+            autohide: true,
+            delay: 4000
+        });
+        
+        bsToast.show();
+    }
+}
+
+// Make showToast function available globally
+window.showToast = showToast;

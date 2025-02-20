@@ -208,13 +208,28 @@
                 <div class="row">
                     <div class="col-12 text-end">
                         <button type="button" class="btn btn-secondary btn-sm me-2" 
-                            onclick="window.history.back()">Cancel</button>
+                                onclick="showToast('info', 'Operation cancelled'); setTimeout(function() { window.location.href='{{ route('accounts.payables') }}'; }, 1000);">
+                            Cancel
+                        </button>
                         <button type="submit" class="btn btn-primary btn-sm">Save</button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
+</div>
+
+<!-- Info Toast -->
+<div class="toast-container position-fixed" style="top: 20px; right: 20px; z-index: 1060;">
+    <div id="infoToast" class="toast align-items-center text-white bg-info border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-info-circle me-2"></i>
+                <span id="infoMessage">Information message</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>    
 </div>
 
 <style>
