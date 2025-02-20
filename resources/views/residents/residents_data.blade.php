@@ -127,8 +127,13 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                         <label for="contactNumber" class="col-form-label">Contact Number</label>
                                     </div>
                                     <div class="col-md-8">
-                                        <input type="tel" class="form-control form-control-sm" id="contactNumber" name="contact_number">
-                                    </div>
+                                        <input type="tel" 
+                                        class="form-control form-control-sm" 
+                                        id="contactNumber" 
+                                        name="contact_number"
+                                        pattern="[0-9]*"
+                                        inputmode="numeric"
+                                        title="Please enter numbers only (0-9)">                                    </div>
                                 </div>
 
                                 <div class="row g-2 align-items-center mt-1">
@@ -696,5 +701,31 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
             }
         }
     </script>
+    <script>
+        // Phone number validation
+        document.getElementById('contactNumber').addEventListener('keydown', function(e) {
+            // Allow navigation and control keys
+            if ([8, 9, 13, 27, 46, 110, 190].includes(e.keyCode) || 
+                (e.keyCode >= 35 && e.keyCode <= 40) ||
+                (e.ctrlKey && [65, 67, 86, 88].includes(e.keyCode))) {
+                return;
+            }
+            // Prevent non-numeric input
+            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && 
+                (e.keyCode < 96 || e.keyCode > 105)) {
+                e.preventDefault();
+            }
+        });
+        
+        // Handle paste event
+        document.getElementById('contactNumber').addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedText = (e.clipboardData || window.clipboardData)
+                                .getData('text')
+                                .replace(/[^0-9]/g, '');
+            document.execCommand('insertText', false, pastedText);
+        });
+        </script>
+        
         
 @endsection
