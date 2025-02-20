@@ -14,7 +14,11 @@ class AccountPayableController extends Controller
 {
     public function index()
     {
-        $accountTypes = ChartOfAccount::orderBy('acct_description')->get();
+        // Get only account types that contain 'expense' in the acct_type field
+        $accountTypes = ChartOfAccount::where('acct_type', 'like', '%expense%')
+            ->orderBy('acct_description')
+            ->get();
+            
         return view('accounts.payables', compact('accountTypes'));
     }
 
