@@ -135,7 +135,7 @@
         <h1>Fortezza HOA Financial Management System</h1>
         <div class="d-flex align-items-center">
             <div class="me-4">
-                <span class="user-greeting">Welcome, {{ auth()->user()->username }}</span>
+                <span class="user-greeting">Welcome, {{ auth()->user()->fullname }}</span>
             </div>
             <form action="{{ route('logout') }}" method="POST" style="display: inline">
                 @csrf
