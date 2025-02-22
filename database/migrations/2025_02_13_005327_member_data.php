@@ -24,7 +24,7 @@ return new class extends Migration
                 $table->string("mem_Relationship{$i}", 45)->nullable();
             }
             
-            $table->string('mem_remarks', 45)->nullable();
+            $table->string('mem_remarks', 100)->nullable();
             $table->integer('user_id')->nullable();
             $table->timestamp('timestamp')->useCurrent();
             

@@ -192,7 +192,9 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                 <textarea class="form-control form-control-sm" 
                                     id="member_remarks" 
                                     name="member_remarks" 
-                                    rows="2"></textarea>
+                                    rows="2"
+                                    maxlength="100"></textarea>
+                                <small class="text-muted">Maximum 100 characters</small>
                             </div>
                         </div>
                     </div>

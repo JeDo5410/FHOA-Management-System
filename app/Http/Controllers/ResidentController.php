@@ -150,6 +150,12 @@ class ResidentController extends Controller
             $memberData->mem_remarks = $request->member_remarks; // Updated field name
             $memberData->user_id = auth()->id();
 
+            // Validate the request
+            $request->validate([
+                // ... other validation rules ...
+                'member_remarks' => 'nullable|string|max:100', // Updated from max:45 to max:100
+            ]);
+
             // Handle residents and relationships
             for ($i = 0; $i < 10; $i++) {
                 $dbFieldNumber = $i + 1; // Convert 0-based index to 1-based field numbering
