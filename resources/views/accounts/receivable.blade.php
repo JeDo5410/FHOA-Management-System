@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Account Payable')
+@section('title', 'Account Receivable')
 
 @section('content')
 @php
@@ -8,22 +8,22 @@
 @endphp
 
 <div class="container-fluid px-4">
-    <!-- Header Section with red theme -->
+    <!-- Header Section with green theme -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div class="d-flex align-items-center">
             <div class="header-icon me-2">
-                <i class="bi bi-arrow-up-circle-fill text-danger"></i>
+                <i class="bi bi-arrow-down-circle-fill text-success"></i>
             </div>
             <div>
-                <h4 class="mb-0 text-danger">Account Payable</h4>
-                <small class="text-muted">Money Going Out</small>
+                <h4 class="mb-0 text-success">Account Receivable</h4>
+                <small class="text-muted">Money Coming In</small>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm border-danger border-top border-3">
+    <div class="card shadow-sm border-success border-top border-3">
         <div class="card-body p-4">
-            <form action="{{route('accounts.payables.store')}}" method="POST" id="payableForm">
+            <form action="{{route('accounts.receivables.store')}}" method="POST" id="receivableForm">
                 @csrf
                 
                 <!-- Header Section -->
@@ -32,14 +32,14 @@
                         <div class="row g-2 align-items-center">
                             <div class="col-md-4">
                                 <div class="container" style="text-align: end">
-                                <label for="voucherNo" class="col-form-label">Voucher No.</label>
+                                <label for="address" class="col-form-label">Address</label>
                                 </div>
                             </div>
                             <div class="col-md-8">
                                 <input type="text" 
                                     class="form-control form-control-sm" 
-                                    id="voucherNo" 
-                                    name="voucher_no"
+                                    id="address" 
+                                    name="address"
                                     required>
                             </div>
                         </div>
@@ -48,14 +48,14 @@
                         <div class="row g-2 align-items-center">
                             <div class="col-md-4">
                                 <div class="container" style="text-align: end">
-                                <label for="payee" class="col-form-label">Payee</label>
+                                <label for="receivedFrom" class="col-form-label">Received From</label>
                                 </div>
                             </div>
                             <div class="col-md-8">
                                 <input type="text" 
                                     class="form-control form-control-sm" 
-                                    id="payee" 
-                                    name="payee"
+                                    id="receivedFrom" 
+                                    name="received_from"
                                     required>
                             </div>
                         </div>
@@ -85,9 +85,9 @@
                             <table class="table table-sm table-borderless" id="lineItemsTable">
                                 <thead>
                                     <tr>
-                                        <th style="width: 40%">Particular</th>
+                                        <th style="width: 40%">Charts of Account (COA)</th>
                                         <th style="width: 20%">Amount</th>
-                                        <th style="width: 30%">Account Type</th>
+                                        <th style="width: 30%">Address ID</th>
                                         <th style="width: 10%">Action</th>
                                     </tr>
                                 </thead>
@@ -96,7 +96,7 @@
                                         <td>
                                             <input type="text" 
                                                 class="form-control form-control-sm" 
-                                                name="items[0][particular]" 
+                                                name="items[0][coa]" 
                                                 required>
                                         </td>
                                         <td>
@@ -107,16 +107,10 @@
                                                 required>
                                         </td>
                                         <td>
-                                            <select class="form-select form-select-sm" 
-                                                name="items[0][account_type]" 
+                                            <input type="text" 
+                                                class="form-control form-control-sm" 
+                                                name="items[0][address_id]" 
                                                 required>
-                                                <option value="">Select Account Type</option>
-                                                @foreach($accountTypes as $type)
-                                                    <option value="{{ $type->acct_type_id }}">
-                                                        {{ $type->acct_description }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
                                         </td>
                                         <td>
                                             <button type="button" 
@@ -147,6 +141,26 @@
                     </div>
                 </div>
 
+                <!-- Received By Field -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-4">
+                                <div class="container" style="text-align: end">
+                                    <label for="receivedBy" class="col-form-label">Received By</label>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" 
+                                    class="form-control form-control-sm" 
+                                    id="receivedBy" 
+                                    name="received_by"
+                                    required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Payment Details -->
                 <div class="row g-3 mb-5">
                     <div class="col-md-6">
@@ -154,12 +168,7 @@
                             <label class="form-label mb-0">Mode of Payment:</label>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="payment_mode" 
-                                    id="pettyCash" value="PETTY CASH" required>
-                                <label class="form-check-label" for="pettyCash">Petty Cash</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="payment_mode" 
-                                    id="cash" value="CASH">
+                                    id="cash" value="CASH" required>
                                 <label class="form-check-label" for="cash">Cash</label>
                             </div>
                             <div class="form-check form-check-inline">
@@ -171,6 +180,11 @@
                                 <input class="form-check-input" type="radio" name="payment_mode" 
                                     id="check" value="CHECK">
                                 <label class="form-check-label" for="check">Check</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="payment_mode" 
+                                    id="bankTransfer" value="BANK_TRANSFER">
+                                <label class="form-check-label" for="bankTransfer">Bank Transfer</label>
                             </div>
                         </div>
                     </div>
@@ -221,7 +235,7 @@
                 <div class="row">
                     <div class="col-12 text-end">
                         <button type="button" class="btn btn-secondary btn-sm me-2" 
-                                onclick="showToast('info', 'Operation cancelled'); setTimeout(function() { window.location.href='{{ route('accounts.payables') }}'; }, 1000);">
+                                onclick="showToast('info', 'Operation cancelled'); setTimeout(function() { window.location.href='{{ route('accounts.receivables') }}'; }, 1000);">
                             Cancel
                         </button>
                         <button type="submit" class="btn btn-primary btn-sm">Save</button>
@@ -277,49 +291,13 @@
     .table > :not(caption) > * > * {
         padding: 0.25rem;
     }
-
-    .invalid-feedback {
-        display: none;
-        width: 100%;
-        margin-top: 0.25rem;
-        font-size: 0.75rem;
-        color: #dc3545;
-    }
-
-    .form-control.is-invalid ~ .invalid-feedback {
-        display: block;
-    }
-
-    .was-validated .form-control:invalid,
-    .form-control.is-invalid {
-        border-color: #dc3545;
-        padding-right: calc(1.5em + 0.75rem);
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
-        background-repeat: no-repeat;
-        background-position: right calc(0.375em + 0.1875rem) center;
-        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
-    }
-
-    .was-validated .form-control:invalid:focus,
-    .form-control.is-invalid:focus {
-        border-color: #dc3545;
-        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
-    }
-
-    .was-validated .form-control:invalid ~ .invalid-feedback,
-    .form-control.is-invalid ~ .invalid-feedback {
-        display: block;
-    }
-
-    h4.text-danger {
-        color: #dc3545;
+    h4.text-success {
         font-weight: 500;
     }
-
     .header-icon {
         font-size: 2rem;
     }
-    .card.border-danger {
+    .card.border-success {
         border-top-width: 3px !important;
         border-right: none;
         border-bottom: none;
@@ -329,6 +307,6 @@
 
 @push('scripts')
 <script src="{{ $isNgrok ? secure_asset('assets/select2/js/select2.min.js') : asset('assets/select2/js/select2.min.js') }}"></script>
-<script src="{{ $isNgrok ? secure_asset('assets/js/payables.js') : asset('assets/js/payables.js') }}"></script>
+<script src="{{ $isNgrok ? secure_asset('assets/js/receivables.js') : asset('assets/js/receivables.js') }}"></script>
 @endpush
 @endsection

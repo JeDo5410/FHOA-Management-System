@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ResidentController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AccountReceivableController;
 
 // Root URL will redirect to dashboard
 Route::get('/', function () {
@@ -47,6 +48,10 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
     Route::prefix('accounts')->group(function () {
         Route::get('/payables', [AccountPayableController::class, 'index'])->name('accounts.payables');
         Route::post('/payables/store', [AccountPayableController::class, 'store'])->name('accounts.payables.store');
+        
+        // New Account Receivables routes
+        Route::get('/receivables', [AccountReceivableController::class, 'index'])->name('accounts.receivables');
+        Route::post('/receivables/store', [AccountReceivableController::class, 'store'])->name('accounts.receivables.store');
     });
 });
 
