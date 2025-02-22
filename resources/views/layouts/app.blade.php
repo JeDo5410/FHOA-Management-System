@@ -166,8 +166,14 @@
         </a>
         
         <a href="{{ route('accounts.payables') }}" class="nav-link {{ request()->routeIs('accounts.payables') ? 'active' : '' }}">
-            <i class="bi bi-cash"></i>
+            <i class="bi bi-arrow-up-circle"></i>
             <span>Account Payable</span>
+        </a>
+
+        {{-- Added Account Receivable Link --}}
+        <a href="{{ route('accounts.receivables') }}" class="nav-link {{ request()->routeIs('accounts.receivables') ? 'active' : '' }}">
+            <i class="bi bi-arrow-down-circle"></i>
+            <span>Account Receivable</span>
         </a>
     </nav>
 
