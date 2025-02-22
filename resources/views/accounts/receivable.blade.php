@@ -103,7 +103,7 @@
                                             <input type="number" 
                                                 class="form-control form-control-sm amount-input" 
                                                 name="items[0][amount]"
-                                                step="0.01" 
+                                                step="1" 
                                                 required>
                                         </td>
                                         <td>
