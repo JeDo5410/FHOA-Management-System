@@ -143,23 +143,31 @@ class ResidentController extends Controller
             $memberData = new MemberData();
             $memberData->mem_id = $memberSum->mem_id;
             $memberData->mem_typecode = $request->mem_typecode;
-            $memberData->mem_name = $request->mem_name;
+            // Convert member's name to uppercase
+            $memberData->mem_name = strtoupper($request->mem_name);
             $memberData->mem_mobile = $request->contact_number;
             $memberData->mem_email = $request->email;
-            $memberData->mem_SPA_Tenant = $request->tenant_spa;
-            $memberData->mem_remarks = $request->member_remarks; // Updated field name
+            // Convert tenant/SPA to uppercase
+            $memberData->mem_SPA_Tenant = strtoupper($request->tenant_spa);
+            $memberData->mem_remarks = $request->member_remarks;
             $memberData->user_id = auth()->id();
 
             // Validate the request
             $request->validate([
                 // ... other validation rules ...
-                'member_remarks' => 'nullable|string|max:100', // Updated from max:45 to max:100
+                'member_remarks' => 'nullable|string|max:100',
             ]);
 
-            // Handle residents and relationships
+            // Handle residents and relationships with uppercase conversion
             for ($i = 0; $i < 10; $i++) {
-                $dbFieldNumber = $i + 1; // Convert 0-based index to 1-based field numbering
-                $memberData->{"mem_Resident$dbFieldNumber"} = $request->input("residents.$i.name");
+                $dbFieldNumber = $i + 1;
+                
+                // Convert resident name to uppercase if not empty
+                $residentName = $request->input("residents.$i.name");
+                if (!empty($residentName)) {
+                    $residentName = strtoupper($residentName);
+                }
+                $memberData->{"mem_Resident$dbFieldNumber"} = $residentName;
                 $memberData->{"mem_Relationship$dbFieldNumber"} = $request->input("residents.$i.relationship");
             }
 
@@ -180,7 +188,7 @@ class ResidentController extends Controller
                         $carSticker->vehicle_CR = $vehicle['vehicle_CR'];
                         $carSticker->vehicle_plate = $vehicle['vehicle_plate'];
                         $carSticker->vehicle_active = $vehicle['vehicle_active'] ?? 0;
-                        $carSticker->remarks = $request->vehicle_remarks; // Updated field name
+                        $carSticker->remarks = $request->vehicle_remarks;
                         $carSticker->user_id = auth()->id();
                         $carSticker->save();
                     }
