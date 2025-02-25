@@ -13,7 +13,7 @@ return new class extends Migration
             $table->integer('mem_id')->nullable();
             $table->integer('mem_typecode')->nullable();
             $table->string('mem_name', 45)->nullable();
-            $table->integer('mem_mobile')->nullable();
+            $table->string('mem_mobile',45)->nullable();
             $table->dateTime('mem_date')->nullable();
             $table->string('mem_email', 45)->nullable();
             $table->string('mem_SPA_Tenant', 45)->nullable();

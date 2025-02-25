@@ -715,31 +715,31 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
             }
         }
     </script>
-    <script>
-        // Phone number validation
-        document.getElementById('contactNumber').addEventListener('keydown', function(e) {
-            // Allow navigation and control keys
-            if ([8, 9, 13, 27, 46, 110, 190].includes(e.keyCode) || 
-                (e.keyCode >= 35 && e.keyCode <= 40) ||
-                (e.ctrlKey && [65, 67, 86, 88].includes(e.keyCode))) {
-                return;
-            }
-            // Prevent non-numeric input
-            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && 
-                (e.keyCode < 96 || e.keyCode > 105)) {
-                e.preventDefault();
-            }
-        });
+<script>
+    // Phone number validation - allow any characters but limit to 45 chars
+    document.addEventListener('DOMContentLoaded', function() {
+        const contactInput = document.getElementById('contactNumber');
         
-        // Handle paste event
-        document.getElementById('contactNumber').addEventListener('paste', function(e) {
-            e.preventDefault();
-            const pastedText = (e.clipboardData || window.clipboardData)
-                                .getData('text')
-                                .replace(/[^0-9]/g, '');
-            document.execCommand('insertText', false, pastedText);
-        });
-        </script>
-        
+        if (contactInput) {
+            // Remove any existing pattern and inputmode attributes
+            contactInput.removeAttribute('pattern');
+            contactInput.removeAttribute('inputmode');
+            contactInput.setAttribute('maxlength', '45');
+            contactInput.setAttribute('title', 'Enter contact number (max 45 characters)');
+            
+            // Replace existing event listeners with new one that only limits length
+            // Clear any other restrictive event listeners by cloning and replacing
+            const newInput = contactInput.cloneNode(true);
+            contactInput.parentNode.replaceChild(newInput, contactInput);
+            
+            // Add back our single validation for length
+            newInput.addEventListener('input', function(e) {
+                if (this.value.length > 45) {
+                    this.value = this.value.slice(0, 45);
+                }
+            });
+        }
+    });
+    </script>        
         
 @endsection
