@@ -669,8 +669,8 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
             updatePlaceholderState();
         });
         </script>
-        <script src="{{ $isNgrok ? secure_asset('assets/js/address-lookup.js') : asset('assets/js/address-lookup.js') }}">
-    </script>
+        <script src="{{ $isNgrok ? secure_asset('assets/js/address-lookup.js') : asset('assets/js/address-lookup.js') }}"></script>
+        <script src="{{ $isNgrok ? secure_asset('assets/js/vehicle-table-navigation.js') : asset('assets/js/vehicle-table-navigation.js') }}"></script>
     <script>
         // Toast Notification Handler
         document.addEventListener('DOMContentLoaded', function() {
