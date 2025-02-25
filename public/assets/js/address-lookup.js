@@ -75,18 +75,13 @@ class AddressLookup {
         this.addressInput.addEventListener('input', (e) => {
             const value = e.target.value;
             
-            // Only allow digits and limit to 5 characters
-            if (!/^\d*$/.test(value)) {
-                e.target.value = value.replace(/\D/g, '');
-                return;
-            }
-            
+            // Limit to 5 characters but allow any character type
             if (value.length > 5) {
                 e.target.value = value.slice(0, 5);
                 return;
             }
 
-            // Translate address if 5 digits entered
+            // Translate address if 5 characters entered
             if (value.length === 5) {
                 const formattedAddress = this.translateAddressId(value);
                 this.updateAddressFields(formattedAddress);
@@ -141,12 +136,7 @@ class AddressLookup {
     handleAddressInput(e) {
         const value = e.target.value;
         
-        // Input validation
-        if (!/^\d*$/.test(value)) {
-            e.target.value = value.replace(/\D/g, '');
-            return;
-        }
-        
+        // Limit to 5 characters but allow any character type
         if (value.length > 5) {
             e.target.value = value.slice(0, 5);
             return;
@@ -283,13 +273,22 @@ class AddressLookup {
 
 
     translateAddressId(addressId) {
-        if (!/^\d{5}$/.test(addressId)) return '';
-
-        const phase = addressId[0];
-        const block = addressId.substring(1, 3);
-        const lot = addressId.substring(3, 5);
-
-        return `Phase ${phase} Block ${block} Lot ${lot}`;
+        // Modified to handle alphanumeric address IDs
+        try {
+            // Check if it follows the standard numeric format (for backward compatibility)
+            if (/^\d{5}$/.test(addressId)) {
+                const phase = addressId[0];
+                const block = addressId.substring(1, 3);
+                const lot = addressId.substring(3, 5);
+                return `Phase ${phase} Block ${block} Lot ${lot}`;
+            } 
+            // For alphanumeric IDs, just return the ID as is or apply custom formatting
+            // This is a placeholder - adjust based on your specific address format requirements
+            return `Address ID: ${addressId}`;
+        } catch (error) {
+            console.error('Error translating address ID:', error);
+            return addressId; // Return the original ID if translation fails
+        }
     }
 
     updateAddressFields(formattedAddress) {

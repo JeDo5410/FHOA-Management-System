@@ -54,12 +54,7 @@ class ResidentController extends Controller
     public function validateAddress($addressId)
     {
         try {
-            // Validate address ID format first
-            if (!preg_match('/^\d{5}$/', $addressId)) {
-                return response()->json(['error' => 'Invalid address format'], 400);
-            }
-
-            // Find member by exact address ID match
+            // Modified to handle alphanumeric address IDs
             $memberSum = MemberSum::where('mem_add_id', $addressId)->first();
 
             if (!$memberSum) {
@@ -180,6 +175,7 @@ class ResidentController extends Controller
                     if (!empty($vehicle['vehicle_maker']) || !empty($vehicle['car_sticker'])) {
                         $carSticker = new CarSticker();
                         $carSticker->mem_id = $memberSum->mem_id;
+                        $carSticker->mem_code = $request->mem_typecode;
                         $carSticker->car_sticker = $vehicle['car_sticker'];
                         $carSticker->vehicle_maker = $vehicle['vehicle_maker'];
                         $carSticker->vehicle_type = $vehicle['vehicle_type'];
@@ -200,7 +196,7 @@ class ResidentController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error saving resident information: ' . $e->getMessage());
-            return back()->with('error', 'Error saving resident information');
+            return back()->with('error', 'Error saving resident information: ' . $e->getMessage());
         }
     }
 }
