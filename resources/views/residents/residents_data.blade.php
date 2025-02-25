@@ -12,24 +12,36 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
             <form action="{{ route('residents.store') }}" method="POST">
                 @csrf
 
-                <!-- Nav tabs -->
-                <ul class="nav nav-tabs mb-4" id="residentTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="resident-tab" data-bs-toggle="tab" 
-                                data-bs-target="#resident" type="button" role="tab" 
-                                aria-controls="resident" aria-selected="true">
-                            Resident Data
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="vehicle-tab" data-bs-toggle="tab" 
-                                data-bs-target="#vehicle" type="button" role="tab" 
-                                aria-controls="vehicle" aria-selected="false">
-                            Car Sticker
-                        </button>
-                    </li>
-                </ul>
-
+                <!-- Container for tabs and buttons -->
+                <div class="mb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <ul class="nav nav-tabs border-bottom-0" id="residentTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="resident-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#resident" type="button" role="tab" 
+                                        aria-controls="resident" aria-selected="true">
+                                    Resident Data
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="vehicle-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#vehicle" type="button" role="tab" 
+                                        aria-controls="vehicle" aria-selected="false">
+                                    Car Sticker
+                                </button>
+                            </li>
+                        </ul>
+                        <div>
+                            <button type="button" class="btn btn-secondary btn-sm me-2" 
+                                onclick="showToast('info', 'Operation cancelled'); setTimeout(function() { window.location.href='{{ route('residents.residents_data') }}'; }, 1000);">
+                                Cancel
+                            </button>  
+                            <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                        </div>
+                    </div>
+                    <!-- Add a horizontal separator line -->
+                    <hr class="mt-0 mb-4">
+                </div>
                 <!-- Tab Content -->
                 <div class="tab-content" id="residentTabsContent">
                     <!-- Resident Data Tab -->
@@ -334,17 +346,6 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                     rows="2"></textarea>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Form Buttons -->
-                <div class="row mt-4">
-                    <div class="col-12 text-end">
-                        <button type="button" class="btn btn-secondary btn-sm me-2" 
-                            onclick="showToast('info', 'Operation cancelled'); setTimeout(function() { window.location.href='{{ route('residents.residents_data') }}'; }, 1000);">
-                        Cancel
-                        </button>  
-                        <button type="submit" class="btn btn-primary btn-sm">Save</button>
                     </div>
                 </div>
             </form>

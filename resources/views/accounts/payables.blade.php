@@ -8,24 +8,27 @@
 @endphp
 
 <div class="container-fluid px-4">
-    <!-- Header Section with red theme -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="d-flex align-items-center">
-            <div class="header-icon me-2">
-                <i class="bi bi-arrow-up-circle-fill text-danger"></i>
-            </div>
+    <!-- Form starts here -->
+    <form action="{{route('accounts.payables.store')}}" method="POST" id="payableForm">
+        @csrf
+        
+        <!-- Header Section and buttons in the same row -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h4 class="mb-0 text-danger">Account Payable</h4>
-                <small class="text-muted">Money Going Out</small>
+            </div>
+            <div>
+                <button type="button" class="btn btn-secondary btn-sm me-2" 
+                        onclick="showToast('info', 'Operation cancelled'); setTimeout(function() { window.location.href='{{ route('accounts.payables') }}'; }, 1000);">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
             </div>
         </div>
-    </div>
-
-    <div class="card shadow-sm border-danger border-top border-3">
-        <div class="card-body p-4">
-            <form action="{{route('accounts.payables.store')}}" method="POST" id="payableForm">
-                @csrf
-                
+        
+        <!-- Note: Restored border-top styling -->
+        <div class="card shadow-sm border-danger border-top border-3">
+            <div class="card-body p-4">
                 <!-- Header Section -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
@@ -216,17 +219,6 @@
                         </div>
                     </div>
                 </div>                
-
-                <!-- Form Buttons -->
-                <div class="row">
-                    <div class="col-12 text-end">
-                        <button type="button" class="btn btn-secondary btn-sm me-2" 
-                                onclick="showToast('info', 'Operation cancelled'); setTimeout(function() { window.location.href='{{ route('accounts.payables') }}'; }, 1000);">
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn btn-primary btn-sm">Save</button>
-                    </div>
-                </div>
             </form>
         </div>
     </div>

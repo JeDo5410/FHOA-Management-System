@@ -8,26 +8,29 @@
 @endphp
 
 <div class="container-fluid px-4">
-    <!-- Header Section with green theme -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="d-flex align-items-center">
-            <div class="header-icon me-2">
-                <i class="bi bi-arrow-down-circle-fill text-success"></i>
-            </div>
+    <!-- Form starts here -->
+    <form action="{{route('accounts.receivables.store')}}" method="POST" id="receivableForm">
+        @csrf
+        
+        <!-- Header Section and buttons in the same row -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h4 class="mb-0 text-success">Account Receivable</h4>
-                <small class="text-muted">Money Coming In</small>
+            </div>
+            <div>
+                <button type="button" class="btn btn-secondary btn-sm me-2" 
+                        onclick="showToast('info', 'Operation cancelled'); setTimeout(function() { window.location.href='{{ route('accounts.receivables') }}'; }, 1000);">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
             </div>
         </div>
-    </div>
-
-    <div class="card shadow-sm border-success border-top border-3">
-        <div class="card-body p-4">
-            <form action="{{route('accounts.receivables.store')}}" method="POST" id="receivableForm">
-                @csrf
-                
+        
+        <!-- Note: Restored border-top styling -->
+        <div class="card shadow-sm border-success border-top border-3">
+            <div class="card-body p-4">
                 <!-- Header Section -->
-                <div class="row g-3 mb-4">
+                <div class="row g-3 mb-4">                    
                     <div class="col-md-4">
                         <div class="row g-2 align-items-center">
                             <div class="col-md-4">
@@ -230,17 +233,6 @@
                         </div>
                     </div>
                 </div>                
-
-                <!-- Form Buttons -->
-                <div class="row">
-                    <div class="col-12 text-end">
-                        <button type="button" class="btn btn-secondary btn-sm me-2" 
-                                onclick="showToast('info', 'Operation cancelled'); setTimeout(function() { window.location.href='{{ route('accounts.receivables') }}'; }, 1000);">
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn btn-primary btn-sm">Save</button>
-                    </div>
-                </div>
             </form>
         </div>
     </div>
