@@ -708,6 +708,7 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
         <script src="{{ asset('assets/js/address-lookup.js') }}?v={{ $jsVersion }}"></script>
         <script src="{{ asset('assets/js/vehicle-table-navigation.js') }}?v={{ $jsVersion }}"></script>
         <script src="{{ asset('assets/js/member-lookup.js') }}?v={{ $jsVersion }}"></script>
+        <script src="{{ asset('assets/js/resident-form-behaviors.js') }}?v={{ $jsVersion }}"></script>
 <script>
         // Toast Notification Handler
         document.addEventListener('DOMContentLoaded', function() {

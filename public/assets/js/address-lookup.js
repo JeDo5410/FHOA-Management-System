@@ -450,14 +450,23 @@ class AddressLookup {
             if (relationSelect) relationSelect.value = residentRelation || '';
         }
     
-        // Clear and populate vehicle information
+        // Clear vehicle information first
         const vehicleRows = document.querySelectorAll('.vehicle-row');
         vehicleRows.forEach(row => {
-            // Clear all inputs first
-            row.querySelectorAll('input, select').forEach(input => input.value = '');
+            // Clear all inputs
+            row.querySelectorAll('input').forEach(input => input.value = '');
+            
+            // Reset all selects to Active
+            const statusSelect = row.querySelector('select[name$="[vehicle_active]"]');
+            if (statusSelect) {
+                statusSelect.value = '0'; // Default to active
+            }
         });
     
+        // Only active vehicles are now retrieved from the server
         if (vehicles && vehicles.length > 0) {
+            console.log(`Populating ${vehicles.length} active vehicle records`);
+            
             vehicles.forEach((vehicle, index) => {
                 if (index < vehicleRows.length) {
                     const row = vehicleRows[index];
@@ -481,13 +490,16 @@ class AddressLookup {
                         }
                     });
     
-                    // Set vehicle status (0 = active, 1 = inactive)
+                    // All vehicles coming from the server should be active (0)
+                    // But set it explicitly to ensure consistency
                     const statusSelect = row.querySelector(`select[name="vehicles[${index}][vehicle_active]"]`);
-                    if (statusSelect && vehicle.vehicle_active !== undefined) {
-                        statusSelect.value = vehicle.vehicle_active.toString();
+                    if (statusSelect) {
+                        statusSelect.value = '0'; // Active
                     }
                 }
             });
+        } else {
+            console.log('No active vehicle records to populate');
         }
     
         // Set remarks for both fields
@@ -501,13 +513,15 @@ class AddressLookup {
         if (vehicleRemarks && vehicles && vehicles.length > 0) {
             // Using the remarks from the first vehicle record
             vehicleRemarks.value = vehicles[0]?.remarks || '';
+        } else if (vehicleRemarks) {
+            vehicleRemarks.value = ''; // Clear remarks if no active vehicles
         }
     
         // Trigger change events
         document.querySelectorAll('input, select, textarea').forEach(element => {
             element.dispatchEvent(new Event('change', { bubbles: true }));
         });
-
+    
         this.showToastNotification('success', 'Member data loaded successfully');
     }    
 }

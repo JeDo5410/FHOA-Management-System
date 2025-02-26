@@ -129,12 +129,13 @@ class ResidentController extends Controller
                 ->orderBy('mem_transno', 'desc')
                 ->first();
 
-            // Get latest vehicle records
+            // Get latest vehicle records - MODIFIED to exclude inactive vehicles
             $latestVehiclesTimestamp = CarSticker::where('mem_id', $memberSum->mem_id)
                 ->max('timestamp');
 
             $vehicles = CarSticker::where('mem_id', $memberSum->mem_id)
                 ->where('timestamp', $latestVehiclesTimestamp)
+                ->where('vehicle_active', 0) // Only get active vehicles
                 ->get();
 
             return response()->json([
@@ -159,12 +160,13 @@ class ResidentController extends Controller
                 ->orderBy('mem_transno', 'desc')
                 ->first();
 
-            // Get only the latest vehicle records using a subquery for max timestamp
+            // Get only the latest ACTIVE vehicle records - MODIFIED
             $latestVehiclesTimestamp = CarSticker::where('mem_id', $mem_id)
                 ->max('timestamp');
 
             $vehicles = CarSticker::where('mem_id', $mem_id)
                 ->where('timestamp', $latestVehiclesTimestamp)
+                ->where('vehicle_active', 0) // Only get active vehicles
                 ->get();
 
             // Get member summary information
