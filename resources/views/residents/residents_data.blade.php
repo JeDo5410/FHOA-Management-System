@@ -37,7 +37,7 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                 Cancel
                             </button>  
                             <button type="button" class="btn btn-info btn-sm me-2" id="memberLookupBtn">
-                                <i class="bi bi-search"></i> Lookup
+                                <i class="bi bi-search"></i> Find
                             </button>
                             <button type="submit" class="btn btn-primary btn-sm">Save</button>
                         </div>
