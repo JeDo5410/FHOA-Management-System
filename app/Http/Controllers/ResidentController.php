@@ -233,6 +233,9 @@ class ResidentController extends Controller
 
             // Handle vehicle information
             if ($request->has('vehicles')) {
+                // Generate a single timestamp for all vehicles in this submission
+                $timestamp = now()->format('Y-m-d H:i:s');
+                
                 foreach ($request->vehicles as $vehicle) {
                     // Only create record if at least one field is filled
                     if (!empty($vehicle['vehicle_maker']) || !empty($vehicle['car_sticker'])) {
@@ -249,10 +252,13 @@ class ResidentController extends Controller
                         $carSticker->vehicle_active = $vehicle['vehicle_active'] ?? 0;
                         $carSticker->remarks = $request->vehicle_remarks;
                         $carSticker->user_id = auth()->id();
+                        // Set the timestamp manually
+                        $carSticker->timestamp = $timestamp;
                         $carSticker->save();
                     }
                 }
             }
+
 
             DB::commit();
             return redirect()->route('residents.residents_data')->with('success', 'Resident information saved successfully');
