@@ -12,13 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('acct_receivable', function (Blueprint $table) {
-            $table->integer('ar_transno')->autoIncrement();
-            $table->string('mem_transno', 45)->nullable();
+            $table->integer('ar_transno')->primary();
+            $table->integer('mem_transno')->nullable();
             $table->integer('or_number')->nullable();
             $table->date('ar_date')->nullable();
             $table->decimal('ar_total', 9, 2)->nullable();
             $table->string('ar_remarks', 45)->nullable();
-            $table->integer('user_id')->nullable();
             $table->timestamp('timestamp')->useCurrent();
         });
     }
