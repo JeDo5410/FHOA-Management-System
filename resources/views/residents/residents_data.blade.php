@@ -672,9 +672,14 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
             updatePlaceholderState();
         });
         </script>
-        <script src="{{ $isNgrok ? secure_asset('assets/js/address-lookup.js') : asset('assets/js/address-lookup.js') }}"></script>
-        <script src="{{ $isNgrok ? secure_asset('assets/js/vehicle-table-navigation.js') : asset('assets/js/vehicle-table-navigation.js') }}"></script>
-    <script>
+        @php
+        // Update this version when you change your JS files
+        $jsVersion = '1.0.3';
+        @endphp
+
+        <script src="{{ asset('assets/js/address-lookup.js') }}?v={{ $jsVersion }}"></script>
+        <script src="{{ asset('assets/js/vehicle-table-navigation.js') }}?v={{ $jsVersion }}"></script>
+<script>
         // Toast Notification Handler
         document.addEventListener('DOMContentLoaded', function() {
             // Check for flash messages from the session
