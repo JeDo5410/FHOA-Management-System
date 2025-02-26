@@ -25,8 +25,10 @@ class AddressLookup {
         this.dropdownContainers = {};
 
         this.setupDropdownContainers();
+        this.removeInputRestrictions();
         this.setupEventListeners();
     }
+
 
 
     setupDropdownContainers() {
@@ -39,6 +41,25 @@ class AddressLookup {
         }
     }
 
+    // New method to explicitly remove any input restrictions
+    removeInputRestrictions() {
+        for (const tab of ['resident', 'vehicle']) {
+            const input = this.addressInputs[tab];
+            if (input) {
+                // Remove any attributes that might restrict input
+                input.removeAttribute('pattern');
+                input.removeAttribute('inputmode');
+                
+                // Clone and replace to remove any existing event listeners
+                const newInput = input.cloneNode(true);
+                input.parentNode.replaceChild(newInput, input);
+                
+                // Update our reference to the new element
+                this.addressInputs[tab] = newInput;
+            }
+        }
+    }
+    
     setupEventListeners() {
         // Address input handlers for both tabs
         for (const tab of ['resident', 'vehicle']) {
@@ -555,6 +576,12 @@ class AddressLookup {
 // Initialize when the document is ready
 document.addEventListener('DOMContentLoaded', () => {
     new AddressLookup();
+    
+    // Explicitly ensure the Address ID inputs allow alphanumeric input
+    document.querySelectorAll('.address-id-input').forEach(input => {
+        input.removeAttribute('pattern');
+        input.removeAttribute('inputmode');
+    });
 });
 
 // Make showToast function available globally

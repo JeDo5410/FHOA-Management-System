@@ -62,7 +62,8 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                             id="resident_addressId" 
                                             name="address_id" 
                                             data-tab="resident"
-                                            placeholder="Enter Address ID"> 
+                                            placeholder="Enter Address ID"
+                                            autocomplete="off"> 
                                     </div>
                                 </div>
 
@@ -227,7 +228,8 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                 id="vehicle_addressId" 
                                 name="address_id" 
                                 data-tab="vehicle"
-                                placeholder="Enter Address ID">
+                                placeholder="Enter Address ID"
+                                autocomplete="off">
                             </div>
                         </div>
 
