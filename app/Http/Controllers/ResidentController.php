@@ -12,6 +12,52 @@ use Illuminate\Support\Facades\Log;
 
 class ResidentController extends Controller
 {
+    /**
+     * Helper method to deduplicate vehicle records
+     * 
+     * @param \Illuminate\Database\Eloquent\Collection $vehicles
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    private function deduplicateVehicles($vehicles)
+    {
+        // Track unique identifiers to filter duplicates
+        $processedStickers = [];
+        $processedPlates = [];
+        $uniqueVehicles = [];
+        $duplicateCount = 0;
+        
+        foreach ($vehicles as $vehicle) {
+            $stickerNumber = trim($vehicle->car_sticker ?? '');
+            $plateNumber = trim($vehicle->vehicle_plate ?? '');
+            $isDuplicate = false;
+            
+            // Use a combination of sticker and plate for uniqueness
+            // A vehicle is considered duplicate if BOTH sticker AND plate match a previous record
+            // Or if a non-empty sticker matches a previous sticker
+            // Or if a non-empty plate matches a previous plate
+            if ((!empty($stickerNumber) && in_array($stickerNumber, $processedStickers)) || 
+                (!empty($plateNumber) && in_array($plateNumber, $processedPlates))) {
+                $isDuplicate = true;
+                $duplicateCount++;
+                continue;
+            }
+            
+            // Add to processed tracking arrays
+            if (!empty($stickerNumber)) $processedStickers[] = $stickerNumber;
+            if (!empty($plateNumber)) $processedPlates[] = $plateNumber;
+            
+            // Keep this vehicle in the results
+            $uniqueVehicles[] = $vehicle;
+        }
+        
+        // Log how many duplicates were found
+        if ($duplicateCount > 0) {
+            Log::info("Filtered out $duplicateCount duplicate vehicle records during retrieval");
+        }
+        
+        return collect($uniqueVehicles);
+    }
+
     public function residentsData()
     {
         // Get all member types for the radio buttons
@@ -82,7 +128,6 @@ class ResidentController extends Controller
         }
     }
     
-
     public function searchAddress(Request $request)
     {
         try {
@@ -113,7 +158,6 @@ class ResidentController extends Controller
         }
     }
     
-
     public function validateAddress($addressId)
     {
         try {
@@ -137,6 +181,9 @@ class ResidentController extends Controller
                 ->where('timestamp', $latestVehiclesTimestamp)
                 ->where('vehicle_active', 0) // Only get active vehicles
                 ->get();
+                
+            // Deduplicate vehicles
+            $vehicles = $this->deduplicateVehicles($vehicles);
 
             return response()->json([
                 'mem_id' => $memberSum->mem_id,
@@ -168,6 +215,9 @@ class ResidentController extends Controller
                 ->where('timestamp', $latestVehiclesTimestamp)
                 ->where('vehicle_active', 0) // Only get active vehicles
                 ->get();
+                
+            // Deduplicate vehicles
+            $vehicles = $this->deduplicateVehicles($vehicles);
 
             // Get member summary information
             $memberSum = MemberSum::find($mem_id);
@@ -191,14 +241,14 @@ class ResidentController extends Controller
     {
         try {
             DB::beginTransaction();
-
+    
             // Get mem_id from member_sum using mem_add_id
             $memberSum = MemberSum::where('mem_add_id', $request->address_id)->first();
-
+    
             if (!$memberSum) {
                 return back()->with('error', 'Address ID not found');
             }
-
+    
             // Create new member_data entry
             $memberData = new MemberData();
             $memberData->mem_id = $memberSum->mem_id;
@@ -211,13 +261,13 @@ class ResidentController extends Controller
             $memberData->mem_SPA_Tenant = strtoupper($request->tenant_spa);
             $memberData->mem_remarks = $request->member_remarks;
             $memberData->user_id = auth()->id();
-
+    
             // Validate the request
             $request->validate([
                 // ... other validation rules ...
                 'member_remarks' => 'nullable|string|max:100',
             ]);
-
+    
             // Handle residents and relationships with uppercase conversion
             for ($i = 0; $i < 10; $i++) {
                 $dbFieldNumber = $i + 1;
@@ -230,43 +280,92 @@ class ResidentController extends Controller
                 $memberData->{"mem_Resident$dbFieldNumber"} = $residentName;
                 $memberData->{"mem_Relationship$dbFieldNumber"} = $request->input("residents.$i.relationship");
             }
-
+    
             $memberData->save();
-
-            // Handle vehicle information
+    
+            // Handle vehicle information with duplicate prevention
             if ($request->has('vehicles')) {
                 // Generate a single timestamp for all vehicles in this submission
                 $timestamp = now()->format('Y-m-d H:i:s');
                 
+                // Track vehicles being processed in this submission to prevent duplicates
+                $processedStickers = [];
+                $processedPlates = [];
+                $duplicateCount = 0;
+                
                 foreach ($request->vehicles as $vehicle) {
-                    // Only create record if at least one field is filled
-                    if (!empty($vehicle['vehicle_maker']) || !empty($vehicle['car_sticker'])) {
-                        $carSticker = new CarSticker();
-                        $carSticker->mem_id = $memberSum->mem_id;
-                        $carSticker->mem_code = $request->mem_typecode;
-                        $carSticker->car_sticker = $vehicle['car_sticker'];
-                        $carSticker->vehicle_maker = $vehicle['vehicle_maker'];
-                        $carSticker->vehicle_type = $vehicle['vehicle_type'];
-                        $carSticker->vehicle_color = $vehicle['vehicle_color'];
-                        $carSticker->vehicle_OR = $vehicle['vehicle_OR'];
-                        $carSticker->vehicle_CR = $vehicle['vehicle_CR'];
-                        $carSticker->vehicle_plate = $vehicle['vehicle_plate'];
-                        $carSticker->vehicle_active = $vehicle['vehicle_active'] ?? 0;
-                        $carSticker->remarks = $request->vehicle_remarks;
-                        $carSticker->user_id = auth()->id();
-                        // Set the timestamp manually
-                        $carSticker->timestamp = $timestamp;
-                        $carSticker->save();
+                    // Skip empty vehicle entries
+                    if (empty($vehicle['vehicle_maker']) && empty($vehicle['car_sticker']) && empty($vehicle['vehicle_plate'])) {
+                        continue;
                     }
+                    
+                    $stickerNumber = trim($vehicle['car_sticker'] ?? '');
+                    $plateNumber = trim($vehicle['vehicle_plate'] ?? '');
+                    
+                    // Check for duplicates within this submission
+                    $isDuplicate = false;
+                    
+                    // Check sticker number duplication if not empty
+                    if (!empty($stickerNumber) && in_array($stickerNumber, $processedStickers)) {
+                        $isDuplicate = true;
+                        Log::info('Skipped duplicate sticker number in same submission', [
+                            'mem_id' => $memberSum->mem_id,
+                            'sticker' => $stickerNumber
+                        ]);
+                    }
+                    
+                    // Check plate number duplication if not empty
+                    if (!empty($plateNumber) && in_array($plateNumber, $processedPlates)) {
+                        $isDuplicate = true;
+                        Log::info('Skipped duplicate plate number in same submission', [
+                            'mem_id' => $memberSum->mem_id,
+                            'plate' => $plateNumber
+                        ]);
+                    }
+                    
+                    if ($isDuplicate) {
+                        $duplicateCount++;
+                        continue;
+                    }
+                    
+                    // Add to processed arrays to track this submission
+                    if (!empty($stickerNumber)) $processedStickers[] = $stickerNumber;
+                    if (!empty($plateNumber)) $processedPlates[] = $plateNumber;
+                    
+                    // Create the car sticker record
+                    $carSticker = new CarSticker();
+                    $carSticker->mem_id = $memberSum->mem_id;
+                    $carSticker->mem_code = $request->mem_typecode;
+                    $carSticker->car_sticker = $stickerNumber;
+                    $carSticker->vehicle_maker = $vehicle['vehicle_maker'];
+                    $carSticker->vehicle_type = $vehicle['vehicle_type'];
+                    $carSticker->vehicle_color = $vehicle['vehicle_color'];
+                    $carSticker->vehicle_OR = $vehicle['vehicle_OR'];
+                    $carSticker->vehicle_CR = $vehicle['vehicle_CR'];
+                    $carSticker->vehicle_plate = $plateNumber;
+                    $carSticker->vehicle_active = $vehicle['vehicle_active'] ?? 0;
+                    $carSticker->remarks = $request->vehicle_remarks;
+                    $carSticker->user_id = auth()->id();
+                    $carSticker->timestamp = $timestamp;
+                    $carSticker->save();
+                }
+                
+                // Add a message about skipped duplicates if any were found
+                if ($duplicateCount > 0) {
+                    Log::info("Skipped $duplicateCount duplicate vehicle entries for mem_id: {$memberSum->mem_id}");
+                    session()->flash('info', "Note: Skipped $duplicateCount duplicate vehicle entries.");
                 }
             }
-
-
+    
             DB::commit();
             return redirect()->route('residents.residents_data')->with('success', 'Resident information saved successfully');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error saving resident information: ' . $e->getMessage());
+            Log::error('Error saving resident information: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return back()->with('error', 'Error saving resident information: ' . $e->getMessage());
         }
     }
