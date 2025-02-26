@@ -20,6 +20,69 @@ class ResidentController extends Controller
         return view('residents.residents_data', compact('memberTypes'));
     }
 
+    public function searchByName(Request $request)
+    {
+        try {
+            Log::info('Member name search initiated', ['ip' => $request->ip(), 'user_id' => auth()->id() ?? 'guest']);
+            
+            $search = $request->input('query');
+            Log::info('Search query received', ['query' => $search]);
+    
+            if (empty($search)) {
+                Log::info('Empty search query, returning empty result');
+                return response()->json([]);
+            }
+    
+            // Build the query
+            $query = MemberData::where(function($q) use ($search) {
+                    $q->where('mem_name', 'LIKE', '%' . $search . '%')
+                      ->orWhere('mem_SPA_Tenant', 'LIKE', '%' . $search . '%');
+                })
+                ->join('member_sum', 'member_data.mem_id', '=', 'member_sum.mem_id')
+                ->select(
+                    'member_data.mem_id',
+                    'member_data.mem_name',
+                    'member_data.mem_SPA_Tenant',
+                    'member_sum.mem_add_id'
+                )
+                // Get only the latest record for each member
+                ->whereIn('member_data.mem_transno', function($subquery) {
+                    $subquery->selectRaw('MAX(md.mem_transno)')
+                        ->from('member_data as md')
+                        ->groupBy('md.mem_id');
+                })
+                ->limit(10);
+                
+            // Log the SQL query being executed
+            $sqlWithBindings = $query->toSql();
+            $bindings = $query->getBindings();
+            Log::info('SQL query for member search', [
+                'sql' => $sqlWithBindings,
+                'bindings' => $bindings
+            ]);
+            
+            // Execute the query
+            $members = $query->get();
+            
+            Log::info('Member search results retrieved', [
+                'count' => $members->count(),
+                'query' => $search
+            ]);
+    
+            return response()->json($members);
+        } catch (\Exception $e) {
+            Log::error('Member name search error', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'query' => $request->input('query')
+            ]);
+            return response()->json(['error' => 'Error searching members: ' . $e->getMessage()], 500);
+        }
+    }
+    
+
     public function searchAddress(Request $request)
     {
         try {

@@ -36,6 +36,9 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                 onclick="showToast('info', 'Operation cancelled'); setTimeout(function() { window.location.href='{{ route('residents.residents_data') }}'; }, 1000);">
                                 Cancel
                             </button>  
+                            <button type="button" class="btn btn-info btn-sm me-2" id="memberLookupBtn">
+                                <i class="bi bi-search"></i> Lookup
+                            </button>
                             <button type="submit" class="btn btn-primary btn-sm">Save</button>
                         </div>
                     </div>
@@ -351,6 +354,31 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+    <!-- Member Lookup Modal -->
+    <div class="modal fade" id="memberLookupModal" tabindex="-1" aria-labelledby="memberLookupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="memberLookupModalLabel">Member Lookup</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="memberNameSearch" class="form-label">Search by Name or Tenant/SPA</label>
+                        <input type="text" class="form-control" id="memberNameSearch" 
+                            placeholder="Type to search..." autocomplete="off">
+                        <div class="form-text">Enter at least 2 characters to search</div>
+                    </div>
+                    <div id="memberSearchResults" class="mt-2">
+                        <!-- Search results will be displayed here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -679,6 +707,7 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
 
         <script src="{{ asset('assets/js/address-lookup.js') }}?v={{ $jsVersion }}"></script>
         <script src="{{ asset('assets/js/vehicle-table-navigation.js') }}?v={{ $jsVersion }}"></script>
+        <script src="{{ asset('assets/js/member-lookup.js') }}?v={{ $jsVersion }}"></script>
 <script>
         // Toast Notification Handler
         document.addEventListener('DOMContentLoaded', function() {
