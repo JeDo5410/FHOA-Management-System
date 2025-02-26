@@ -2,6 +2,7 @@
 
 class AddressLookup {
     constructor() {
+        // Initialize element references
         this.addressInputs = {
             resident: document.getElementById('resident_addressId'),
             vehicle: document.getElementById('vehicle_addressId')
@@ -19,17 +20,17 @@ class AddressLookup {
             vehicle: document.getElementById('vehicle_tenantSpa')
         };
 
+        // Initialize state variables
         this.activeTab = 'resident';
         this.debounceTimer = null;
         this.isLoading = false;
         this.dropdownContainers = {};
 
+        // Setup functionality
         this.setupDropdownContainers();
-        this.removeInputRestrictions();
+        this.ensureAlphanumericInput();
         this.setupEventListeners();
     }
-
-
 
     setupDropdownContainers() {
         for (const tab of ['resident', 'vehicle']) {
@@ -41,21 +42,20 @@ class AddressLookup {
         }
     }
 
-    // New method to explicitly remove any input restrictions
-    removeInputRestrictions() {
+    ensureAlphanumericInput() {
         for (const tab of ['resident', 'vehicle']) {
             const input = this.addressInputs[tab];
             if (input) {
                 // Remove any attributes that might restrict input
                 input.removeAttribute('pattern');
                 input.removeAttribute('inputmode');
+                input.setAttribute('type', 'text');
+                input.setAttribute('autocomplete', 'off');
                 
-                // Clone and replace to remove any existing event listeners
-                const newInput = input.cloneNode(true);
-                input.parentNode.replaceChild(newInput, input);
-                
-                // Update our reference to the new element
-                this.addressInputs[tab] = newInput;
+                // Add explicit support for all keypress events to ensure all characters are allowed
+                input.addEventListener('keypress', (e) => {
+                    return true; // Allow all keypresses
+                });
             }
         }
     }
@@ -78,79 +78,6 @@ class AddressLookup {
             tabEl.addEventListener('shown.bs.tab', (e) => {
                 this.activeTab = e.target.getAttribute('aria-controls') === 'vehicle' ? 'vehicle' : 'resident';
             });
-        });
-        
-        this.addressInput.addEventListener('input', () => {
-            clearTimeout(this.debounceTimer);
-            const query = this.addressInput.value.trim();
-
-            if (query.length < 2) {
-                this.hideDropdown();
-                return;
-            }
-
-            this.showLoading();
-            this.debounceTimer = setTimeout(() => this.searchAddress(query), 300);
-        });
-
-        this.addressInput.addEventListener('input', (e) => {
-            const value = e.target.value;
-            
-            // Limit to 5 characters but allow any character type
-            if (value.length > 5) {
-                e.target.value = value.slice(0, 5);
-                return;
-            }
-
-            // Translate address if 5 characters entered
-            if (value.length === 5) {
-                const formattedAddress = this.translateAddressId(value);
-                this.updateAddressFields(formattedAddress);
-            } else {
-                this.updateAddressFields('');
-            }
-
-            // Continue with existing dropdown logic
-            clearTimeout(this.debounceTimer);
-            if (value.length >= 2) {
-                this.showLoading();
-                this.debounceTimer = setTimeout(() => this.searchAddress(value), 300);
-            } else {
-                this.hideDropdown();
-            }
-        });
-
-
-        // Keyboard navigation
-        this.addressInput.addEventListener('keydown', (e) => {
-            if (!this.dropdownContainer.style.display || this.dropdownContainer.style.display === 'none') {
-                return;
-            }
-
-            const items = this.dropdownContainer.querySelectorAll('li');
-            const currentIndex = Array.from(items).findIndex(item => item.classList.contains('active'));
-
-            switch (e.key) {
-                case 'ArrowDown':
-                    e.preventDefault();
-                    this.navigateList(currentIndex, 1, items);
-                    break;
-                case 'ArrowUp':
-                    e.preventDefault();
-                    this.navigateList(currentIndex, -1, items);
-                    break;
-                case 'Enter':
-                    e.preventDefault();
-                    const activeItem = this.dropdownContainer.querySelector('li.active');
-                    if (activeItem) {
-                        activeItem.click();
-                    }
-                    break;
-                case 'Escape':
-                    e.preventDefault();
-                    this.hideDropdown();
-                    break;
-            }
         });
     }
 
@@ -185,7 +112,7 @@ class AddressLookup {
 
     handleKeyboardNavigation(e, tab) {
         const container = this.dropdownContainers[tab];
-        if (container.style.display === 'none') return;
+        if (!container || container.style.display === 'none') return;
     
         const items = container.querySelectorAll('li');
         const currentIndex = Array.from(items).findIndex(item => item.classList.contains('active'));
@@ -256,13 +183,15 @@ class AddressLookup {
     syncAddressInputs(value) {
         // Update address ID in both tabs
         for (const tab of ['resident', 'vehicle']) {
-            if (this.addressInputs[tab].value !== value) {
+            if (this.addressInputs[tab] && this.addressInputs[tab].value !== value) {
                 this.addressInputs[tab].value = value;
             }
         }
     }
 
     navigateList(currentIndex, direction, items) {
+        if (!items || !items.length) return;
+        
         items.forEach(item => item.classList.remove('active'));
         
         let newIndex = currentIndex + direction;
@@ -275,6 +204,8 @@ class AddressLookup {
 
     showLoading() {
         const container = this.dropdownContainers[this.activeTab];
+        if (!container) return;
+        
         container.innerHTML = `
             <div class="dropdown-loading">
                 <div class="loading-spinner"></div>
@@ -287,14 +218,14 @@ class AddressLookup {
 
     hideDropdowns() {
         Object.values(this.dropdownContainers).forEach(container => {
-            container.style.display = 'none';
+            if (container) {
+                container.style.display = 'none';
+            }
         });
         this.isLoading = false;
     }
 
-
     translateAddressId(addressId) {
-        // Modified to handle alphanumeric address IDs
         try {
             // Check if it follows the standard numeric format (for backward compatibility)
             if (/^\d{5}$/.test(addressId)) {
@@ -303,8 +234,7 @@ class AddressLookup {
                 const lot = addressId.substring(3, 5);
                 return `Phase ${phase} Block ${block} Lot ${lot}`;
             } 
-            // For alphanumeric IDs, just return the ID as is or apply custom formatting
-            // This is a placeholder - adjust based on your specific address format requirements
+            // For alphanumeric IDs, return a formatted version
             return `Address ID: ${addressId}`;
         } catch (error) {
             console.error('Error translating address ID:', error);
@@ -353,12 +283,14 @@ class AddressLookup {
     }
 
     displayResults(addresses) {
-        if (!addresses.length) {
+        if (!addresses || !addresses.length) {
             this.showError('No addresses found');
             return;
         }
 
         const container = this.dropdownContainers[this.activeTab];
+        if (!container) return;
+        
         const ul = document.createElement('ul');
         ul.className = 'address-list';
 
@@ -395,9 +327,10 @@ class AddressLookup {
         }
     }
 
-
     async selectAddress(address) {
         try {
+            if (!address) return;
+            
             // Format the address ID immediately upon selection
             const formattedAddress = this.translateAddressId(address.mem_add_id);
             this.updateAddressFields(formattedAddress);
@@ -458,6 +391,8 @@ class AddressLookup {
 
     showError(message) {
         const container = this.dropdownContainers[this.activeTab];
+        if (!container) return;
+        
         container.innerHTML = `
             <div class="dropdown-error">
                 <span class="error-icon">⚠️</span>
@@ -468,8 +403,12 @@ class AddressLookup {
         setTimeout(() => this.hideDropdowns(), 3000);
     }
     
-
     populateForm(data) {
+        if (!data) {
+            console.error('No data provided to populate form');
+            return;
+        }
+        
         const { memberSum, memberData, vehicles } = data;
     
         if (!memberSum || !memberData) {
@@ -544,7 +483,7 @@ class AddressLookup {
     
                     // Set vehicle status (0 = active, 1 = inactive)
                     const statusSelect = row.querySelector(`select[name="vehicles[${index}][vehicle_active]"]`);
-                    if (statusSelect) {
+                    if (statusSelect && vehicle.vehicle_active !== undefined) {
                         statusSelect.value = vehicle.vehicle_active.toString();
                     }
                 }
@@ -575,12 +514,42 @@ class AddressLookup {
 
 // Initialize when the document is ready
 document.addEventListener('DOMContentLoaded', () => {
-    new AddressLookup();
+    const addressLookup = new AddressLookup();
     
-    // Explicitly ensure the Address ID inputs allow alphanumeric input
-    document.querySelectorAll('.address-id-input').forEach(input => {
-        input.removeAttribute('pattern');
-        input.removeAttribute('inputmode');
+    // Additional initialization for any address inputs added dynamically later
+    const observeDOM = (function(){
+        const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+        
+        return function(obj, callback){
+            if(!obj || obj.nodeType !== 1) return; 
+            
+            if(MutationObserver){
+                // Define a new observer
+                const mutationObserver = new MutationObserver(callback);
+                
+                // Have the observer observe the element for changes in children
+                mutationObserver.observe(obj, { childList:true, subtree:true });
+                return mutationObserver;
+            }
+            
+            // Browser support fallback
+            else if(window.addEventListener){
+                obj.addEventListener('DOMNodeInserted', callback, false);
+                obj.addEventListener('DOMNodeRemoved', callback, false);
+            }
+        };
+    })();
+    
+    // Watch for dynamically added address inputs
+    observeDOM(document.body, function(mutations) {
+        const newAddressInputs = document.querySelectorAll('.address-id-input:not([data-initialized])');
+        newAddressInputs.forEach(input => {
+            input.removeAttribute('pattern');
+            input.removeAttribute('inputmode');
+            input.setAttribute('type', 'text');
+            input.setAttribute('autocomplete', 'off');
+            input.setAttribute('data-initialized', 'true');
+        });
     });
 });
 
