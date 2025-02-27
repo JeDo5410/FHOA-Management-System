@@ -6,6 +6,277 @@
 @php
 $isNgrok = str_contains(request()->getHost(), 'ngrok');
 @endphp
+<style>
+    .card {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    .form-control, .form-select {
+        border-radius: 4px;
+    }
+    .btn {
+        border-radius: 4px;
+        padding: 0.25rem 1rem;
+    }
+    .col-form-label {
+        font-weight: 400;
+        font-size: 0.813rem;
+    }
+    .table > :not(caption) > * > * {
+        padding: 0.25rem;
+    }
+
+    .resident-table td {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+
+    .light-placeholder::placeholder {
+        opacity: 0.4;
+        font-size: 0.813rem;
+    }
+
+    .light-placeholder option.placeholder {
+        color: #999;
+        font-size: 0.813rem;
+    }
+
+    .resident-table .form-control,
+    .resident-table .form-select {
+        background-color: #fcfcfc;
+    }
+
+    .table th {
+        font-size: 0.75rem;
+        font-weight: 400;
+        color: #666;
+        padding-bottom: 0.75rem !important;
+    }
+
+    /* Base select styling */
+    .form-select {
+        color: #212529;
+        opacity: 1;
+        cursor: pointer;
+    }
+
+    /* Placeholder styling */
+    .form-select.placeholder {
+        color: #999;
+        opacity: 0.6;
+    }
+
+    /* Style only the placeholder option */
+    .form-select option[value=""] {
+        color: #999;
+        opacity: 0.6;
+    }
+
+    /* Ensure options in dropdown are always full opacity */
+    .form-select option:not([value=""]) {
+        color: #212529 !important;
+        opacity: 1 !important;
+    }
+
+    /* Ensure full opacity when focused */
+    .form-select:focus {
+        color: #212529;
+        opacity: 1;
+    }
+
+    .nav-tabs .nav-link {
+        color: #495057;
+        border: none;
+        border-bottom: 2px solid transparent;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #0d6efd;
+        border-bottom: 2px solid #0d6efd;
+        background: none;
+    }
+
+    .vehicle-table th {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #666;
+        padding-bottom: 0.75rem !important;
+    }
+
+    .vehicle-table td {
+        padding: 0.5rem 0.25rem;
+    }
+
+    .btn-link {
+        padding: 0;
+        font-size: 0.875rem;
+    }
+
+    .remove-vehicle {
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+
+    .remove-vehicle:hover {
+        opacity: 1;
+    }
+
+    /* Address Dropdown Styles - UPDATED */
+    .address-dropdown {
+        position: absolute;
+        width: 100%;
+        max-height: 280px;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        display: none;
+        z-index: 1050;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        margin-top: 4px;
+        scrollbar-width: thin;
+        padding: 0;
+    }
+
+    .address-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+    }
+
+    .address-list li {
+        padding: 10px 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #f3f4f6;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 0.875rem;
+        color: #1e293b;
+        width: 100%;
+    }
+
+    .address-list li:last-child {
+        border-bottom: none;
+    }
+
+    .address-list li:hover {
+        background-color: #f1f5f9;
+    }
+
+    .address-list li.active {
+        background-color: #f0f7ff;
+    }
+
+    .address-list li .d-flex {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin-bottom: 3px;
+        align-items: center;
+    }
+
+    .address-id {
+        font-weight: 500;
+        color: #1e293b;
+        font-size: 0.875rem;
+    }
+
+    .member-name {
+        font-size: 0.75rem;
+        color: #64748b;
+        text-align: right;
+    }
+
+    .address-formatted {
+        font-size: 0.75rem;
+        color: #64748b;
+        display: block;
+        width: 100%;
+    }
+
+    .address-list li:hover .address-id,
+    .address-list li:hover .member-name,
+    .address-list li:hover .address-formatted {
+        color: #2563eb;
+    }
+
+    .address-list li.active .address-id,
+    .address-list li.active .member-name,
+    .address-list li.active .address-formatted {
+        color: #2563eb;
+        font-weight: 500;
+    }
+
+    .address-dropdown::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .address-dropdown::-webkit-scrollbar-track {
+        background: #f8fafc;
+    }
+
+    .address-dropdown::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 3px;
+    }
+
+    /* Loading and error states */
+    .dropdown-loading,
+    .dropdown-error {
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .dropdown-loading {
+        color: #475569;
+    }
+
+    .dropdown-error {
+        color: #dc2626;
+    }
+
+    .error-icon {
+        font-size: 1rem;
+    }
+
+    .loading-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #e2e8f0;
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spinner 0.6s linear infinite;
+    }
+
+    @keyframes spinner {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .toast {
+        transition: opacity 0.3s ease-in-out;
+    }
+    
+    /* Additional styling for toasts */
+    #successToast, #errorToast {
+        min-width: 280px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    }
+    
+    .toast-body {
+        font-size: 0.95rem;
+        padding: 0.75rem 1rem;
+    }
+    </style>
 <div class="container-fluid px-4">
     <div class="card shadow-sm">
         <div class="card-body p-4">
@@ -353,7 +624,62 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                         </div>
                     </div>
                 </div>
-            </form>
+                <script>
+                    // Form submission prevention that preserves CSRF protection
+                    (function() {
+                        const form = document.querySelector('form');
+                        const submitBtn = document.querySelector('button[type="submit"]');
+                        
+                        if (!form || !submitBtn) return;
+                        
+                        // Status flag - attached directly to the form to prevent conflicts
+                        form._isSubmitting = false;
+                        
+                        // Create a hidden input to track if form has been submitted
+                        const submittedField = document.createElement('input');
+                        submittedField.type = 'hidden';
+                        submittedField.name = '_form_submitted';
+                        submittedField.value = '0';
+                        form.appendChild(submittedField);
+                        
+                        // The final submit handler - this uses capture phase to run first
+                        form.addEventListener('submit', function(e) {
+                            // Check if already submitted
+                            if (form._isSubmitting || submittedField.value === '1') {
+                                console.log('Preventing duplicate submission');
+                                e.preventDefault();
+                                return false;
+                            }
+                            
+                            // Mark form as submitting
+                            form._isSubmitting = true;
+                            submittedField.value = '1';
+                            
+                            // Disable button and show spinner
+                            submitBtn.disabled = true;
+                            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                            
+                            // Show toast if function exists
+                            if (typeof showToast === 'function') {
+                                showToast('info', 'Processing your request...');
+                            }
+                            
+                            // Let the form submit normally with CSRF token intact
+                            return true;
+                        }, true); // true = use capture phase to run before other handlers
+                        
+                        // Handle Enter key - prevent it from submitting if already submitting
+                        document.addEventListener('keydown', function(e) {
+                            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                                if (form._isSubmitting || submittedField.value === '1') {
+                                    e.preventDefault();
+                                    return false;
+                                }
+                            }
+                        }, true);
+                    })();
+                    </script>
+                </form>
         </div>
     </div>
     <!-- Member Lookup Modal -->
@@ -417,278 +743,6 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
         </div>
     </div>
 </div>
-
-<style>
-    .card {
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
-    }
-    .form-control, .form-select {
-        border-radius: 4px;
-    }
-    .btn {
-        border-radius: 4px;
-        padding: 0.25rem 1rem;
-    }
-    .col-form-label {
-        font-weight: 400;
-        font-size: 0.813rem;
-    }
-    .table > :not(caption) > * > * {
-        padding: 0.25rem;
-    }
-
-    .resident-table td {
-        padding-top: 0.5rem !important;
-        padding-bottom: 0.5rem !important;
-    }
-
-    .light-placeholder::placeholder {
-        opacity: 0.4;
-        font-size: 0.813rem;
-    }
-
-    .light-placeholder option.placeholder {
-        color: #999;
-        font-size: 0.813rem;
-    }
-
-    .resident-table .form-control,
-    .resident-table .form-select {
-        background-color: #fcfcfc;
-    }
-
-    .table th {
-        font-size: 0.75rem;
-        font-weight: 400;
-        color: #666;
-        padding-bottom: 0.75rem !important;
-    }
-
-    /* Base select styling */
-    .form-select {
-        color: #212529;
-        opacity: 1;
-        cursor: pointer;
-    }
-
-    /* Placeholder styling */
-    .form-select.placeholder {
-        color: #999;
-        opacity: 0.6;
-    }
-
-    /* Style only the placeholder option */
-    .form-select option[value=""] {
-        color: #999;
-        opacity: 0.6;
-    }
-
-    /* Ensure options in dropdown are always full opacity */
-    .form-select option:not([value=""]) {
-        color: #212529 !important;
-        opacity: 1 !important;
-    }
-
-    /* Ensure full opacity when focused */
-    .form-select:focus {
-        color: #212529;
-        opacity: 1;
-    }
-
-    .nav-tabs .nav-link {
-        color: #495057;
-        border: none;
-        border-bottom: 2px solid transparent;
-        padding: 0.5rem 1rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-    }
-
-    .nav-tabs .nav-link.active {
-        color: #0d6efd;
-        border-bottom: 2px solid #0d6efd;
-        background: none;
-    }
-
-    .vehicle-table th {
-        font-size: 0.75rem;
-        font-weight: 500;
-        color: #666;
-        padding-bottom: 0.75rem !important;
-    }
-
-    .vehicle-table td {
-        padding: 0.5rem 0.25rem;
-    }
-
-    .btn-link {
-        padding: 0;
-        font-size: 0.875rem;
-    }
-
-    .remove-vehicle {
-        opacity: 0.7;
-        transition: opacity 0.2s;
-    }
-
-    .remove-vehicle:hover {
-        opacity: 1;
-    }
-
-    /* Address Dropdown Styles - UPDATED */
-    .address-dropdown {
-        position: absolute;
-        width: 100%;
-        max-height: 280px;
-        overflow-y: auto;
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        display: none;
-        z-index: 1050;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        margin-top: 4px;
-        scrollbar-width: thin;
-        padding: 0;
-    }
-
-    .address-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        width: 100%;
-    }
-
-    .address-list li {
-        padding: 10px 16px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border-bottom: 1px solid #f3f4f6;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        font-size: 0.875rem;
-        color: #1e293b;
-        width: 100%;
-    }
-
-    .address-list li:last-child {
-        border-bottom: none;
-    }
-
-    .address-list li:hover {
-        background-color: #f1f5f9;
-    }
-
-    .address-list li.active {
-        background-color: #f0f7ff;
-    }
-
-    .address-list li .d-flex {
-        display: flex;
-        justify-content: space-between;
-        width: 100%;
-        margin-bottom: 3px;
-        align-items: center;
-    }
-
-    .address-id {
-        font-weight: 500;
-        color: #1e293b;
-        font-size: 0.875rem;
-    }
-
-    .member-name {
-        font-size: 0.75rem;
-        color: #64748b;
-        text-align: right;
-    }
-
-    .address-formatted {
-        font-size: 0.75rem;
-        color: #64748b;
-        display: block;
-        width: 100%;
-    }
-
-    .address-list li:hover .address-id,
-    .address-list li:hover .member-name,
-    .address-list li:hover .address-formatted {
-        color: #2563eb;
-    }
-
-    .address-list li.active .address-id,
-    .address-list li.active .member-name,
-    .address-list li.active .address-formatted {
-        color: #2563eb;
-        font-weight: 500;
-    }
-
-    .address-dropdown::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .address-dropdown::-webkit-scrollbar-track {
-        background: #f8fafc;
-    }
-
-    .address-dropdown::-webkit-scrollbar-thumb {
-        background-color: #cbd5e1;
-        border-radius: 3px;
-    }
-
-    /* Loading and error states */
-    .dropdown-loading,
-    .dropdown-error {
-        padding: 12px 16px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .dropdown-loading {
-        color: #475569;
-    }
-
-    .dropdown-error {
-        color: #dc2626;
-    }
-
-    .error-icon {
-        font-size: 1rem;
-    }
-
-    .loading-spinner {
-        width: 16px;
-        height: 16px;
-        border: 2px solid #e2e8f0;
-        border-top-color: #3b82f6;
-        border-radius: 50%;
-        animation: spinner 0.6s linear infinite;
-    }
-
-    @keyframes spinner {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    .toast {
-        transition: opacity 0.3s ease-in-out;
-    }
-    
-    /* Additional styling for toasts */
-    #successToast, #errorToast {
-        min-width: 280px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-    }
-    
-    .toast-body {
-        font-size: 0.95rem;
-        padding: 0.75rem 1rem;
-    }
-    </style>
     <script>
         document.querySelectorAll('.form-select').forEach(select => {
             const updatePlaceholderState = () => {

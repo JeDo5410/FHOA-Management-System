@@ -10,8 +10,8 @@
 
     <link href="{{ $isNgrok ? secure_asset('assets/lib/bootstrap/css/bootstrap.min.css') : asset('assets/lib/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ $isNgrok ? secure_asset('assets/lib/sweetalert2/css/sweetalert2.min.css') : asset('assets/lib/sweetalert2/css/sweetalert2.min.css') }}" rel="stylesheet">
-    <script href="{{ $isNgrok ? secure_asset('assets/jquery/jquery-3.7.1.min.js') : asset('assets/jquery/jquery-3.7.1.min.js') }}"></script>
-    <link href="{{ $isNgrok ? secure_asset('assets/select2/css/select2.min.css') : asset('assets/select2/css/select2.min.css') }}" rel="stylesheet">
+    {{-- <script href="{{ $isNgrok ? secure_asset('assets/jquery/jquery-3.7.1.min.js') : asset('assets/jquery/jquery-3.7.1.min.js') }}"></script>
+    <link href="{{ $isNgrok ? secure_asset('assets/select2/css/select2.min.css') : asset('assets/select2/css/select2.min.css') }}" rel="stylesheet"> --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <style>
         :root {
