@@ -6,7 +6,17 @@
 @php
     $isNgrok = str_contains(request()->getHost(), 'ngrok');
 @endphp
+{{-- @if(session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
 
+@if(session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+@endif --}}
 <div class="container-fluid px-4">
     <!-- Form starts here -->
     <form action="{{route('accounts.payables.store')}}" method="POST" id="payableForm">
@@ -43,6 +53,7 @@
                                     class="form-control form-control-sm" 
                                     id="voucherNo" 
                                     name="voucher_no"
+                                    autocomplete="off"
                                     required>
                             </div>
                         </div>
@@ -59,6 +70,7 @@
                                     class="form-control form-control-sm" 
                                     id="payee" 
                                     name="payee"
+                                    autocomplete="off"
                                     required>
                             </div>
                         </div>
@@ -99,7 +111,8 @@
                                         <td>
                                             <input type="text" 
                                                 class="form-control form-control-sm" 
-                                                name="items[0][particular]" 
+                                                name="items[0][particular]"
+                                                autocomplete="off" 
                                                 required>
                                         </td>
                                         <td>
@@ -110,7 +123,7 @@
                                                 required>
                                         </td>
                                         <td>
-                                            <select class="form-select form-select-sm" 
+                                            <select class="form-select form-select-sm enhanced" 
                                                 name="items[0][account_type]" 
                                                 required>
                                                 <option value="">Select Account Type</option>
@@ -188,7 +201,8 @@
                                 <input type="text" 
                                     class="form-control form-control-sm" 
                                     id="reference" 
-                                    name="reference_no">
+                                    name="reference_no"
+                                    autocomplete="off">
                             </div>
                         </div>
                     </div>
@@ -212,6 +226,7 @@
                                         rows="1"
                                         maxlength="45"
                                         style="resize: none;"
+                                        autocomplete="off"
                                     ></textarea>
                                     <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="charCount">0/45</small>
                                 </div>
@@ -238,6 +253,55 @@
 </div>
 
 <style>
+    .form-select {
+    appearance: none;
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    color: #212529;
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.5;
+    padding: 0.25rem 2.25rem 0.25rem 0.75rem;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-select:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.form-select.is-invalid {
+    border-color: #dc3545;
+    padding-right: calc(1.5em + 0.75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.form-select.is-invalid:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+}
+
+/* Add a custom class for our enhanced selects */
+.form-select.enhanced {
+    cursor: pointer;
+}
+
+/* Custom styles for better mobile experience */
+@media (max-width: 768px) {
+    .form-select {
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+}
     .form-control, .form-select {
         border-radius: 4px;
     }
@@ -320,7 +384,7 @@
 </style>
 
 @push('scripts')
-<script src="{{ $isNgrok ? secure_asset('assets/select2/js/select2.min.js') : asset('assets/select2/js/select2.min.js') }}"></script>
+{{-- <script src="{{ $isNgrok ? secure_asset('assets/select2/js/select2.min.js') : asset('assets/select2/js/select2.min.js') }}"></script> --}}
 <script src="{{ $isNgrok ? secure_asset('assets/js/payables.js') : asset('assets/js/payables.js') }}"></script>
 @endpush
 @endsection

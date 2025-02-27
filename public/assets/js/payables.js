@@ -1,6 +1,7 @@
 /**
  * PayableForm class handles all functionality for the accounts payable form
  * including line item management, validation, and calculations.
+ * This version uses vanilla JavaScript for dropdowns instead of Select2.
  */
 class PayableForm {
     // Constants for DOM selectors and configuration
@@ -15,17 +16,13 @@ class PayableForm {
         PAYMENT_MODE: 'input[name="payment_mode"]',
         LINE_ITEM: '.line-item',
         AMOUNT_INPUT: '.amount-input',
-        REMOVE_LINE: '.remove-line'
+        REMOVE_LINE: '.remove-line',
+        VOUCHER_NO: '#voucherNo', // Added selector for voucher number
+        SUBMIT_BUTTON: 'button[type="submit"]' // Added selector for submit button
     };
 
     static CONFIG = {
         MAX_CHARS: 45,
-        SELECT2_OPTIONS: {
-            theme: 'bootstrap-5',
-            width: '100%',
-            placeholder: 'Search account type...',
-            allowClear: true
-        }
     };
 
     /**
@@ -40,6 +37,7 @@ class PayableForm {
         
         this.setupEventListeners();
         this.initializeFormState();
+        this.isSubmitting = false; // Flag to prevent multiple submissions
     }
 
     /**
@@ -55,6 +53,8 @@ class PayableForm {
         this.remarksTextarea = document.querySelector(s.REMARKS);
         this.charCount = document.querySelector(s.CHAR_COUNT);
         this.referenceInput = document.querySelector(s.REFERENCE);
+        this.voucherNoInput = document.querySelector(s.VOUCHER_NO); // Add voucher number input
+        this.submitButton = document.querySelector(s.SUBMIT_BUTTON); // Add submit button
     }
 
     /**
@@ -65,7 +65,8 @@ class PayableForm {
                  this.lineItemsTable && 
                  this.tbody && 
                  this.addLineBtn && 
-                 this.totalAmountInput);
+                 this.totalAmountInput &&
+                 this.voucherNoInput);
     }
 
     /**
@@ -92,33 +93,52 @@ class PayableForm {
         if (this.remarksTextarea) {
             this.remarksTextarea.addEventListener('input', this.updateCharCount.bind(this));
         }
+
+        // Voucher number validation - only allow numbers
+        if (this.voucherNoInput) {
+            this.voucherNoInput.addEventListener('input', this.validateVoucherNumber.bind(this));
+            this.voucherNoInput.addEventListener('keypress', this.preventNonNumericInput.bind(this));
+        }
+    }
+
+    /**
+     * Validate voucher number to only contain numeric values
+     */
+    validateVoucherNumber(event) {
+        const input = event.target;
+        // Replace any non-numeric values
+        input.value = input.value.replace(/[^0-9]/g, '');
+        
+        // Clear any error state if valid
+        if (input.value.trim().length > 0) {
+            this.clearError(input);
+        }
+    }
+
+    /**
+     * Prevent non-numeric input for voucher number
+     */
+    preventNonNumericInput(event) {
+        // Allow special keys like backspace, tab, arrow keys, etc.
+        if (event.key === 'Backspace' || event.key === 'Tab' || event.key === 'ArrowLeft' || 
+            event.key === 'ArrowRight' || event.key === 'Delete' || event.key === 'Home' || 
+            event.key === 'End') {
+            return;
+        }
+        
+        // Prevent input if not a number
+        if (!/^\d*$/.test(event.key)) {
+            event.preventDefault();
+        }
     }
 
     /**
      * Initialize the initial form state
      */
     initializeFormState() {
-        this.initializeSelect2();
         this.updateRemoveButtons();
         this.updateTotalAmount();
         this.updateCharCount();
-    }
-
-    /**
-     * Initialize Select2 for the first row
-     */
-    initializeSelect2() {
-        const firstSelect = this.tbody.querySelector(`${PayableForm.SELECTORS.LINE_ITEM} select`);
-        if (firstSelect) {
-            this.initializeRowSelect(firstSelect);
-        }
-    }
-
-    /**
-     * Initialize Select2 for a specific select element
-     */
-    initializeRowSelect(selectElement) {
-        $(selectElement).select2(PayableForm.CONFIG.SELECT2_OPTIONS);
     }
 
     /**
@@ -131,13 +151,16 @@ class PayableForm {
     
         // Update input names and clear values
         newRow.querySelectorAll('input, select').forEach(input => {
-            input.name = input.name.replace(/\[\d+\]/, `[${rowCount}]`);
+            const name = input.name;
+            // Only update indices if the name has a pattern [number]
+            if (name && name.match(/\[\d+\]/)) {
+                input.name = name.replace(/\[\d+\]/, `[${rowCount}]`);
+            }
             input.value = '';
             this.clearError(input);
         });
     
         this.tbody.appendChild(newRow);
-        this.initializeRowSelect(newRow.querySelector('select')); // Initialize Select2 here
         this.updateFormState();
     }
 
@@ -150,20 +173,11 @@ class PayableForm {
     
         const row = removeButton.closest(PayableForm.SELECTORS.LINE_ITEM);
         if (this.tbody.querySelectorAll(PayableForm.SELECTORS.LINE_ITEM).length > 1) {
-            const select = row.querySelector('select');
-            
-            // Check if jQuery is loaded
-            if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
-                $(select).select2('destroy');
-            }
-            
             row.remove();
             this.reindexRows();
             this.updateFormState();
         }
     }
-    
-
 
     /**
      * Handle amount input changes
@@ -192,10 +206,31 @@ class PayableForm {
      * Handle form submission
      */
     handleFormSubmit(event) {
+        // Validate form first
         if (!this.validateForm()) {
             event.preventDefault();
             this.showValidationError();
+            return;
         }
+
+        // Prevent multiple submissions
+        if (this.isSubmitting) {
+            event.preventDefault();
+            return;
+        }
+
+        // Set submitting flag and disable the submit button
+        this.isSubmitting = true;
+        if (this.submitButton) {
+            this.submitButton.disabled = true;
+            this.submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+        }
+
+        // Show processing message
+        showToast('info', 'Processing your request...');
+
+        // Allow form submission to continue
+        // The form will be submitted normally as the event is not prevented
     }
 
     /**
@@ -212,7 +247,11 @@ class PayableForm {
     reindexRows() {
         this.tbody.querySelectorAll(PayableForm.SELECTORS.LINE_ITEM).forEach((row, index) => {
             row.querySelectorAll('input, select').forEach(input => {
-                input.name = input.name.replace(/\[\d+\]/, `[${index}]`);
+                const name = input.name;
+                // Only update indices if the name has a pattern [number]
+                if (name && name.match(/\[\d+\]/)) {
+                    input.name = name.replace(/\[\d+\]/, `[${index}]`);
+                }
             });
         });
     }
@@ -250,6 +289,7 @@ class PayableForm {
      * Parse amount string to number
      */
     parseAmount(value) {
+        if (!value) return 0;
         const parsed = parseFloat(value.replace(/[^\d.-]/g, ''));
         return isNaN(parsed) ? 0 : parsed;
     }
@@ -266,6 +306,15 @@ class PayableForm {
      */
     validateForm() {
         let isValid = true;
+
+        // Validate voucher number is numeric
+        if (this.voucherNoInput && this.voucherNoInput.value.trim()) {
+            if (!/^\d+$/.test(this.voucherNoInput.value)) {
+                isValid = false;
+                this.showError(this.voucherNoInput);
+                this.addCustomFeedback(this.voucherNoInput, 'Voucher number must be numeric only');
+            }
+        }
 
         // Validate required fields
         const requiredFields = this.form.querySelectorAll('[required]');
@@ -309,12 +358,18 @@ class PayableForm {
             ? 'Please fill in all required fields including reference number'
             : 'Please fill in all required fields';
 
-        Swal.fire({
-            title: 'Validation Error',
-            text: errorMessage,
-            icon: 'error',
-            confirmButtonText: 'Ok'
-        });
+        // Using SweetAlert if available
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Validation Error',
+                text: errorMessage,
+                icon: 'error',
+                confirmButtonText: 'Ok'
+            });
+        } else {
+            // Fallback to browser alert
+            alert(errorMessage);
+        }
     }
 
     /**
@@ -327,6 +382,22 @@ class PayableForm {
             feedback.textContent = `Reference number is required for ${paymentMode.toLowerCase()}`;
             this.referenceInput.parentNode.appendChild(feedback);
         }
+    }
+
+    /**
+     * Add custom feedback message
+     */
+    addCustomFeedback(element, message) {
+        // Remove existing feedback if present
+        const existingFeedback = element.parentNode.querySelector('.invalid-feedback');
+        if (existingFeedback) {
+            existingFeedback.remove();
+        }
+        
+        const feedback = document.createElement('div');
+        feedback.classList.add('invalid-feedback');
+        feedback.textContent = message;
+        element.parentNode.appendChild(feedback);
     }
 
     /**
@@ -347,14 +418,49 @@ class PayableForm {
         if (element.tagName === 'SELECT') {
             element.parentElement.classList.remove('has-error');
         }
+        
+        // Remove any feedback message
+        const feedback = element.parentNode.querySelector('.invalid-feedback');
+        if (feedback) {
+            feedback.remove();
+        }
     }
 }
 
 // Initialize the form when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    // Clean up any potential issues with selects - remove it if it's causing problems
+    /*
+    document.querySelectorAll('.select2-container').forEach(container => {
+        container.remove();
+    });
+    */
+    
     new PayableForm();
+    
+    // Add custom filter function for standard select elements
+    document.querySelectorAll('.form-select').forEach(select => {
+        // Add event listener for input in the select field
+        select.addEventListener('keydown', function(e) {
+            // Only apply for non-control keys
+            if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
+                const searchText = e.key === 'Backspace' || e.key === 'Delete' ? '' : e.key.toLowerCase();
+                
+                // Get all options
+                const options = Array.from(select.options);
+                
+                // Find first option that starts with the pressed key
+                const matchingOption = options.find(option => 
+                    option.text.toLowerCase().startsWith(searchText));
+                
+                // Select the matching option if found
+                if (matchingOption) {
+                    select.value = matchingOption.value;
+                }
+            }
+        });
+    });
 });
-
 
 /**
  * Display a toast notification
@@ -368,13 +474,24 @@ function showToast(type, message) {
     if (toastElement && messageElement) {
         messageElement.textContent = message;
         
-        const bsToast = new bootstrap.Toast(toastElement, {
-            animation: true,
-            autohide: true,
-            delay: 4000
-        });
-        
-        bsToast.show();
+        if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+            const bsToast = new bootstrap.Toast(toastElement, {
+                animation: true,
+                autohide: true,
+                delay: 4000
+            });
+            
+            bsToast.show();
+        } else {
+            // Fallback for when Bootstrap isn't loaded
+            toastElement.style.display = 'block';
+            setTimeout(() => {
+                toastElement.style.display = 'none';
+            }, 4000);
+        }
+    } else {
+        // Fallback to alert if toast elements aren't found
+        alert(message);
     }
 }
 
