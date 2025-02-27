@@ -282,7 +282,7 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
         <div class="card-body p-4">
             <form action="{{ route('residents.store') }}" method="POST">
                 @csrf
-
+                <input type="hidden" name="_form_token" value="{{ Str::random(40) }}">
                 <!-- Container for tabs and buttons -->
                 <div class="mb-0">
                     <div class="d-flex justify-content-between align-items-center">

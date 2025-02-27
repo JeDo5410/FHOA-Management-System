@@ -7,6 +7,7 @@ use App\Models\MemberSum;
 use App\Models\MemberData;
 use App\Models\MemType;
 use App\Models\CarSticker;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -240,6 +241,29 @@ class ResidentController extends Controller
     public function store(Request $request)
     {
         try {
+            // Extract form token for duplicate submission prevention
+            $formToken = $request->input('_form_token');
+            
+            // Generate a cache key based on the form token
+            $cacheKey = 'form_submission_' . $formToken;
+            
+            // Check if this form has already been submitted
+            if ($formToken && Cache::has($cacheKey)) {
+                Log::warning('Prevented duplicate form submission using token', [
+                    'token' => $formToken,
+                    'address_id' => $request->address_id,
+                    'user_id' => auth()->id() ?? 'guest'
+                ]);
+                
+                return redirect()->route('residents.residents_data')
+                    ->with('info', 'Your form has already been submitted. Duplicate submission prevented.');
+            }
+            
+            // Mark this token as used in the cache (store for 1 minute)
+            if ($formToken) {
+                Cache::put($cacheKey, true, 60); // 60 seconds = 1 minute
+            }
+    
             // Get mem_id from member_sum using mem_add_id
             $memberSum = MemberSum::where('mem_add_id', $request->address_id)->first();
     
@@ -247,8 +271,8 @@ class ResidentController extends Controller
                 return back()->with('error', 'Address ID not found');
             }
     
-            // DUPLICATE SUBMISSION PREVENTION
-            // Check for the highest transaction number for this member
+            // DUPLICATE SUBMISSION PREVENTION - FALLBACK USING SESSION METHOD
+            // This provides a secondary layer of protection in case the cache fails
             $lastTransaction = MemberData::where('mem_id', $memberSum->mem_id)
                 ->orderBy('mem_transno', 'desc')
                 ->first();
@@ -266,7 +290,7 @@ class ResidentController extends Controller
                                      (time() - $lastSubmittedTime) < 10;
                                      
                 if ($isRecentSubmission) {
-                    Log::warning('Prevented duplicate submission', [
+                    Log::warning('Prevented duplicate submission using session data', [
                         'mem_id' => $memberSum->mem_id,
                         'address_id' => $request->address_id,
                         'last_transaction' => $lastTransaction->mem_transno,
@@ -331,6 +355,7 @@ class ResidentController extends Controller
     
             // Handle vehicle information with duplicate prevention
             if ($request->has('vehicles')) {
+                // The rest of your vehicle processing code remains unchanged
                 // Generate a single timestamp for all vehicles in this submission
                 $timestamp = now()->format('Y-m-d H:i:s');
                 
