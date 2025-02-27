@@ -744,6 +744,37 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
     </div>
 </div>
     <script>
+        // Auto-focus the Address ID field when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus on the resident_addressId input when the page loads
+            const addressIdField = document.getElementById('resident_addressId');
+            if (addressIdField) {
+                addressIdField.focus();
+            }
+            
+            // Also handle tab switching to focus the appropriate Address ID field
+            const residentTab = document.getElementById('resident-tab');
+            const vehicleTab = document.getElementById('vehicle-tab');
+            
+            if (residentTab) {
+                residentTab.addEventListener('shown.bs.tab', function() {
+                    const addressIdField = document.getElementById('resident_addressId');
+                    if (addressIdField) {
+                        addressIdField.focus();
+                    }
+                });
+            }
+            
+            if (vehicleTab) {
+                vehicleTab.addEventListener('shown.bs.tab', function() {
+                    const addressIdField = document.getElementById('vehicle_addressId');
+                    if (addressIdField) {
+                        addressIdField.focus();
+                    }
+                });
+            }
+        });
+        
         document.querySelectorAll('.form-select').forEach(select => {
             const updatePlaceholderState = () => {
                 select.classList.toggle('placeholder', !select.value);
