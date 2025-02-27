@@ -787,7 +787,7 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
         </script>
         @php
         // Update this version when you change your JS files
-        $jsVersion = '1.0.3';
+        $jsVersion = '1.2.0';
         @endphp
 
         <script src="{{ asset('assets/js/address-lookup.js') }}?v={{ $jsVersion }}"></script>

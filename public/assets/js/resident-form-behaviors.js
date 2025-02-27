@@ -67,6 +67,10 @@ class ResidentFormBehaviors {
             this.tenantSpaField.value = '';
         }
         
+        // Clear vehicle data when member type changes
+        this.clearVehicleData();
+        showToast('info', 'Changes in resident type will archive car sticker data');
+        
         // Update validation state
         this.updateTenantSpaValidation();
     }
@@ -156,7 +160,7 @@ class ResidentFormBehaviors {
             
             if (event.target.value !== originalValue) {
                 this.clearVehicleData();
-                showToast('info', 'Vehicle data cleared due to Tenant/SPA change');
+                showToast('info', 'Changes in resident type will archive car sticker data');
             }
         });
     }
