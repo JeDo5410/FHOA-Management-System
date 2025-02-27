@@ -424,6 +424,16 @@ class AddressLookup {
         // Update member information in both tabs
         this.updateMemberInfo(memberData);
     
+        // Direct approach to set the tenant/spa field in the resident tab
+        const residentTenantField = document.getElementById('resident_tenantSpa');
+        if (residentTenantField) {
+            residentTenantField.value = memberData?.mem_SPA_Tenant || '';
+            // Use setTimeout as a fallback to ensure the value is set
+            setTimeout(() => {
+                residentTenantField.value = memberData?.mem_SPA_Tenant || '';
+            }, 50);
+        }
+    
         // Update contact info
         const contactNumber = document.getElementById('contactNumber');
         const email = document.getElementById('email');
@@ -453,10 +463,8 @@ class AddressLookup {
         // Clear vehicle information first
         const vehicleRows = document.querySelectorAll('.vehicle-row');
         vehicleRows.forEach(row => {
-            // Clear all inputs
             row.querySelectorAll('input').forEach(input => input.value = '');
             
-            // Reset all selects to Active
             const statusSelect = row.querySelector('select[name$="[vehicle_active]"]');
             if (statusSelect) {
                 statusSelect.value = '0'; // Default to active
@@ -465,8 +473,6 @@ class AddressLookup {
     
         // Only active vehicles are now retrieved from the server
         if (vehicles && vehicles.length > 0) {
-            console.log(`Populating ${vehicles.length} active vehicle records`);
-            
             vehicles.forEach((vehicle, index) => {
                 if (index < vehicleRows.length) {
                     const row = vehicleRows[index];
@@ -490,16 +496,13 @@ class AddressLookup {
                         }
                     });
     
-                    // All vehicles coming from the server should be active (0)
-                    // But set it explicitly to ensure consistency
+                    // Set status
                     const statusSelect = row.querySelector(`select[name="vehicles[${index}][vehicle_active]"]`);
                     if (statusSelect) {
                         statusSelect.value = '0'; // Active
                     }
                 }
             });
-        } else {
-            console.log('No active vehicle records to populate');
         }
     
         // Set remarks for both fields
@@ -511,7 +514,6 @@ class AddressLookup {
         }
         
         if (vehicleRemarks && vehicles && vehicles.length > 0) {
-            // Using the remarks from the first vehicle record
             vehicleRemarks.value = vehicles[0]?.remarks || '';
         } else if (vehicleRemarks) {
             vehicleRemarks.value = ''; // Clear remarks if no active vehicles
@@ -523,7 +525,7 @@ class AddressLookup {
         });
     
         this.showToastNotification('success', 'Member data loaded successfully');
-    }    
+    }
 }
 
 // Initialize when the document is ready
