@@ -240,14 +240,47 @@ class ResidentController extends Controller
     public function store(Request $request)
     {
         try {
-            DB::beginTransaction();
-    
             // Get mem_id from member_sum using mem_add_id
             $memberSum = MemberSum::where('mem_add_id', $request->address_id)->first();
     
             if (!$memberSum) {
                 return back()->with('error', 'Address ID not found');
             }
+    
+            // DUPLICATE SUBMISSION PREVENTION
+            // Check for the highest transaction number for this member
+            $lastTransaction = MemberData::where('mem_id', $memberSum->mem_id)
+                ->orderBy('mem_transno', 'desc')
+                ->first();
+    
+            if ($lastTransaction) {
+                // Check if we have a record of the last submission in the session
+                $lastSubmittedTransNo = session('last_submitted_transaction');
+                $lastSubmittedMemId = session('last_submitted_mem_id');
+                $lastSubmittedTime = session('last_submitted_time');
+                
+                // If we have a recent submission record (within last 10 seconds) for this member
+                $isRecentSubmission = $lastSubmittedMemId == $memberSum->mem_id && 
+                                     $lastSubmittedTransNo == $lastTransaction->mem_transno &&
+                                     $lastSubmittedTime && 
+                                     (time() - $lastSubmittedTime) < 10;
+                                     
+                if ($isRecentSubmission) {
+                    Log::warning('Prevented duplicate submission', [
+                        'mem_id' => $memberSum->mem_id,
+                        'address_id' => $request->address_id,
+                        'last_transaction' => $lastTransaction->mem_transno,
+                        'time_since_last_submission' => time() - $lastSubmittedTime,
+                        'user_id' => auth()->id()
+                    ]);
+                    
+                    return redirect()->route('residents.residents_data')
+                        ->with('info', 'Your previous submission was already processed. Duplicate submission prevented.');
+                }
+            }
+    
+            // Start database transaction after duplicate check
+            DB::beginTransaction();
     
             // Create new member_data entry
             $memberData = new MemberData();
@@ -282,6 +315,19 @@ class ResidentController extends Controller
             }
     
             $memberData->save();
+    
+            // Store the submission details in session to prevent duplicates
+            $newMemberData = MemberData::where('mem_id', $memberSum->mem_id)
+                ->orderBy('mem_transno', 'desc')
+                ->first();
+                
+            if ($newMemberData) {
+                session([
+                    'last_submitted_mem_id' => $memberSum->mem_id,
+                    'last_submitted_transaction' => $newMemberData->mem_transno,
+                    'last_submitted_time' => time()
+                ]);
+            }
     
             // Handle vehicle information with duplicate prevention
             if ($request->has('vehicles')) {
