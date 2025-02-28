@@ -48,13 +48,21 @@ class ResidentFormBehaviors {
     
     setupMemberTypeHandlers() {
         this.memberTypeRadios.forEach(radio => {
-            radio.addEventListener('change', () => {
-                this.handleMemberTypeChange(radio);
+            radio.addEventListener('change', (event) => {
+                // Mark this as a user-initiated change
+                if (event.isTrusted) {
+                    radio.setAttribute('data-user-changed', 'true');
+                }
+                this.handleMemberTypeChange(radio, event);
             });
         });
     }
     
     handleMemberTypeChange(radioButton) {
+        // Check if this change was triggered by user interaction or programmatically
+        const isUserInitiated = radioButton.hasAttribute('data-user-changed') || 
+                               (event && event.isTrusted);
+        
         // Get the label text to identify the member type
         const label = radioButton.nextElementSibling;
         const labelText = label ? label.textContent.trim().toLowerCase() : '';
@@ -67,9 +75,11 @@ class ResidentFormBehaviors {
             this.tenantSpaField.value = '';
         }
         
-        // Clear vehicle data when member type changes
-        this.clearVehicleData();
-        showToast('info', 'Changes in resident type will archive car sticker data');
+        // Only clear vehicle data if this was a user-initiated change
+        if (isUserInitiated) {
+            this.clearVehicleData();
+            showToast('info', 'Changes in resident type will archive car sticker data');
+        }
         
         // Update validation state
         this.updateTenantSpaValidation();
@@ -158,7 +168,8 @@ class ResidentFormBehaviors {
         this.tenantSpaField.addEventListener('blur', (event) => {
             const originalValue = event.target.getAttribute('data-original-value') || '';
             
-            if (event.target.value !== originalValue) {
+            // Check if this was a user-initiated change
+            if (event.isTrusted && event.target.value !== originalValue) {
                 this.clearVehicleData();
                 showToast('info', 'Changes in resident type will archive car sticker data');
             }
