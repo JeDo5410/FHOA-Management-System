@@ -293,8 +293,18 @@ class MemberLookup {
                 console.log('MemberLookup: Dispatching input event to trigger data loading');
                 addressInput.dispatchEvent(new Event('input', { bubbles: true }));
                 
+                // NEW: Simulate pressing Enter by creating a keydown event
+                const enterEvent = new KeyboardEvent('keydown', {
+                    key: 'Enter',
+                    code: 'Enter',
+                    keyCode: 13,
+                    which: 13,
+                    bubbles: true
+                });
+                addressInput.dispatchEvent(enterEvent);
+                
                 // Show success notification
-                showToast('success', 'Member found. Loading data...');
+                showToast('success', 'Member found. Loading data...');    
             } else {
                 console.warn('MemberLookup: No address inputs found for auto-population');
                 console.log('MemberLookup: Falling back to direct API call');
