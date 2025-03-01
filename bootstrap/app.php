@@ -16,7 +16,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->web([
             \Illuminate\Session\Middleware\StartSession::class,
-            \App\Http\Middleware\SessionTimeout::class,
         ]);
 
         $middleware->alias([

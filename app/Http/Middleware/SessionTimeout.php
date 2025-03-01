@@ -12,16 +12,10 @@ class SessionTimeout
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check()) {
+        // Only check timeout for authenticated users and on routes that are not auth routes
+        if (Auth::check() && !$request->routeIs('login') && !$request->routeIs('check-username') && !$request->routeIs('refresh-csrf')) {
             $lastActivity = session('last_activity');
             $timeout = config('session.lifetime') * 60; // Convert minutes to seconds
-
-            Log::info('Session Check', [
-                'last_activity' => $lastActivity,
-                'current_time' => time(),
-                'diff' => $lastActivity ? time() - $lastActivity : null,
-                'timeout' => $timeout
-            ]);
     
             if ($lastActivity && time() - $lastActivity > $timeout) {
                 Auth::logout();
@@ -35,10 +29,10 @@ class SessionTimeout
                 return redirect()->route('login')
                     ->with('message', 'Your session has expired. Please login again.');
             }
-
+    
             session(['last_activity' => time()]);
         }
-
+    
         return $next($request);
     }
 }

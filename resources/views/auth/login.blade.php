@@ -54,11 +54,16 @@
 </div>
 
 <script>
-// Check for timeout parameter in URL
+// Check for timeout parameter in URL or session message
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('reason') === 'timeout') {
         document.getElementById('timeoutMessage').style.display = 'block';
+    }
+    // Once the message is displayed, clear the URL parameter
+    if (urlParams.get('reason') === 'timeout') {
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
     }
 });
 // JavaScript remains unchanged
