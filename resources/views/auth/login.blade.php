@@ -9,6 +9,19 @@
             <div class="card shadow-sm">
                 <div class="card-body p-4">
                     <h2 class="text-center mb-4">Welcome Back</h2>
+                    <!-- Session timeout message -->
+                    @if(session('message'))
+                    <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+                        {{ session('message') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    @endif
+
+                    <!-- JavaScript timeout parameter handling -->
+                    <div id="timeoutMessage" class="alert alert-warning alert-dismissible fade show mb-4" style="display: none;" role="alert">
+                    Your session has expired. Please login again.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                     
                     <form id="loginForm" method="POST" autocomplete="off">
                         @csrf
@@ -41,6 +54,13 @@
 </div>
 
 <script>
+// Check for timeout parameter in URL
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('reason') === 'timeout') {
+        document.getElementById('timeoutMessage').style.display = 'block';
+    }
+});
 // JavaScript remains unchanged
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('username').addEventListener('blur', checkUsername);
@@ -56,6 +76,7 @@ let userState = {
 };
 
 async function checkSessionStatus() {
+    if (window.isRedirecting) return;
     try {
         const response = await fetch('/check-session', {
             headers: {
@@ -356,6 +377,7 @@ async function handleSubmit(e) {
             
             const data = await response.json();
             if (data.success) {
+                window.isRedirecting = true;
                 window.location.href = data.redirect;
             } else {
                 const passwordInput = document.getElementById('password');

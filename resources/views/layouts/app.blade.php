@@ -212,5 +212,9 @@
         });
     </script>
     @endif
+<script src="{{ asset('assets/js/session-monitor.js') }}"></script>
+<script>
+    document.body.dataset.sessionTimeout = "{{ config('session.lifetime') }}";
+</script>
 </body>
 </html>

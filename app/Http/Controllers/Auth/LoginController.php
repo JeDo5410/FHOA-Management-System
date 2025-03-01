@@ -85,6 +85,10 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
+            
+            // Add this line to set last_activity immediately after login
+            session(['last_activity' => time()]);
+            
             return response()->json([
                 'success' => true,
                 'redirect' => route('dashboard')
@@ -110,5 +114,12 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
+    }
+
+    public function refreshToken(Request $request)
+    {
+        return response()->json([
+            'token' => csrf_token(),
+        ]);
     }
 }

@@ -26,6 +26,12 @@ class SessionTimeout
             if ($lastActivity && time() - $lastActivity > $timeout) {
                 Auth::logout();
                 session()->flush();
+                
+                // If this is an AJAX request, return 401 response
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['authenticated' => false], 401);
+                }
+                
                 return redirect()->route('login')
                     ->with('message', 'Your session has expired. Please login again.');
             }

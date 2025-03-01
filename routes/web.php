@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ResidentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AccountReceivableController;
+use Illuminate\Support\Facades\Auth;
 
 // Root URL will redirect to dashboard
 Route::get('/', function () {
@@ -72,3 +73,11 @@ Route::post('/logout', [LoginController::class, 'logout'])
     ->name('logout')
     ->withoutMiddleware(['auth'])
     ->middleware(['web']);
+
+    Route::get('/check-session-status', function () {
+        if (Auth::check()) {
+            return response()->json(['authenticated' => true]);
+        }
+        return response()->json(['authenticated' => false], 401);
+    })->middleware('web');
+    Route::get('/refresh-csrf', [App\Http\Controllers\Auth\LoginController::class, 'refreshToken'])->middleware('web');
