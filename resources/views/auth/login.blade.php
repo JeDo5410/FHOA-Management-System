@@ -205,7 +205,6 @@ function updateFormState() {
 
 async function handleSubmit(e) {
     e.preventDefault();
-    console.log('Current user state:', userState);  
     
     const username = document.getElementById('username').value.trim();
     if (!username) {
@@ -217,6 +216,13 @@ async function handleSubmit(e) {
         return;
     }
 
+    // Always check username before proceeding with form submission
+    await checkUsername();
+    console.log('Current user state after validation:', userState);
+    
+    // Add a small delay to ensure username check completed
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     if (!userState.exists) {
         await Swal.fire({
             title: 'Error',
