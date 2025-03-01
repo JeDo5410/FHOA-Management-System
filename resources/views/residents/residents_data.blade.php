@@ -256,6 +256,16 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
         animation: spinner 0.6s linear infinite;
     }
 
+    #memberLookupModal .modal-dialog {
+        max-width: 700px; /* Increase the width (default is 500px) */
+        margin: 1.75rem auto; /* Keep it centered */
+    }
+
+    /* Optional: You can also adjust the content padding for a better appearance */
+    #memberLookupModal .modal-body {
+        padding: 1.5rem;
+    }
+
     @keyframes spinner {
         to {
             transform: rotate(360deg);
@@ -687,15 +697,15 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="memberLookupModalLabel">Member Lookup</h5>
+                    <h5 class="modal-title" id="memberLookupModalLabel">Find Homeowners Member</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="memberNameSearch" class="form-label">Search by Name or Tenant/SPA</label>
+                        <label for="memberNameSearch" class="form-label">Find by Homeowners/Tenant/SPA Name</label>
                         <input type="text" class="form-control" id="memberNameSearch" 
                             placeholder="Type to search..." autocomplete="off">
-                        <div class="form-text">Enter at least 2 characters to search</div>
+                        {{-- <div class="form-text">Enter at least 2 characters to search</div> --}}
                     </div>
                     <div id="memberSearchResults" class="mt-2">
                         <!-- Search results will be displayed here -->

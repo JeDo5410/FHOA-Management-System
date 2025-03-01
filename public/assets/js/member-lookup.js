@@ -412,3 +412,20 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('MemberLookup: Stack trace:', error.stack);
     }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the member lookup button and modal
+    const memberLookupBtn = document.getElementById('memberLookupBtn');
+    const memberLookupModal = document.getElementById('memberLookupModal');
+    
+    if (memberLookupBtn && memberLookupModal) {
+        // Listen for when the modal is fully shown
+        memberLookupModal.addEventListener('shown.bs.modal', function() {
+            // Focus on the member name search input field
+            const memberNameSearchInput = document.getElementById('memberNameSearch');
+            if (memberNameSearchInput) {
+                memberNameSearchInput.focus();
+            }
+        });
+    }
+});
