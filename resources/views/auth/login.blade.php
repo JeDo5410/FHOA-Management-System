@@ -10,23 +10,23 @@
                 <div class="card-body p-4">
                     <h2 class="text-center mb-4">Welcome Back</h2>
                     
-                    <form id="loginForm" method="POST">
+                    <form id="loginForm" method="POST" autocomplete="off">
                         @csrf
                         <div class="mb-3">
                             <label for="username" class="form-label">Username</label>
-                            <input type="text" class="form-control" name="username" id="username" required>
+                            <input type="text" class="form-control" name="username" id="username" required autocomplete="off">
                             <div id="usernameError" class="invalid-feedback"></div>
                         </div>
                     
                         <div class="mb-3" id="passwordGroup">
                             <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" name="password" id="password">
+                            <input type="password" class="form-control" name="password" id="password" autocomplete="new-password">
                             <div id="passwordError" class="invalid-feedback"></div>
                         </div>
                     
                         <div class="mb-3 d-none" id="newPasswordGroup">
                             <label for="new_password" class="form-label">Set New Password</label>
-                            <input type="password" class="form-control" name="new_password" id="new_password">
+                            <input type="password" class="form-control" name="new_password" id="new_password" autocomplete="new-password">
                             <div id="newPasswordError" class="invalid-feedback"></div>
                         </div>
                     
@@ -41,6 +41,7 @@
 </div>
 
 <script>
+// JavaScript remains unchanged
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('username').addEventListener('blur', checkUsername);
     document.getElementById('loginForm').addEventListener('submit', handleSubmit);
