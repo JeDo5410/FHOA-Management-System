@@ -437,6 +437,9 @@ document.addEventListener('DOMContentLoaded', () => {
     */
     
     new PayableForm();
+
+    // Set focus to Voucher No. field automatically
+    document.querySelector('#voucherNo').focus();
     
     // Add custom filter function for standard select elements
     document.querySelectorAll('.form-select').forEach(select => {
