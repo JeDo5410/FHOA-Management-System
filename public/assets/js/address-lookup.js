@@ -52,10 +52,29 @@ class AddressLookup {
                 input.setAttribute('type', 'text');
                 input.setAttribute('autocomplete', 'off');
                 
-                // Add explicit support for all keypress events to ensure all characters are allowed
+                // Add validation for first character to be only 1 or 2
                 input.addEventListener('keypress', (e) => {
-                    return true; // Allow all keypresses
+                    // Get current input value and cursor position
+                    const value = e.target.value;
+                    const position = e.target.selectionStart;
+                    
+                    // If typing at the first position, only allow 1 or 2
+                    if (position === 0) {
+                        return e.key === '1' || e.key === '2';
+                    }
+                    
+                    // Allow other characters for other positions
+                    return true;
                 });
+                
+                // Additional validation on input event
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    if (value.length > 0 && value[0] !== '1' && value[0] !== '2') {
+                        // Remove invalid first character
+                        e.target.value = value.substring(1);
+                    }
+                }, true); // Using capture phase to run before other handlers
             }
         }
     }
