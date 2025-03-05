@@ -414,7 +414,7 @@ class ResidentController extends Controller
                     $carSticker->vehicle_OR = $vehicle['vehicle_OR'];
                     $carSticker->vehicle_CR = $vehicle['vehicle_CR'];
                     $carSticker->vehicle_plate = $plateNumber;
-                    $carSticker->vehicle_active = $vehicle['vehicle_active'] ?? 0;
+                    $carSticker->vehicle_active = isset($vehicle['vehicle_active']) && $vehicle['vehicle_active'] !== '' ? $vehicle['vehicle_active'] : null;
                     $carSticker->remarks = $request->vehicle_remarks;
                     $carSticker->user_id = auth()->id();
                     $carSticker->timestamp = $timestamp;

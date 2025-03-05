@@ -73,16 +73,16 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
     }
 
     /* Ensure options in dropdown are always full opacity */
-    .form-select option:not([value=""]) {
+    .form-select option {
         color: #212529 !important;
         opacity: 1 !important;
     }
 
     /* Ensure full opacity when focused */
-    .form-select:focus {
+    /* .form-select:focus {
         color: #212529;
         opacity: 1;
-    }
+    } */
 
     .nav-tabs .nav-link {
         color: #495057;
@@ -123,6 +123,12 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
     .remove-vehicle:hover {
         opacity: 1;
     }
+
+    .vehicle-table .form-select[name$="[vehicle_active]"] {
+        min-width: 100px; /* Ensures minimum width */
+        width: 100%; /* Takes full width of the cell */
+    }
+
 
     /* Address Dropdown Styles - UPDATED */
     .address-dropdown {
@@ -573,7 +579,7 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                                 <th>OR Number</th>
                                                 <th>CR Number</th>
                                                 <th>Plate Number</th>
-                                                <th>Status</th>
+                                                <th style="width: 110px;">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody id="vehicleTableBody">
@@ -608,11 +614,11 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                                         name="vehicles[{{$i}}][vehicle_plate]">
                                                 </td>
                                                 <td>
-                                                    <select class="form-select form-select-sm" 
-                                                        name="vehicles[{{$i}}][vehicle_active]">
+                                                    <select class="form-select form-select-sm" name="vehicles[{{$i}}][vehicle_active]">
+                                                        <option value="">Select status</option>
                                                         <option value="0">Active</option>
                                                         <option value="1">Inactive</option>
-                                                </select>
+                                                    </select>
                                                 </td>
                                             </tr>
                                             @endfor

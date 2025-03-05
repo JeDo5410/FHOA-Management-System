@@ -486,7 +486,7 @@ class AddressLookup {
             
             const statusSelect = row.querySelector('select[name$="[vehicle_active]"]');
             if (statusSelect) {
-                statusSelect.value = '0'; // Default to active
+                statusSelect.value = ''; 
             }
         });
     
