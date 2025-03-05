@@ -352,7 +352,7 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                             id="resident_addressId" 
                                             name="address_id" 
                                             data-tab="resident"
-                                            placeholder="Enter Address ID"
+                                            placeholder="Enter PhaseLotBlock"
                                             autocomplete="off"> 
                                     </div>
                                 </div>
