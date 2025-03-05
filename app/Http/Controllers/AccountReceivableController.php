@@ -2,13 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ChartOfAccount;
 use Illuminate\Http\Request;
 
 class AccountReceivableController extends Controller
 {
     public function index()
     {
-        return view('accounts.receivable');
+        // Get only account types that contain 'receipts' in the acct_type field
+        // Exclude 'Association Dues Penalty and Interest'
+        $accountTypes = ChartOfAccount::where('acct_type', 'like', '%receipts%')
+            ->where('acct_description', '!=', 'Association Dues Penalty and Interest')
+            ->orderBy('acct_description')
+            ->get();
+            
+        return view('accounts.receivable', compact('accountTypes'));
     }
 
     public function store(Request $request)

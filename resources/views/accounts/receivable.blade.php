@@ -35,22 +35,6 @@
                         <div class="row g-2 align-items-center">
                             <div class="col-md-4">
                                 <div class="container" style="text-align: end">
-                                <label for="address" class="col-form-label">Address</label>
-                                </div>
-                            </div>
-                            <div class="col-md-8">
-                                <input type="text" 
-                                    class="form-control form-control-sm" 
-                                    id="address" 
-                                    name="address"
-                                    required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="row g-2 align-items-center">
-                            <div class="col-md-4">
-                                <div class="container" style="text-align: end">
                                 <label for="receivedFrom" class="col-form-label">Received From</label>
                                 </div>
                             </div>
@@ -59,6 +43,22 @@
                                     class="form-control form-control-sm" 
                                     id="receivedFrom" 
                                     name="received_from"
+                                    required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-4">
+                                <div class="container" style="text-align: end">
+                                <label for="serviceInvoiceNo" class="col-form-label">Service Invoice No.</label>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" 
+                                    class="form-control form-control-sm" 
+                                    id="serviceInvoiceNo" 
+                                    name="service_invoice_no"
                                     required>
                             </div>
                         </div>
@@ -88,20 +88,28 @@
                             <table class="table table-sm table-borderless" id="lineItemsTable">
                                 <thead>
                                     <tr>
-                                        <th style="width: 40%">Charts of Account (COA)</th>
-                                        <th style="width: 20%">Amount</th>
-                                        <th style="width: 30%">Address ID</th>
+                                        <th style="width: 25%">Charts of Account (COA)</th>
+                                        <th style="width: 15%">Amount</th>
+                                        <th style="width: 20%">Address ID</th>
+                                        <th style="width: 15%">Member Name/Address</th>
+                                        <th style="width: 15%">Arrear Total</th>
                                         <th style="width: 10%">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr class="line-item">
                                         <td>
-                                            <input type="text" 
-                                                class="form-control form-control-sm" 
+                                            <select class="form-select form-select-sm enhanced" 
                                                 name="items[0][coa]" 
                                                 required>
-                                        </td>
+                                                <option value="">Select Account Type</option>
+                                                @foreach($accountTypes as $type)
+                                                    <option value="{{ $type->acct_type_id }}">
+                                                        {{ $type->acct_description }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </td>                                        
                                         <td>
                                             <input type="number" 
                                                 class="form-control form-control-sm amount-input" 
@@ -113,6 +121,19 @@
                                             <input type="text" 
                                                 class="form-control form-control-sm" 
                                                 name="items[0][address_id]" 
+                                                required>
+                                        </td>
+                                        <td>
+                                            <input type="text" 
+                                                class="form-control form-control-sm" 
+                                                name="items[0][member_name]" 
+                                                required>
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                class="form-control form-control-sm" 
+                                                name="items[0][total_arrears]" 
+                                                step="1" 
                                                 required>
                                         </td>
                                         <td>
@@ -132,9 +153,9 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td colspan="2" class="text-end"><strong>Total:</strong></td>
+                                        <td colspan="4" class="text-end"><strong>Total:</strong></td>
                                         <td>
-                                            <input type="text" class="form-control form-control-sm" id="totalAmount" name="total_amount" readonly>
+                                            <input type="text" class="form-control form-control-sm text-end" id="totalAmount" name="total_amount" readonly>
                                         </td>
                                         <td></td>
                                     </tr>
@@ -298,7 +319,6 @@
 </style>
 
 @push('scripts')
-<script src="{{ $isNgrok ? secure_asset('assets/select2/js/select2.min.js') : asset('assets/select2/js/select2.min.js') }}"></script>
 <script src="{{ $isNgrok ? secure_asset('assets/js/receivables.js') : asset('assets/js/receivables.js') }}"></script>
 @endpush
 @endsection
