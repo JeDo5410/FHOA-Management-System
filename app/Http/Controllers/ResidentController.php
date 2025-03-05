@@ -14,6 +14,30 @@ use Illuminate\Support\Facades\Log;
 class ResidentController extends Controller
 {
     /**
+     * Creates a unique signature for a vehicle based on all fields
+     * 
+     * @param object|array $vehicle The vehicle data
+     * @param string|null $timestamp Override timestamp (for new submissions)
+     * @return string A unique signature string
+     */
+    private function createVehicleSignature($vehicle, $timestamp = null)
+    {
+        // Handle both object (DB result) and array (form submission) types
+        $isArray = is_array($vehicle);
+        
+        return implode('|', [
+            trim($isArray ? ($vehicle['car_sticker'] ?? '') : ($vehicle->car_sticker ?? '')),
+            trim($isArray ? ($vehicle['vehicle_type'] ?? '') : ($vehicle->vehicle_type ?? '')),
+            trim($isArray ? ($vehicle['vehicle_maker'] ?? '') : ($vehicle->vehicle_maker ?? '')),
+            trim($isArray ? ($vehicle['vehicle_color'] ?? '') : ($vehicle->vehicle_color ?? '')),
+            trim($isArray ? ($vehicle['vehicle_OR'] ?? '') : ($vehicle->vehicle_OR ?? '')),
+            trim($isArray ? ($vehicle['vehicle_CR'] ?? '') : ($vehicle->vehicle_CR ?? '')),
+            trim($isArray ? ($vehicle['vehicle_plate'] ?? '') : ($vehicle->vehicle_plate ?? '')),
+            $timestamp ?? trim($isArray ? ($vehicle['timestamp'] ?? '') : ($vehicle->timestamp ?? ''))
+        ]);
+    }
+
+    /**
      * Helper method to deduplicate vehicle records
      * 
      * @param \Illuminate\Database\Eloquent\Collection $vehicles
@@ -21,39 +45,27 @@ class ResidentController extends Controller
      */
     private function deduplicateVehicles($vehicles)
     {
-        // Track unique identifiers to filter duplicates
-        $processedStickers = [];
-        $processedPlates = [];
         $uniqueVehicles = [];
         $duplicateCount = 0;
+        $processedSignatures = []; // Will store vehicle signatures for comparison
         
         foreach ($vehicles as $vehicle) {
-            $stickerNumber = trim($vehicle->car_sticker ?? '');
-            $plateNumber = trim($vehicle->vehicle_plate ?? '');
-            $isDuplicate = false;
+            // Create a unique signature by combining all fields
+            $vehicleSignature = $this->createVehicleSignature($vehicle);
             
-            // Use a combination of sticker and plate for uniqueness
-            // A vehicle is considered duplicate if BOTH sticker AND plate match a previous record
-            // Or if a non-empty sticker matches a previous sticker
-            // Or if a non-empty plate matches a previous plate
-            if ((!empty($stickerNumber) && in_array($stickerNumber, $processedStickers)) || 
-                (!empty($plateNumber) && in_array($plateNumber, $processedPlates))) {
-                $isDuplicate = true;
+            // Only consider it a duplicate if ALL fields match exactly
+            if (in_array($vehicleSignature, $processedSignatures)) {
                 $duplicateCount++;
-                continue;
+                continue; // Skip this exact duplicate
             }
             
-            // Add to processed tracking arrays
-            if (!empty($stickerNumber)) $processedStickers[] = $stickerNumber;
-            if (!empty($plateNumber)) $processedPlates[] = $plateNumber;
-            
-            // Keep this vehicle in the results
+            // Add to processed signatures and keep unique vehicles
+            $processedSignatures[] = $vehicleSignature;
             $uniqueVehicles[] = $vehicle;
         }
         
-        // Log how many duplicates were found
         if ($duplicateCount > 0) {
-            Log::info("Filtered out $duplicateCount duplicate vehicle records during retrieval");
+            Log::info("Filtered out $duplicateCount exact duplicate vehicle records during retrieval");
         }
         
         return collect($uniqueVehicles);
@@ -355,13 +367,11 @@ class ResidentController extends Controller
     
             // Handle vehicle information with duplicate prevention
             if ($request->has('vehicles')) {
-                // The rest of your vehicle processing code remains unchanged
                 // Generate a single timestamp for all vehicles in this submission
                 $timestamp = now()->format('Y-m-d H:i:s');
                 
                 // Track vehicles being processed in this submission to prevent duplicates
-                $processedStickers = [];
-                $processedPlates = [];
+                $processedSignatures = []; // Will store vehicle signatures for comparison
                 $duplicateCount = 0;
                 
                 foreach ($request->vehicles as $vehicle) {
@@ -370,50 +380,33 @@ class ResidentController extends Controller
                         continue;
                     }
                     
-                    $stickerNumber = trim($vehicle['car_sticker'] ?? '');
-                    $plateNumber = trim($vehicle['vehicle_plate'] ?? '');
+                    // Create a unique signature by combining all fields
+                    $vehicleSignature = $this->createVehicleSignature($vehicle, $timestamp);
                     
-                    // Check for duplicates within this submission
-                    $isDuplicate = false;
-                    
-                    // Check sticker number duplication if not empty
-                    if (!empty($stickerNumber) && in_array($stickerNumber, $processedStickers)) {
-                        $isDuplicate = true;
-                        Log::info('Skipped duplicate sticker number in same submission', [
-                            'mem_id' => $memberSum->mem_id,
-                            'sticker' => $stickerNumber
-                        ]);
-                    }
-                    
-                    // Check plate number duplication if not empty
-                    if (!empty($plateNumber) && in_array($plateNumber, $processedPlates)) {
-                        $isDuplicate = true;
-                        Log::info('Skipped duplicate plate number in same submission', [
-                            'mem_id' => $memberSum->mem_id,
-                            'plate' => $plateNumber
-                        ]);
-                    }
-                    
-                    if ($isDuplicate) {
+                    // Only consider it a duplicate if ALL fields match exactly
+                    if (in_array($vehicleSignature, $processedSignatures)) {
                         $duplicateCount++;
+                        Log::info('Skipped exact duplicate vehicle in submission', [
+                            'mem_id' => $memberSum->mem_id,
+                            'signature' => $vehicleSignature
+                        ]);
                         continue;
                     }
                     
-                    // Add to processed arrays to track this submission
-                    if (!empty($stickerNumber)) $processedStickers[] = $stickerNumber;
-                    if (!empty($plateNumber)) $processedPlates[] = $plateNumber;
+                    // Add to processed signatures
+                    $processedSignatures[] = $vehicleSignature;
                     
                     // Create the car sticker record
                     $carSticker = new CarSticker();
                     $carSticker->mem_id = $memberSum->mem_id;
                     $carSticker->mem_code = $request->mem_typecode;
-                    $carSticker->car_sticker = $stickerNumber;
+                    $carSticker->car_sticker = trim($vehicle['car_sticker'] ?? '');
                     $carSticker->vehicle_maker = $vehicle['vehicle_maker'];
                     $carSticker->vehicle_type = $vehicle['vehicle_type'];
                     $carSticker->vehicle_color = $vehicle['vehicle_color'];
                     $carSticker->vehicle_OR = $vehicle['vehicle_OR'];
                     $carSticker->vehicle_CR = $vehicle['vehicle_CR'];
-                    $carSticker->vehicle_plate = $plateNumber;
+                    $carSticker->vehicle_plate = trim($vehicle['vehicle_plate'] ?? '');
                     $carSticker->vehicle_active = isset($vehicle['vehicle_active']) && $vehicle['vehicle_active'] !== '' ? $vehicle['vehicle_active'] : null;
                     $carSticker->remarks = $request->vehicle_remarks;
                     $carSticker->user_id = auth()->id();
@@ -423,8 +416,8 @@ class ResidentController extends Controller
                 
                 // Add a message about skipped duplicates if any were found
                 if ($duplicateCount > 0) {
-                    Log::info("Skipped $duplicateCount duplicate vehicle entries for mem_id: {$memberSum->mem_id}");
-                    session()->flash('info', "Note: Skipped $duplicateCount duplicate vehicle entries.");
+                    Log::info("Skipped $duplicateCount exact duplicate vehicle entries for mem_id: {$memberSum->mem_id}");
+                    session()->flash('info', "Note: Skipped $duplicateCount exact duplicate vehicle entries (all details matched exactly).");
                 }
             }
     
