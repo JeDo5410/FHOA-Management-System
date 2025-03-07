@@ -12,9 +12,9 @@ return new class extends Migration
             $table->integer('mem_id')->autoIncrement();
             $table->string('mem_add_id', 45)->nullable();
             $table->dateTime('arrear_month')->nullable();
-            $table->decimal('arrears', 9, 2)->nullable();
+            $table->decimal('arrear', 9, 2)->nullable();
             $table->integer('arrear_count')->nullable();
-            $table->decimal('arrears_interest', 9, 2)->nullable();
+            $table->decimal('arrear_interest', 9, 2)->nullable();
             $table->string('last_salesinvoice', 45)->nullable();
             $table->string('last_paydate', 45)->nullable();
             $table->string('last_payamount', 45)->nullable();
