@@ -110,7 +110,52 @@
             color: var(--primary-color);
             font-weight: 500;
         }
+        /* For smaller desktop/laptop screens */
+        @media (max-width: 1366px) {
+            :root {
+                --sidebar-width: 220px;
+            }
+            
+            .sidenav {
+                width: var(--sidebar-width);
+            }
+            
+            .main-content {
+                margin-left: var(--sidebar-width);
+            }
+            
+            .nav-link {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.95rem;
+            }
+            
+            .nav-link i {
+                font-size: 1rem;
+            }
+        }
 
+        /* For even smaller screens but still desktop */
+        @media (max-width: 1024px) {
+            :root {
+                --sidebar-width: 190px;
+            }
+            
+            .sidenav {
+                width: var(--sidebar-width);
+            }
+            
+            .main-content {
+                margin-left: var(--sidebar-width);
+                padding: 1.5rem;
+            }
+            
+            .nav-link {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Your existing mobile media query remains unchanged below */
         @media (max-width: 768px) {
             .sidenav {
                 width: 70px;
