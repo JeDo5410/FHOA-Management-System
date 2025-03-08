@@ -107,7 +107,7 @@
                                     <table class="table table-sm table-borderless" id="lineItemsTable">
                                         <thead>
                                             <tr>
-                                                <th style="width: 50%">Charts of Account (COA)</th>
+                                                <th style="width: 50%">Account Type</th>
                                                 <th style="width: 40%">Amount</th>
                                                 <th style="width: 10%">Action</th>
                                             </tr>
@@ -392,7 +392,7 @@
                                     <table class="table table-sm table-borderless" id="arrearsLineItemsTable">
                                         <thead>
                                             <tr>
-                                                <th style="width: 50%">Charts of Account (COA)</th>
+                                                <th style="width: 50%">Account Type</th>
                                                 <th style="width: 40%">Amount</th>
                                                 <th style="width: 10%">Action</th>
                                             </tr>
@@ -717,7 +717,7 @@
             transform: rotate(360deg);
         }
     }
-    
+
     /* Responsive Form Layout Styles */
     @media (max-width: 768px) {
     /* General row transformation for mobile */
