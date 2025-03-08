@@ -45,7 +45,10 @@ class AcctReceivable extends Model
         'ar_date',
         'ar_total',
         'ar_remarks',
-        'user_id',
+        'receive_by',
+        'payment_type',
+        'payment_ref',
+        'user_id'
     ];
 
     /**
@@ -77,7 +80,6 @@ class AcctReceivable extends Model
 
     /**
      * Get the member associated with this receivable.
-     * Note: This assumes you have a Member or MemberData model with mem_transno field.
      */
     public function member()
     {
