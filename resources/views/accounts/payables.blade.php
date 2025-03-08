@@ -42,56 +42,39 @@
                 <!-- Header Section -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
-                        <div class="row g-2 align-items-center">
-                            <div class="col-md-4">
-                                <div class="container" style="text-align: end">
-                                <label for="voucherNo" class="col-form-label">Voucher No.</label>
-                                </div>
-                            </div>
-                            <div class="col-md-8">
-                                <input type="text" 
-                                    class="form-control form-control-sm" 
-                                    id="voucherNo" 
-                                    name="voucher_no"
-                                    autocomplete="off"
-                                    required>
-                            </div>
+                        <div class="mb-3">
+                            <label for="voucherNo" class="form-label">Voucher No.</label>
+                            <input type="text" 
+                                class="form-control form-control-sm" 
+                                id="voucherNo" 
+                                name="voucher_no"
+                                autocomplete="off"
+                                required>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="row g-2 align-items-center">
-                            <div class="col-md-4">
-                                <div class="container" style="text-align: end">
-                                <label for="payee" class="col-form-label">Payee</label>
-                                </div>
-                            </div>
-                            <div class="col-md-8">
-                                <input type="text" 
-                                    class="form-control form-control-sm" 
-                                    id="payee" 
-                                    name="payee"
-                                    autocomplete="off"
-                                    required>
-                            </div>
+                        <div class="mb-3">
+                            <label for="payee" class="form-label">Payee</label>
+                            <input type="text" 
+                                class="form-control form-control-sm" 
+                                id="payee" 
+                                name="payee"
+                                autocomplete="off"
+                                required>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="row g-2 align-items-center">
-                            <div class="col-md-4">
-                                <div class="container" style="text-align: end">
-                                <label for="date" class="col-form-label">Date</label>
-                                </div>
-                            </div>
-                            <div class="col-md-8">
-                                <input type="date" 
-                                    class="form-control form-control-sm" 
-                                    id="date" 
-                                    name="date"
-                                    required>
-                            </div>
+                        <div class="mb-3">
+                            <label for="date" class="form-label">Date</label>
+                            <input type="date" 
+                                class="form-control form-control-sm" 
+                                id="date" 
+                                name="date"
+                                required>
                         </div>
                     </div>
                 </div>
+                
 
                 <!-- Line Items Table -->
                 <div class="card mb-4 shadow-sm">
@@ -166,24 +149,24 @@
                 <!-- Payment Details -->
                 <div class="row g-3 mb-5">
                     <div class="col-md-6">
-                        <div class="d-flex align-items-center gap-4">
-                            <label class="form-label mb-0">Mode of Payment:</label>
-                            <div class="form-check form-check-inline">
+                        <label class="form-label">Mode of Payment:</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="form-check">
                                 <input class="form-check-input" type="radio" name="payment_mode" 
                                     id="pettyCash" value="PETTY CASH" required>
                                 <label class="form-check-label" for="pettyCash">Petty Cash</label>
                             </div>
-                            <div class="form-check form-check-inline">
+                            <div class="form-check">
                                 <input class="form-check-input" type="radio" name="payment_mode" 
                                     id="cash" value="CASH">
                                 <label class="form-check-label" for="cash">Cash</label>
                             </div>
-                            <div class="form-check form-check-inline">
+                            <div class="form-check">
                                 <input class="form-check-input" type="radio" name="payment_mode" 
                                     id="gcash" value="GCASH">
                                 <label class="form-check-label" for="gcash">GCash</label>
                             </div>
-                            <div class="form-check form-check-inline">
+                            <div class="form-check">
                                 <input class="form-check-input" type="radio" name="payment_mode" 
                                     id="check" value="CHECK">
                                 <label class="form-check-label" for="check">Check</label>
@@ -191,19 +174,13 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="row g-2 align-items-center">
-                            <div class="col-md-4">
-                                <div class="container" style="text-align: end; padding-left: 5px">
-                                    <label for="reference" class="col-form-label">Reference #</label>
-                                </div>
-                            </div>
-                            <div class="col-md-8">
-                                <input type="text" 
-                                    class="form-control form-control-sm" 
-                                    id="reference" 
-                                    name="reference_no"
-                                    autocomplete="off">
-                            </div>
+                        <div class="mb-3">
+                            <label for="reference" class="form-label">Reference #</label>
+                            <input type="text" 
+                                class="form-control form-control-sm" 
+                                id="reference" 
+                                name="reference_no"
+                                autocomplete="off">
                         </div>
                     </div>
                 </div>
@@ -211,25 +188,19 @@
                 <!-- Remarks Field -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-12">
-                        <div class="row g-2 align-items-start">
-                            <div class="col-md-1">
-                                <div class="container" style="text-align: end">
-                                    <label for="remarks" class="col-form-label">Remarks:</label>
-                                </div>
-                            </div>
-                            <div class="col-md-11">
-                                <div class="position-relative">
-                                    <textarea 
-                                        class="form-control form-control-sm" 
-                                        id="remarks" 
-                                        name="remarks"
-                                        rows="1"
-                                        maxlength="45"
-                                        style="resize: none;"
-                                        autocomplete="off"
-                                    ></textarea>
-                                    <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="charCount">0/45</small>
-                                </div>
+                        <div class="mb-3">
+                            <label for="remarks" class="form-label">Remarks:</label>
+                            <div class="position-relative">
+                                <textarea 
+                                    class="form-control form-control-sm" 
+                                    id="remarks" 
+                                    name="remarks"
+                                    rows="1"
+                                    maxlength="45"
+                                    style="resize: none;"
+                                    autocomplete="off"
+                                ></textarea>
+                                <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="charCount">0/45</small>
                             </div>
                         </div>
                     </div>
@@ -380,6 +351,105 @@
         border-right: none;
         border-bottom: none;
         border-left: none;
+    }
+    /* Responsive Form Layout Styles */
+    @media (max-width: 768px) {
+    /* General row transformation for mobile */
+    .row.g-2.align-items-center,
+    .row.g-3.align-items-center,
+    .row.g-3 .col-md-4 .row.g-2.align-items-center,
+    .row.g-3 .col-md-6 .row.g-2.align-items-center,
+    .d-flex.align-items-center,
+    .d-flex.align-items-center.gap-4 {
+        flex-direction: column;
+        align-items: flex-start !important;
+        width: 100%;
+    }
+    
+    /* Make labels and inputs full width on mobile */
+    .row.g-2.align-items-center > div,
+    .row.g-3.align-items-center > div,
+    .row.g-3 .col-md-4 .row.g-2.align-items-center > div,
+    .row.g-3 .col-md-6 .row.g-2.align-items-center > div {
+        width: 100%;
+        max-width: 100%;
+        flex: 0 0 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Center-align the labels on mobile */
+    .col-form-label {
+        text-align: left !important;
+        margin-bottom: 0.25rem;
+        padding-bottom: 0;
+    }
+    
+    /* Reset the text-align end styling */
+    .container[style*="text-align: end"] {
+        text-align: left !important;
+        padding-left: 0 !important;
+    }
+    
+    /* Full-width inputs */
+    .form-control,
+    .form-select {
+        width: 100%;
+    }
+    
+    /* Fix column widths on mobile */
+    .col-md-1, .col-md-2, .col-md-3, .col-md-4, 
+    .col-md-5, .col-md-6, .col-md-7, .col-md-8,
+    .col-md-9, .col-md-10, .col-md-11, .col-md-12 {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    /* Better spacing for the date field specifically */
+    #date {
+        width: 100%;
+        max-width: 100% !important;
+    }
+    
+    /* Adjust spacing for remarks section */
+    .row.g-3 .col-md-12 .row.g-2.align-items-start {
+        flex-direction: column;
+    }
+    
+    .row.g-3 .col-md-12 .row.g-2.align-items-start > div {
+        width: 100%;
+        max-width: 100%;
+        flex: 0 0 100%;
+    }
+    
+    /* Handle payment mode radio buttons */
+    .d-flex.align-items-center.gap-4 {
+        gap: 0.5rem !important;
+    }
+    
+    .form-check.form-check-inline {
+        margin-bottom: 0.5rem;
+        margin-left: 0 !important;
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Make sure the form buttons stay in line */
+    .d-flex.justify-content-between.align-items-center {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    }
+
+    /* Label style enhancement for all screen sizes */
+    .col-form-label {
+    font-weight: 500;
+    }
+
+    /* Transition for smooth responsive changes */
+    .row, .d-flex, .col-md-1, .col-md-2, .col-md-3, .col-md-4, 
+    .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9,
+    .col-md-10, .col-md-11, .col-md-12 {
+    transition: all 0.3s ease-in-out;
     }
 </style>
 
