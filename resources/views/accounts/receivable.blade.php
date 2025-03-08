@@ -39,7 +39,7 @@
                                 onclick="showToast('info', 'Operation cancelled'); setTimeout(function() { window.location.href='{{ route('accounts.receivables') }}'; }, 1000);">
                             Cancel
                         </button>
-                        <button type="button" class="btn btn-primary btn-sm save-btn" id="accountSaveBtn">Save</button>
+                        {{-- <button type="button" class="btn btn-primary btn-sm save-btn" id="accountSaveBtn">Save</button> --}}
                     </div>
                 </div>
                 <!-- Add a horizontal separator line -->
@@ -261,7 +261,17 @@
                         <!-- Header Section for Arrears tab with Labels Above Inputs -->
                         <div class="row g-3 mb-4">
                             <!-- First Column: Received From -->
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="arrears_addressId" class="form-label">Address ID</label>
+                                    <input type="text" 
+                                        class="form-control form-control-sm"
+                                        id="arrears_addressId" 
+                                        name="arrears_address_id"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
                                 <div class="mb-3">
                                     <label for="arrears_receivedFrom" class="form-label">Received From</label>
                                     <input type="text" 
@@ -273,7 +283,7 @@
                             </div>
                             
                             <!-- Second Column: Service Invoice No. -->
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="mb-3">
                                     <label for="arrears_serviceInvoiceNo" class="form-label">Service Invoice No.</label>
                                     <input type="number" 
@@ -286,7 +296,7 @@
                             </div>
                             
                             <!-- Third Column: Date -->
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="mb-3">
                                     <label for="arrears_date" class="form-label">Date</label>
                                     <input type="date" 
@@ -346,11 +356,7 @@
                                             <label for="arrears" class="form-label">Arrears Amount</label>
                                             <div class="input-group">
                                                 <span class="input-group-text bg-light"><i class="bi bi-currency-dollar"></i></span>
-                                                <input type="text" 
-                                                    class="form-control form-control-sm text-danger fw-bold" 
-                                                    id="arrears" 
-                                                    name="arrears_amount"
-                                                    readonly>
+                                                <input type="text" class="form-control form-control-sm text-danger fw-bold" id="arrears_amount" name="arrears_amount" readonly>
                                             </div>
                                         </div>
                                     </div>
@@ -1145,5 +1151,9 @@ function showToast(type, message) {
     }
 }
 </script>
-
+@php
+// Update this version when you change your JS files
+$jsVersion = '1.2.0';
+@endphp
+<script src="{{ asset('assets/js/receivable-address-lookup.js') }}?v={{ $jsVersion }}"></script>
 @endsection

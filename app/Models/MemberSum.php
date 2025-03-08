@@ -13,7 +13,7 @@ class MemberSum extends Model
     protected $fillable = [
         'mem_add_id',
         'arrear_month',
-        'arrears',
+        'arrear',
         'arrear_count',
         'arrears_interest',
         'last_salesinvoice',

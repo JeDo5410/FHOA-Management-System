@@ -246,21 +246,24 @@ class AddressLookup {
 
     translateAddressId(addressId) {
         try {
-            // Check if it follows the standard numeric format (for backward compatibility)
-            if (/^\d{5}$/.test(addressId)) {
-                const phase = addressId[0];
-                const block = addressId.substring(1, 3);
-                const lot = addressId.substring(3, 5);
-                return `Phase ${phase} Block ${block} Lot ${lot}`;
-            } 
-            // For alphanumeric IDs, return a formatted version
-            return `Address ID: ${addressId}`;
+            // Make sure we have a 5-character string
+            if (!addressId || addressId.length !== 5) {
+                return `Address ID: ${addressId}`;
+            }
+            
+            // Extract parts: first digit is phase, next 2 chars are block, last 2 chars are lot
+            const phase = addressId.substring(0, 1);
+            const block = addressId.substring(1, 3);
+            const lot = addressId.substring(3, 5);
+            
+            // Format the address with proper labels
+            return `Ph. ${phase} Blk. ${block} Lot ${lot}`;
         } catch (error) {
             console.error('Error translating address ID:', error);
             return addressId; // Return the original ID if translation fails
         }
     }
-
+    
     updateAddressFields(formattedAddress) {
         // Update address fields in both tabs
         for (const tab of ['resident', 'vehicle']) {

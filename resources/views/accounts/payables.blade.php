@@ -451,6 +451,12 @@
     .col-md-10, .col-md-11, .col-md-12 {
     transition: all 0.3s ease-in-out;
     }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+    }
 </style>
 
 @push('scripts')
