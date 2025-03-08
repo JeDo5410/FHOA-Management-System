@@ -48,12 +48,17 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
 
     // Account Payables routes
     Route::prefix('accounts')->group(function () {
+        // Payables routes
         Route::get('/payables', [AccountPayableController::class, 'index'])->name('accounts.payables');
         Route::post('/payables/store', [AccountPayableController::class, 'store'])->name('accounts.payables.store');
         
-        // New Account Receivables routes
+        // Receivables routes
         Route::get('/receivables', [AccountReceivableController::class, 'index'])->name('accounts.receivables');
         Route::post('/receivables/store', [AccountReceivableController::class, 'store'])->name('accounts.receivables.store');
+        
+        // If you want to add more specific routes for different receivable types, you could add:
+        // Route::post('/receivables/store-account', [AccountReceivableController::class, 'storeAccountReceivable'])->name('accounts.receivables.store-account');
+        // Route::post('/receivables/store-arrears', [AccountReceivableController::class, 'storeArrearsReceivable'])->name('accounts.receivables.store-arrears');
     });
 });
 

@@ -78,7 +78,7 @@
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label for="serviceInvoiceNo" class="form-label">Service Invoice No.</label>
-                                    <input type="text" 
+                                    <input type="number" 
                                         class="form-control form-control-sm" 
                                         id="serviceInvoiceNo" 
                                         name="service_invoice_no"
@@ -128,10 +128,11 @@
                                                 </td>                                        
                                                 <td>
                                                     <input type="number" 
-                                                        class="form-control form-control-sm amount-input" 
-                                                        name="items[0][amount]"
-                                                        step="1" 
-                                                        required>
+                                                    class="form-control form-control-sm amount-input" 
+                                                    name="items[0][amount]"
+                                                    step="1" 
+                                                    min="1"
+                                        required>
                                                 </td>
                                                 <td>
                                                     <button type="button" 
@@ -275,10 +276,11 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="arrears_serviceInvoiceNo" class="form-label">Service Invoice No.</label>
-                                    <input type="text" 
+                                    <input type="number" 
                                         class="form-control form-control-sm" 
                                         id="arrears_serviceInvoiceNo" 
                                         name="arrears_service_invoice_no"
+                                        min="1"
                                         required>
                                 </div>
                             </div>
@@ -404,19 +406,20 @@
                                                         name="arrears_items[0][coa]" 
                                                         required>
                                                         <option value="">Select Account Type</option>
-                                                        @foreach($accountTypes as $type)
+                                                        @foreach($duesAccountTypes as $type)
                                                             <option value="{{ $type->acct_type_id }}">
                                                                 {{ $type->acct_description }}
                                                             </option>
                                                         @endforeach
                                                     </select>
-                                                </td>                                        
+                                                </td>                            
                                                 <td>
                                                     <input type="number" 
-                                                        class="form-control form-control-sm arrears-amount-input" 
-                                                        name="arrears_items[0][amount]"
-                                                        step="1" 
-                                                        required>
+                                                    class="form-control form-control-sm arrears-amount-input" 
+                                                    name="arrears_items[0][amount]"
+                                                    step="0.01" 
+                                                    min="0.01"
+                                        required>
                                                 </td>
                                                 <td>
                                                     <button type="button" 
@@ -482,7 +485,7 @@
         <div class="d-flex">
             <div class="toast-body">
                 <i class="bi bi-check-circle me-2"></i>
-                <span id="successMessage">Operation completed successfully</span>
+                <span id="successMessage">Account receivable created successfully</span>
             </div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
@@ -819,11 +822,16 @@
     font-weight: 500;
     }
 
-/* Transition for smooth responsive changes */
-.row, .d-flex, .col-md-1, .col-md-2, .col-md-3, .col-md-4, 
-.col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-12 {
-  transition: all 0.3s ease-in-out;
-}
+    /* Transition for smooth responsive changes */
+    .row, .d-flex, .col-md-1, .col-md-2, .col-md-3, .col-md-4, 
+    .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-12 {
+    transition: all 0.3s ease-in-out;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+    }
 
 </style>
 
@@ -882,7 +890,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </select>
                 </td>
                 <td>
-                    <input type="number" class="form-control form-control-sm amount-input" name="items[${rowCount}][amount]" step="1" required>
+                    <input type="number" class="form-control form-control-sm amount-input" name="items[${rowCount}][amount]" step="0.01" min="0.01" required>
                 </td>
                 <td>
                     <button type="button" class="btn btn-link text-danger remove-line">
@@ -911,7 +919,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>
                     <select class="form-select form-select-sm enhanced" name="arrears_items[${rowCount}][coa]" required>
                         <option value="">Select Account Type</option>
-                        @foreach($accountTypes as $type)
+                        @foreach($duesAccountTypes as $type)
                             <option value="{{ $type->acct_type_id }}">
                                 {{ $type->acct_description }}
                             </option>
@@ -919,7 +927,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </select>
                 </td>
                 <td>
-                    <input type="number" class="form-control form-control-sm arrears-amount-input" name="arrears_items[${rowCount}][amount]" step="1" required>
+                    <input type="number" class="form-control form-control-sm arrears-amount-input" name="arrears_items[${rowCount}][amount]" step="0.01" min="0.01" required>
                 </td>
                 <td>
                     <button type="button" class="btn btn-link text-danger remove-arrears-line">
@@ -1019,12 +1027,81 @@ document.addEventListener('DOMContentLoaded', function() {
         const activeTab = document.querySelector('.tab-pane.active');
         const activeTabId = activeTab.getAttribute('id');
         
+        // Validate the form before submission
         if (activeTabId === 'account') {
-            document.getElementById('accountReceivableForm').submit();
+            const form = document.getElementById('accountReceivableForm');
+            if (validateAccountReceivableForm(form)) {
+                form.submit();
+            }
         } else if (activeTabId === 'arrears') {
-            document.getElementById('arrearsReceivableForm').submit();
+            const form = document.getElementById('arrearsReceivableForm');
+            if (validateArrearsReceivableForm(form)) {
+                form.submit();
+            }
         }
     });
+    
+    // Validate the Account Receivable form
+    function validateAccountReceivableForm(form) {
+        // Basic HTML5 validation
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return false;
+        }
+        
+        // Check if at least one line item is added
+        const lineItems = form.querySelectorAll('.amount-input');
+        let hasValue = false;
+        
+        lineItems.forEach(input => {
+            if (parseFloat(input.value) > 0) {
+                hasValue = true;
+            }
+        });
+        
+        if (!hasValue) {
+            showToast('error', 'Please add at least one line item with an amount greater than zero');
+            return false;
+        }
+        
+        // Additional validation for reference number when payment is not CASH
+        const paymentMode = form.querySelector('input[name="payment_mode"]:checked')?.value;
+        const referenceNo = form.querySelector('#reference').value;
+        
+        if (paymentMode && paymentMode !== 'CASH' && !referenceNo) {
+            showToast('error', 'Reference number is required for ' + paymentMode + ' payments');
+            form.querySelector('#reference').focus();
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Validate the Arrears Receivable form
+    function validateArrearsReceivableForm(form) {
+        // Basic HTML5 validation
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return false;
+        }
+        
+        // Check if at least one line item is added
+        const lineItems = form.querySelectorAll('.arrears-amount-input');
+        let hasValue = false;
+        
+        lineItems.forEach(input => {
+            if (parseFloat(input.value) > 0) {
+                hasValue = true;
+            }
+        });
+        
+        if (!hasValue) {
+            showToast('error', 'Please add at least one line item with an amount greater than zero');
+            return false;
+        }
+        
+        return true;
+    };
     
     // Attach change event to amount inputs
     document.addEventListener('input', function(e) {
