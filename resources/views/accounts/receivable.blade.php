@@ -20,20 +20,20 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <ul class="nav nav-tabs border-bottom-0" id="receivableTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="account-tab" data-bs-toggle="tab" 
-                                    data-bs-target="#account" type="button" role="tab" 
-                                    aria-controls="account" aria-selected="true">
-                                Account Receivable
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="arrears-tab" data-bs-toggle="tab" 
+                            <button class="nav-link active" id="arrears-tab" data-bs-toggle="tab" 
                                     data-bs-target="#arrears" type="button" role="tab" 
-                                    aria-controls="arrears" aria-selected="false">
+                                    aria-controls="arrears" aria-selected="true">
                                 HOA Monthly Dues
                             </button>
                         </li>
-                    </ul>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="account-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#account" type="button" role="tab" 
+                                    aria-controls="account" aria-selected="false">
+                                Account Receivable
+                            </button>
+                        </li>
+                    </ul>                    
                     <div>
                         <button type="button" class="btn btn-secondary btn-sm me-2" 
                                 onclick="showToast('info', 'Operation cancelled'); setTimeout(function() { window.location.href='{{ route('accounts.receivables') }}'; }, 1000);">
@@ -48,8 +48,238 @@
 
             <!-- Tab Content -->
             <div class="tab-content" id="receivableTabsContent">
+                <!-- Arrears Receivable Tab -->
+                <div class="tab-pane fade show active" id="arrears" role="tabpanel" aria-labelledby="arrears-tab">
+                    <form action="{{route('accounts.receivables.store')}}" method="POST" id="arrearsReceivableForm">
+                        @csrf
+                        <input type="hidden" name="form_type" value="arrears_receivable">
+                        <!-- Header Section for Arrears tab with Labels Above Inputs -->
+                        <div class="row g-3 mb-4">
+                            <!-- First Column: Received From -->
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="arrears_addressId" class="form-label">Address ID</label>
+                                    <input type="text" 
+                                        class="form-control form-control-sm"
+                                        id="arrears_addressId" 
+                                        name="arrears_address_id"
+                                        autocomplete="off"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="arrears_receivedFrom" class="form-label">Received From</label>
+                                    <input type="text" 
+                                        class="form-control form-control-sm"
+                                        id="arrears_receivedFrom" 
+                                        name="arrears_received_from"
+                                        autocomplete="off"
+                                        required>
+                                </div>
+                            </div>
+                            
+                            <!-- Second Column: Service Invoice No. -->
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="arrears_serviceInvoiceNo" class="form-label">Service Invoice No.</label>
+                                    <input type="number" 
+                                        class="form-control form-control-sm" 
+                                        id="arrears_serviceInvoiceNo" 
+                                        name="arrears_service_invoice_no"
+                                        min="1"
+                                        autocomplete="off"
+                                        required>
+                                </div>
+                            </div>
+                            
+                            <!-- Third Column: Date -->
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="arrears_date" class="form-label">Date</label>
+                                    <input type="date" 
+                                        class="form-control form-control-sm" 
+                                        id="arrears_date" 
+                                        name="arrears_date"
+                                        required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Auto Populate Section with Improved Form Layout -->
+                        <div class="card mb-4 shadow-sm border-left-primary">
+                            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 text-primary font-weight-bold">
+                                    <i class="bi bi-search me-2"></i> Member Arrears Information
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3 mb-1">
+                                    <div class="col-md-7 d-flex align-items-center justify-content-end">
+                                        <div id="lookupStatus" class="d-none">
+                                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Member data loaded</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row g-3 member-data">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="memberName" class="form-label">Member Name</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                                                <input type="text" 
+                                                    class="form-control form-control-sm" 
+                                                    id="memberName" 
+                                                    name="member_name"
+                                                    readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="memberAddress" class="form-label">Member Address</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="bi bi-geo-alt"></i></span>
+                                                <input type="text" 
+                                                    class="form-control form-control-sm" 
+                                                    id="memberAddress" 
+                                                    name="member_address"
+                                                    readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="arrears" class="form-label">Arrears Amount</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="bi bi-currency-dollar"></i></span>
+                                                <input type="text" class="form-control form-control-sm text-danger fw-bold" id="arrears_amount" name="arrears_amount" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="lastPaydate" class="form-label">Last Payment Date</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="bi bi-calendar"></i></span>
+                                                <input type="text" 
+                                                    class="form-control form-control-sm" 
+                                                    id="lastPaydate" 
+                                                    name="last_paydate"
+                                                    readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="lastPayment" class="form-label">Last Payment Amount</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="bi bi-cash"></i></span>
+                                                <input type="text" 
+                                                    class="form-control form-control-sm" 
+                                                    id="lastPayment" 
+                                                    name="last_payment"
+                                                    readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Arrears Line Items Table -->
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-body p-0">
+                                <div class="bg-light py-2 text-center mb-3 rounded-top border-bottom">
+                                    <h6 class="m-0 fw-bold">DESCRIPTION</h6>
+                                </div>
+                                <div class="table-responsive p-3">
+                                    <table class="table table-sm table-borderless" id="arrearsLineItemsTable">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 50%">Account Type</th>
+                                                <th style="width: 40%">Amount</th>
+                                                <th style="width: 10%">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="line-item">
+                                                <td>
+                                                    <select class="form-select form-select-sm enhanced" 
+                                                        name="arrears_items[0][coa]" 
+                                                        required>
+                                                        <option value="">Select Account Type</option>
+                                                        @foreach($duesAccountTypes as $type)
+                                                            <option value="{{ $type->acct_type_id }}">
+                                                                {{ $type->acct_description }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </td>                            
+                                                <td>
+                                                    <input type="number" 
+                                                    class="form-control form-control-sm arrears-amount-input" 
+                                                    name="arrears_items[0][amount]"
+                                                    step="0.01" 
+                                                    min="0.01"
+                                        required>
+                                                </td>
+                                                <td>
+                                                    <button type="button" 
+                                                    class="btn btn-link text-danger remove-arrears-line">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                            </tr>
+                                            <tr>
+                                                <td></td>
+                                                <td >
+                                                    <div class="d-flex align-items-center">
+                                                        <strong>Total:</strong>
+                                                        <input type="text" class="form-control form-control-sm text-end ms-2" id="arrearsTotalAmount" name="arrears_total_amount" readonly style="min-width: 200px;">
+                                                    </div>
+                                                </td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Remarks Field for Arrears tab -->
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <div class="row g-2 align-items-start">
+                                    <div class="col-md-1">
+                                        <label for="arrears_remarks" class="col-form-label">Remarks:</label>
+                                    </div>
+                                    <div class="col-md-11">
+                                        <div class="position-relative">
+                                            <textarea 
+                                                class="form-control form-control-sm" 
+                                                id="arrears_remarks" 
+                                                name="arrears_remarks"
+                                                rows="2"
+                                                maxlength="45"
+                                                style="resize: none;"
+                                            ></textarea>
+                                            <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="arrearsCharCount">0/45</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
                 <!-- Account Receivable Tab -->
-                <div class="tab-pane fade show active" id="account" role="tabpanel" aria-labelledby="account-tab">
+                <div class="tab-pane fade" id="account" role="tabpanel" aria-labelledby="account-tab">
                     <form action="{{route('accounts.receivables.store')}}" method="POST" id="accountReceivableForm">
                         @csrf
                         <input type="hidden" name="form_type" value="account_receivable">
@@ -245,233 +475,6 @@
                                                 style="resize: none;"
                                             ></textarea>
                                             <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="charCount">0/45</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                
-                <!-- Arrears Receivable Tab -->
-                <div class="tab-pane fade" id="arrears" role="tabpanel" aria-labelledby="arrears-tab">
-                    <form action="{{route('accounts.receivables.store')}}" method="POST" id="arrearsReceivableForm">
-                        @csrf
-                        <input type="hidden" name="form_type" value="arrears_receivable">
-                        <!-- Header Section for Arrears tab with Labels Above Inputs -->
-                        <div class="row g-3 mb-4">
-                            <!-- First Column: Received From -->
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label for="arrears_addressId" class="form-label">Address ID</label>
-                                    <input type="text" 
-                                        class="form-control form-control-sm"
-                                        id="arrears_addressId" 
-                                        name="arrears_address_id"
-                                        required>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label for="arrears_receivedFrom" class="form-label">Received From</label>
-                                    <input type="text" 
-                                        class="form-control form-control-sm"
-                                        id="arrears_receivedFrom" 
-                                        name="arrears_received_from"
-                                        required>
-                                </div>
-                            </div>
-                            
-                            <!-- Second Column: Service Invoice No. -->
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label for="arrears_serviceInvoiceNo" class="form-label">Service Invoice No.</label>
-                                    <input type="number" 
-                                        class="form-control form-control-sm" 
-                                        id="arrears_serviceInvoiceNo" 
-                                        name="arrears_service_invoice_no"
-                                        min="1"
-                                        required>
-                                </div>
-                            </div>
-                            
-                            <!-- Third Column: Date -->
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label for="arrears_date" class="form-label">Date</label>
-                                    <input type="date" 
-                                        class="form-control form-control-sm" 
-                                        id="arrears_date" 
-                                        name="arrears_date"
-                                        required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Auto Populate Section with Improved Form Layout -->
-                        <div class="card mb-4 shadow-sm border-left-primary">
-                            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0 text-primary font-weight-bold">
-                                    <i class="bi bi-search me-2"></i> Member Arrears Information
-                                </h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="row g-3 mb-1">
-                                    <div class="col-md-7 d-flex align-items-center justify-content-end">
-                                        <div id="lookupStatus" class="d-none">
-                                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Member data loaded</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="row g-3 member-data">
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="memberName" class="form-label">Member Name</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
-                                                <input type="text" 
-                                                    class="form-control form-control-sm" 
-                                                    id="memberName" 
-                                                    name="member_name"
-                                                    readonly>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="memberAddress" class="form-label">Member Address</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light"><i class="bi bi-geo-alt"></i></span>
-                                                <input type="text" 
-                                                    class="form-control form-control-sm" 
-                                                    id="memberAddress" 
-                                                    name="member_address"
-                                                    readonly>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="arrears" class="form-label">Arrears Amount</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light"><i class="bi bi-currency-dollar"></i></span>
-                                                <input type="text" class="form-control form-control-sm text-danger fw-bold" id="arrears_amount" name="arrears_amount" readonly>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="lastPaydate" class="form-label">Last Payment Date</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light"><i class="bi bi-calendar"></i></span>
-                                                <input type="text" 
-                                                    class="form-control form-control-sm" 
-                                                    id="lastPaydate" 
-                                                    name="last_paydate"
-                                                    readonly>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="lastPayment" class="form-label">Last Payment Amount</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light"><i class="bi bi-cash"></i></span>
-                                                <input type="text" 
-                                                    class="form-control form-control-sm" 
-                                                    id="lastPayment" 
-                                                    name="last_payment"
-                                                    readonly>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Arrears Line Items Table -->
-                        <div class="card mb-4 shadow-sm">
-                            <div class="card-body p-0">
-                                <div class="bg-light py-2 text-center mb-3 rounded-top border-bottom">
-                                    <h6 class="m-0 fw-bold">DESCRIPTION</h6>
-                                </div>
-                                <div class="table-responsive p-3">
-                                    <table class="table table-sm table-borderless" id="arrearsLineItemsTable">
-                                        <thead>
-                                            <tr>
-                                                <th style="width: 50%">Account Type</th>
-                                                <th style="width: 40%">Amount</th>
-                                                <th style="width: 10%">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr class="line-item">
-                                                <td>
-                                                    <select class="form-select form-select-sm enhanced" 
-                                                        name="arrears_items[0][coa]" 
-                                                        required>
-                                                        <option value="">Select Account Type</option>
-                                                        @foreach($duesAccountTypes as $type)
-                                                            <option value="{{ $type->acct_type_id }}">
-                                                                {{ $type->acct_description }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </td>                            
-                                                <td>
-                                                    <input type="number" 
-                                                    class="form-control form-control-sm arrears-amount-input" 
-                                                    name="arrears_items[0][amount]"
-                                                    step="0.01" 
-                                                    min="0.01"
-                                        required>
-                                                </td>
-                                                <td>
-                                                    <button type="button" 
-                                                    class="btn btn-link text-danger remove-arrears-line">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                            </tr>
-                                            <tr>
-                                                <td></td>
-                                                <td >
-                                                    <div class="d-flex align-items-center">
-                                                        <strong>Total:</strong>
-                                                        <input type="text" class="form-control form-control-sm text-end ms-2" id="arrearsTotalAmount" name="arrears_total_amount" readonly style="min-width: 200px;">
-                                                    </div>
-                                                </td>
-                                                <td></td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Remarks Field for Arrears tab -->
-                        <div class="row g-3">
-                            <div class="col-md-12">
-                                <div class="row g-2 align-items-start">
-                                    <div class="col-md-1">
-                                        <label for="arrears_remarks" class="col-form-label">Remarks:</label>
-                                    </div>
-                                    <div class="col-md-11">
-                                        <div class="position-relative">
-                                            <textarea 
-                                                class="form-control form-control-sm" 
-                                                id="arrears_remarks" 
-                                                name="arrears_remarks"
-                                                rows="2"
-                                                maxlength="45"
-                                                style="resize: none;"
-                                            ></textarea>
-                                            <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="arrearsCharCount">0/45</small>
                                         </div>
                                     </div>
                                 </div>
@@ -874,6 +877,15 @@ document.addEventListener('DOMContentLoaded', function() {
         field.value = today;
     });
     
+    // IMMEDIATE FOCUS: Set focus on arrears_addressId field on page load
+    // This is outside any setTimeout to happen as soon as possible
+    try {
+        // Try to focus immediately
+        document.getElementById('arrears_addressId').focus();
+    } catch (e) {
+        console.log("Immediate focus failed, will retry with delay");
+    }
+    
     // Add line functionality for Account Receivable tab
     const addLineBtn = document.querySelector('.add-line');
     const tbody = document.querySelector('#lineItemsTable tbody');
@@ -1128,9 +1140,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add event listener for tab changes
     document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
         tab.addEventListener('shown.bs.tab', function(e) {
-            // Update active tab styling if needed
+            // Set focus on the first input field of the active tab
+            if (e.target.id === 'arrears-tab') {
+                document.getElementById('arrears_addressId').focus();
+            } else if (e.target.id === 'account-tab') {
+                document.getElementById('address').focus();
+            }
         });
     });
+    
+    // BACKUP FOCUS: Set focus again after a delay in case the immediate focus failed
+    // This adds redundancy to make sure the focus is set
+    setTimeout(() => {
+        const activeTabId = document.querySelector('.tab-pane.active').getAttribute('id');
+        if (activeTabId === 'arrears') {
+            document.getElementById('arrears_addressId').focus();
+        } else if (activeTabId === 'account') {
+            document.getElementById('address').focus();
+        }
+    }, 800);
 });
 
 // Toast Notification Handler
@@ -1150,6 +1178,19 @@ function showToast(type, message) {
         bsToast.show();
     }
 }
+
+// Add an additional window load event for extra reliability with focus
+window.addEventListener('load', function() {
+    // This runs after everything (images, styles, etc.) is fully loaded
+    setTimeout(() => {
+        const activeTabId = document.querySelector('.tab-pane.active').getAttribute('id');
+        if (activeTabId === 'arrears') {
+            document.getElementById('arrears_addressId').focus();
+        } else if (activeTabId === 'account') {
+            document.getElementById('address').focus();
+        }
+    }, 300);
+});
 </script>
 @php
 // Update this version when you change your JS files
