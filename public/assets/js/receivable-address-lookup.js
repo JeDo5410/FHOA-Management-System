@@ -21,6 +21,7 @@ class ArrearsAddressLookup {
         if (this.addressInput) {
             this.setupDropdownContainer();
             this.setupEventListeners();
+            this.ensureAddressValidation(); // Add this new method call
         }
     }
 
@@ -31,6 +32,48 @@ class ArrearsAddressLookup {
         this.addressInput.parentNode.style.position = 'relative';
         this.addressInput.parentNode.appendChild(container);
         this.dropdownContainer = container;
+    }
+
+    // Add this new method for address validation
+    ensureAddressValidation() {
+        if (this.addressInput) {
+            // Remove any attributes that might restrict input
+            this.addressInput.removeAttribute('pattern');
+            this.addressInput.removeAttribute('inputmode');
+            this.addressInput.setAttribute('type', 'text');
+            this.addressInput.setAttribute('autocomplete', 'off');
+            
+            // Add validation for first character to be only 1 or 2
+            this.addressInput.addEventListener('keypress', (e) => {
+                // Get current input value and cursor position
+                const value = e.target.value;
+                const position = e.target.selectionStart;
+                
+                // If typing at the first position, only allow 1 or 2
+                if (position === 0) {
+                    return e.key === '1' || e.key === '2';
+                }
+                
+                // Allow other characters for other positions
+                return true;
+            });
+            
+            // Additional validation on input event
+            this.addressInput.addEventListener('input', (e) => {
+                const value = e.target.value;
+                
+                // Limit to 5 characters
+                if (value.length > 5) {
+                    e.target.value = value.slice(0, 5);
+                }
+                
+                // First character validation
+                if (value.length > 0 && value[0] !== '1' && value[0] !== '2') {
+                    // Remove invalid first character
+                    e.target.value = value.substring(1);
+                }
+            }, true); // Using capture phase to run before other handlers
+        }
     }
 
     setupEventListeners() {
@@ -349,7 +392,7 @@ class ArrearsAddressLookup {
             const arrearValue = memberSum.arrear !== undefined ? memberSum.arrear : 0;
             
             // Use a simple toString approach first to ensure we see something
-            this.arrearsAmountField.value = '₱ ' + parseFloat(arrearValue).toFixed(2);
+            this.arrearsAmountField.value = parseFloat(arrearValue).toFixed(2);
             
             // Also try alternative formatting
             /* 

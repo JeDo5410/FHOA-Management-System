@@ -8,14 +8,14 @@
 @endphp
 
 <div class="container-fluid px-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h4 class="mb-0 text-success">Account Receivable</h4>
         </div>
     </div>
     <!-- Container for tabs and buttons -->
-    <div class="card shadow-sm border-success border-top border-3 mb-4">
-        <div class="card-body p-4">
+    <div class="card shadow-sm border-success border-top border-3 mb-3">
+        <div class="card-body p-3">
             <div class="mb-0">
                 <div class="d-flex justify-content-between align-items-center">
                     <ul class="nav nav-tabs border-bottom-0" id="receivableTabs" role="tablist">
@@ -43,7 +43,7 @@
                     </div>
                 </div>
                 <!-- Add a horizontal separator line -->
-                <hr class="mt-0 mb-4">
+                <hr class="mt-0 mb-3">
             </div>
 
             <!-- Tab Content -->
@@ -54,10 +54,10 @@
                         @csrf
                         <input type="hidden" name="form_type" value="arrears_receivable">
                         <!-- Header Section for Arrears tab with Labels Above Inputs -->
-                        <div class="row g-3 mb-4">
+                        <div class="row g-2 mb-3">
                             <!-- First Column: Received From -->
                             <div class="col-md-3">
-                                <div class="mb-3">
+                                <div class="mb-2">
                                     <label for="arrears_addressId" class="form-label">Address ID</label>
                                     <input type="text" 
                                         class="form-control form-control-sm"
@@ -68,7 +68,7 @@
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="mb-3">
+                                <div class="mb-2">
                                     <label for="arrears_receivedFrom" class="form-label">Received From</label>
                                     <input type="text" 
                                         class="form-control form-control-sm"
@@ -81,7 +81,7 @@
                             
                             <!-- Second Column: Service Invoice No. -->
                             <div class="col-md-3">
-                                <div class="mb-3">
+                                <div class="mb-2">
                                     <label for="arrears_serviceInvoiceNo" class="form-label">Service Invoice No.</label>
                                     <input type="number" 
                                         class="form-control form-control-sm" 
@@ -95,7 +95,7 @@
                             
                             <!-- Third Column: Date -->
                             <div class="col-md-3">
-                                <div class="mb-3">
+                                <div class="mb-2">
                                     <label for="arrears_date" class="form-label">Date</label>
                                     <input type="date" 
                                         class="form-control form-control-sm" 
@@ -106,25 +106,13 @@
                             </div>
                         </div>
 
-                        <!-- Auto Populate Section with Improved Form Layout -->
-                        <div class="card mb-4 shadow-sm border-left-primary">
-                            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0 text-primary font-weight-bold">
-                                    <i class="bi bi-search me-2"></i> Member Arrears Information
-                                </h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="row g-3 mb-1">
-                                    <div class="col-md-7 d-flex align-items-center justify-content-end">
-                                        <div id="lookupStatus" class="d-none">
-                                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Member data loaded</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="row g-3 member-data">
+                        <!-- Single container for HOA Monthly Dues tab -->
+                        <div class="card shadow-sm mb-3">
+                            <div class="card-body p-3">                                
+                                <!-- Member Info Fields -->
+                                <div class="row g-2 member-data mb-3">
                                     <div class="col-md-4">
-                                        <div class="mb-3">
+                                        <div class="mb-2">
                                             <label for="memberName" class="form-label">Member Name</label>
                                             <div class="input-group">
                                                 <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
@@ -132,12 +120,12 @@
                                                     class="form-control form-control-sm" 
                                                     id="memberName" 
                                                     name="member_name"
-                                                    readonly>
+                                                    disabled>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <div class="mb-3">
+                                        <div class="mb-2">
                                             <label for="memberAddress" class="form-label">Member Address</label>
                                             <div class="input-group">
                                                 <span class="input-group-text bg-light"><i class="bi bi-geo-alt"></i></span>
@@ -145,21 +133,21 @@
                                                     class="form-control form-control-sm" 
                                                     id="memberAddress" 
                                                     name="member_address"
-                                                    readonly>
+                                                    disabled>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <div class="mb-3">
+                                        <div class="mb-2">
                                             <label for="arrears" class="form-label">Arrears Amount</label>
                                             <div class="input-group">
-                                                <span class="input-group-text bg-light"><i class="bi bi-currency-dollar"></i></span>
-                                                <input type="text" class="form-control form-control-sm text-danger fw-bold" id="arrears_amount" name="arrears_amount" readonly>
+                                                <span class="input-group-text bg-light">₱</span>
+                                                <input type="text" class="form-control form-control-sm text-danger fw-bold" id="arrears_amount" name="arrears_amount" disabled>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <div class="mb-3">
+                                        <div class="mb-2">
                                             <label for="lastPaydate" class="form-label">Last Payment Date</label>
                                             <div class="input-group">
                                                 <span class="input-group-text bg-light"><i class="bi bi-calendar"></i></span>
@@ -167,12 +155,12 @@
                                                     class="form-control form-control-sm" 
                                                     id="lastPaydate" 
                                                     name="last_paydate"
-                                                    readonly>
+                                                    disabled>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <div class="mb-3">
+                                        <div class="mb-2">
                                             <label for="lastPayment" class="form-label">Last Payment Amount</label>
                                             <div class="input-group">
                                                 <span class="input-group-text bg-light"><i class="bi bi-cash"></i></span>
@@ -180,27 +168,19 @@
                                                     class="form-control form-control-sm" 
                                                     id="lastPayment" 
                                                     name="last_payment"
-                                                    readonly>
+                                                    disabled>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <!-- Arrears Line Items Table -->
-                        <div class="card mb-4 shadow-sm">
-                            <div class="card-body p-0">
-                                <div class="bg-light py-2 text-center mb-3 rounded-top border-bottom">
-                                    <h6 class="m-0 fw-bold">DESCRIPTION</h6>
-                                </div>
-                                <div class="table-responsive p-3">
+                                <!-- Line Items Table -->
+                                <div class="table-responsive mb-3">
                                     <table class="table table-sm table-borderless" id="arrearsLineItemsTable">
                                         <thead>
                                             <tr>
                                                 <th style="width: 50%">Account Type</th>
-                                                <th style="width: 40%">Amount</th>
-                                                <th style="width: 10%">Action</th>
+                                                <th style="width: 50%">Amount</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -223,13 +203,7 @@
                                                     name="arrears_items[0][amount]"
                                                     step="0.01" 
                                                     min="0.01"
-                                        required>
-                                                </td>
-                                                <td>
-                                                    <button type="button" 
-                                                    class="btn btn-link text-danger remove-arrears-line">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
+                                                    required>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -249,27 +223,44 @@
                                         </tfoot>
                                     </table>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Remarks Field for Arrears tab -->
-                        <div class="row g-3">
-                            <div class="col-md-12">
-                                <div class="row g-2 align-items-start">
-                                    <div class="col-md-1">
-                                        <label for="arrears_remarks" class="col-form-label">Remarks:</label>
+                                <!-- Received By Field -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-12">
+                                        <div class="row g-2 align-items-center">
+                                            <div class="col-md-1">
+                                                <label for="arrears_receivedBy" class="col-form-label">Received By</label>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <input type="text" 
+                                                    class="form-control form-control-sm" 
+                                                    id="arrears_receivedBy" 
+                                                    name="arrears_received_by"
+                                                    required>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-md-11">
-                                        <div class="position-relative">
-                                            <textarea 
-                                                class="form-control form-control-sm" 
-                                                id="arrears_remarks" 
-                                                name="arrears_remarks"
-                                                rows="2"
-                                                maxlength="45"
-                                                style="resize: none;"
-                                            ></textarea>
-                                            <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="arrearsCharCount">0/45</small>
+                                </div>
+                                <!-- Remarks Field -->
+                                <div class="row g-2">
+                                    <div class="col-md-12">
+                                        <div class="row g-2 align-items-start">
+                                            <div class="col-md-1">
+                                                <label for="arrears_remarks" class="col-form-label">Remarks:</label>
+                                            </div>
+                                            <div class="col-md-11">
+                                                <div class="position-relative">
+                                                    <textarea 
+                                                        class="form-control form-control-sm" 
+                                                        id="arrears_remarks" 
+                                                        name="arrears_remarks"
+                                                        rows="1"
+                                                        maxlength="45"
+                                                        style="resize: none;"
+                                                        autocomplete="off"
+                                                    ></textarea>
+                                                    <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="arrearsCharCount">0/45</small>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -284,39 +275,42 @@
                         @csrf
                         <input type="hidden" name="form_type" value="account_receivable">
                         <!-- Header Section with Labels Above Inputs -->
-                        <div class="row g-3 mb-4">                    
+                        <div class="row g-2 mb-3">                    
                             <div class="col-md-3">
-                                <div class="mb-3">
+                                <div class="mb-2">
                                     <label for="address" class="form-label">Address</label>
                                     <input type="text" 
                                         class="form-control form-control-sm" 
                                         id="address" 
                                         name="address"
+                                        autocomplete="off"
                                         required>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="mb-3">
+                                <div class="mb-2">
                                     <label for="receivedFrom" class="form-label">Received From</label>
                                     <input type="text" 
                                         class="form-control form-control-sm" 
                                         id="receivedFrom" 
                                         name="received_from"
+                                        autocomplete="off"
                                         required>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="mb-3">
+                                <div class="mb-2">
                                     <label for="serviceInvoiceNo" class="form-label">Service Invoice No.</label>
                                     <input type="number" 
                                         class="form-control form-control-sm" 
                                         id="serviceInvoiceNo" 
                                         name="service_invoice_no"
+                                        autocomplete="off"
                                         required>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="mb-3">
+                                <div class="mb-2">
                                     <label for="date" class="form-label">Date</label>
                                     <input type="date" 
                                         class="form-control form-control-sm" 
@@ -327,13 +321,11 @@
                             </div>
                         </div>
 
-                        <!-- Line Items Table -->
-                        <div class="card mb-4 shadow-sm">
-                            <div class="card-body p-0">
-                                <div class="bg-light py-2 text-center mb-3 rounded-top border-bottom">
-                                    <h6 class="m-0 fw-bold">DESCRIPTION</h6>
-                                </div>
-                                <div class="table-responsive p-3">
+                        <!-- Single container for Account Receivable tab -->
+                        <div class="card shadow-sm mb-3">
+                            <div class="card-body p-3">
+                                <!-- Line Items Table -->
+                                <div class="table-responsive mb-3">
                                     <table class="table table-sm table-borderless" id="lineItemsTable">
                                         <thead>
                                             <tr>
@@ -362,7 +354,7 @@
                                                     name="items[0][amount]"
                                                     step="1" 
                                                     min="1"
-                                        required>
+                                                    required>
                                                 </td>
                                                 <td>
                                                     <button type="button" 
@@ -394,87 +386,90 @@
                                         </tfoot>
                                     </table>
                                 </div>
-                            </div>
-                        </div>
 
-                        <!-- Received By Field -->
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-4">
-                                <div class="row g-2 align-items-center">
+                                <!-- Received By Field -->
+                                <div class="row g-2 mb-3">
                                     <div class="col-md-4">
-                                        <label for="receivedBy" class="col-form-label">Received By</label>
-                                    </div>
-                                    <div class="col-md-8">
-                                        <input type="text" 
-                                            class="form-control form-control-sm" 
-                                            id="receivedBy" 
-                                            name="received_by"
-                                            required>
+                                        <div class="row g-2 align-items-center">
+                                            <div class="col-md-4">
+                                                <label for="receivedBy" class="col-form-label">Received By</label>
+                                            </div>
+                                            <div class="col-md-8">
+                                                <input type="text" 
+                                                    class="form-control form-control-sm" 
+                                                    id="receivedBy" 
+                                                    name="received_by"
+                                                    required>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <!-- Payment Details -->
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-8">
-                                <div class="d-flex align-items-center gap-3">
-                                    <label class="form-label mb-0">Mode of Payment:</label>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="payment_mode" 
-                                            id="cash" value="CASH" required>
-                                        <label class="form-check-label" for="cash">Cash</label>
+
+                                <!-- Payment Details -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-8">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <label class="form-label mb-0">Mode of Payment:</label>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="payment_mode" 
+                                                    id="cash" value="CASH" required>
+                                                <label class="form-check-label" for="cash">Cash</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="payment_mode" 
+                                                    id="gcash" value="GCASH">
+                                                <label class="form-check-label" for="gcash">GCash</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="payment_mode" 
+                                                    id="check" value="CHECK">
+                                                <label class="form-check-label" for="check">Check</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="payment_mode" 
+                                                    id="bankTransfer" value="BANK_TRANSFER">
+                                                <label class="form-check-label" for="bankTransfer">Bank Transfer</label>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="payment_mode" 
-                                            id="gcash" value="GCASH">
-                                        <label class="form-check-label" for="gcash">GCash</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="payment_mode" 
-                                            id="check" value="CHECK">
-                                        <label class="form-check-label" for="check">Check</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="payment_mode" 
-                                            id="bankTransfer" value="BANK_TRANSFER">
-                                        <label class="form-check-label" for="bankTransfer">Bank Transfer</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="row g-2 align-items-center">
                                     <div class="col-md-4">
-                                        <label for="reference" class="col-form-label">Reference No.</label>
-                                    </div>
-                                    <div class="col-md-8">
-                                        <input type="text" 
-                                            class="form-control form-control-sm" 
-                                            id="reference" 
-                                            name="reference_no">
+                                        <div class="row g-2 align-items-center">
+                                            <div class="col-md-4">
+                                                <label for="reference" class="col-form-label">Reference No.</label>
+                                            </div>
+                                            <div class="col-md-8">
+                                                <input type="text" 
+                                                    class="form-control form-control-sm" 
+                                                    id="reference" 
+                                                    name="reference_no"
+                                                    autocomplete="off">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <!-- Remarks Field -->
-                        <div class="row g-3">
-                            <div class="col-md-12">
-                                <div class="row g-2 align-items-start">
-                                    <div class="col-md-1">
-                                        <label for="remarks" class="col-form-label">Remarks:</label>
-                                    </div>
-                                    <div class="col-md-11">
-                                        <div class="position-relative">
-                                            <textarea 
-                                                class="form-control form-control-sm" 
-                                                id="remarks" 
-                                                name="remarks"
-                                                rows="2"
-                                                maxlength="45"
-                                                style="resize: none;"
-                                            ></textarea>
-                                            <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="charCount">0/45</small>
+                                <!-- Remarks Field -->
+                                <div class="row g-2">
+                                    <div class="col-md-12">
+                                        <div class="row g-2 align-items-start">
+                                            <div class="col-md-1">
+                                                <label for="remarks" class="col-form-label">Remarks:</label>
+                                            </div>
+                                            <div class="col-md-11">
+                                                <div class="position-relative">
+                                                    <textarea 
+                                                        class="form-control form-control-sm" 
+                                                        id="remarks" 
+                                                        name="remarks"
+                                                        rows="1"
+                                                        maxlength="45"
+                                                        style="resize: none;"
+                                                        autocomplete="off"
+                                                    ></textarea>
+                                                    <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="charCount">0/45</small>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -523,6 +518,7 @@
 </div>
 
 <style>
+    /* Base styling */
     .form-control, .form-select {
         border-radius: 4px;
     }
@@ -540,6 +536,11 @@
         color: #666;
         padding-bottom: 0.75rem !important;
     }
+    
+    .form-label {
+        font-size: 14px;
+    }
+
     .form-check-label {
         font-size: 0.875rem;
     }
@@ -565,6 +566,12 @@
         border-right: none;
         border-bottom: none;
         border-left: none;
+    }
+    
+    /* Form container styles */
+    .form-container {
+        padding: 0.5rem;
+        border-radius: 4px;
     }
     
     /* Border Left Primary Style */
@@ -732,116 +739,187 @@
 
     /* Responsive Form Layout Styles */
     @media (max-width: 768px) {
-    /* General row transformation for mobile */
-    .row.g-2.align-items-center,
-    .row.g-3 .col-md-3 .d-flex,
-    .row.g-3 .col-md-4 .d-flex,
-    .d-flex.align-items-center,
-    .d-flex.justify-content-center.align-items-center,
-    .d-flex.justify-content-end.align-items-center {
-        flex-direction: column;
-        align-items: flex-start !important;
-        width: 100%;
+        /* Reduced spacing for smaller screens */
+        .mb-3 {
+            margin-bottom: 0.5rem !important;
+        }
+        
+        .mb-4 {
+            margin-bottom: 0.75rem !important;
+        }
+        
+        .card-body {
+            padding: 0.5rem !important;
+        }
+        
+        .p-3 {
+            padding: 0.5rem !important;
+        }
+        
+        .p-4 {
+            padding: 0.75rem !important;
+        }
+        
+        /* General row transformation for mobile */
+        .row.g-2.align-items-center,
+        .row.g-3 .col-md-3 .d-flex,
+        .row.g-3 .col-md-4 .d-flex,
+        .d-flex.align-items-center,
+        .d-flex.justify-content-center.align-items-center,
+        .d-flex.justify-content-end.align-items-center {
+            flex-direction: column;
+            align-items: flex-start !important;
+            width: 100%;
+        }
+        
+        /* Mode of payment alternative layout for smaller screens */
+        .row.g-2.mb-3 .col-md-8 .d-flex.align-items-center.gap-3 {
+            flex-wrap: wrap;
+            gap: 0.5rem !important;
+        }
+        
+        /* Make labels and inputs full width on mobile */
+        .row.g-2.align-items-center > div,
+        .row.g-3 .col-md-3 .d-flex > div,
+        .row.g-3 .col-md-4 .d-flex > div,
+        .d-flex.align-items-center > div,
+        .d-flex.justify-content-center.align-items-center > div,
+        .d-flex.justify-content-end.align-items-center > div {
+            width: 100%;
+            min-width: 100% !important;
+            margin-right: 0 !important;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Add spacing between label and input */
+        .col-form-label {
+            margin-bottom: 0.25rem;
+            padding-bottom: 0;
+        }
+        
+        /* Full-width inputs */
+        .form-control,
+        .form-select {
+            width: 100%;
+        }
+        
+        /* Reset alignment on mobile */
+        .d-flex.justify-content-end,
+        .d-flex.justify-content-center {
+            justify-content: flex-start !important;
+        }
+        
+        /* Fix column widths on mobile */
+        .col-md-1, .col-md-2, .col-md-3, .col-md-4, 
+        .col-md-5, .col-md-6, .col-md-7, .col-md-8 {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Better spacing for the date field specifically */
+        #date, #arrears_date {
+            width: 100%;
+            max-width: 100% !important;
+        }
+        
+        /* Adjust spacing for remarks section */
+        .row.g-3 .col-md-12 .row.g-2.align-items-start,
+        .row.g-2 .col-md-12 .row.g-2.align-items-start {
+            flex-direction: column;
+        }
+        
+        .row.g-3 .col-md-12 .row.g-2.align-items-start > div,
+        .row.g-2 .col-md-12 .row.g-2.align-items-start > div {
+            width: 100%;
+            max-width: 100%;
+            flex: 0 0 100%;
+        }
+        
+        /* HOA Monthly Dues Tab Specific Styles */
+        .card-body .form-group {
+            margin-bottom: 0.5rem;
+        }
+        
+        .card-body .form-group .input-group {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .card-body .form-group .input-group .input-group-text {
+            width: auto;
+            margin-bottom: 0.25rem;
+            border-radius: 4px;
+        }
+        
+        .card-body .form-group .input-group .form-control {
+            width: 100%;
+            border-radius: 4px !important;
+            margin-left: 0;
+        }
+        
+        .member-data .col-md-4 {
+            width: 100%;
+        }
+        
+        /* Make table more compact on mobile */
+        .table > :not(caption) > * > * {
+            padding: 0.2rem;
+        }
+        
+        .table th {
+            font-size: 0.7rem;
+        }
+        
+        /* Fix for account receivable tab */
+        .account-form-container .card-body,
+        .arrears-form-container .card-body {
+            padding: 0.25rem !important;
+        }
+        
+        /* Compact table styles */
+        .table-responsive {
+            padding: 0.25rem !important;
+        }
     }
-    
-    /* Make labels and inputs full width on mobile */
-    .row.g-2.align-items-center > div,
-    .row.g-3 .col-md-3 .d-flex > div,
-    .row.g-3 .col-md-4 .d-flex > div,
-    .d-flex.align-items-center > div,
-    .d-flex.justify-content-center.align-items-center > div,
-    .d-flex.justify-content-end.align-items-center > div {
-        width: 100%;
-        min-width: 100% !important;
-        margin-right: 0 !important;
-        margin-bottom: 0.5rem;
-    }
-    
-    /* Add spacing between label and input */
-    .col-form-label {
-        margin-bottom: 0.25rem;
-        padding-bottom: 0;
-    }
-    
-    /* Full-width inputs */
-    .form-control,
-    .form-select {
-        width: 100%;
-    }
-    
-    /* Reset alignment on mobile */
-    .d-flex.justify-content-end,
-    .d-flex.justify-content-center {
-        justify-content: flex-start !important;
-    }
-    
-    /* Fix column widths on mobile */
-    .col-md-1, .col-md-2, .col-md-3, .col-md-4, 
-    .col-md-5, .col-md-6, .col-md-7, .col-md-8 {
-        width: 100%;
-        margin-bottom: 1rem;
-    }
-    
-    /* Better spacing for the date field specifically */
-    #date, #arrears_date {
-        width: 100%;
-        max-width: 100% !important;
-    }
-    
-    /* Adjust spacing for remarks section */
-    .row.g-3 .col-md-12 .row.g-2.align-items-start {
-        flex-direction: column;
-    }
-    
-    .row.g-3 .col-md-12 .row.g-2.align-items-start > div {
-        width: 100%;
-        max-width: 100%;
-        flex: 0 0 100%;
-    }
-    
-    /* HOA Monthly Dues Tab Specific Styles */
-    .card-body .form-group {
-        margin-bottom: 1rem;
-    }
-    
-    .card-body .form-group .input-group {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .card-body .form-group .input-group .input-group-text {
-        width: auto;
-        margin-bottom: 0.25rem;
-        border-radius: 4px;
-    }
-    
-    .card-body .form-group .input-group .form-control {
-        width: 100%;
-        border-radius: 4px !important;
-        margin-left: 0;
-    }
-    
-    .member-data .col-md-4 {
-        width: 100%;
-    }
+
+    /* Very small screens (under 480px) */
+    @media (max-width: 480px) {
+        /* Further reduce spacing */
+        .card-body {
+            padding: 0.25rem !important;
+        }
+        
+        .form-check-inline {
+            margin-right: 0.25rem;
+        }
+        
+        .form-check-label {
+            font-size: 0.75rem;
+        }
+        
+        /* Make buttons smaller */
+        .btn {
+            padding: 0.2rem 0.75rem;
+            font-size: 0.75rem;
+        }
     }
 
     /* Label style enhancement for all screen sizes */
     .col-form-label {
-    font-weight: 500;
+        font-weight: 500;
     }
 
     /* Transition for smooth responsive changes */
     .row, .d-flex, .col-md-1, .col-md-2, .col-md-3, .col-md-4, 
     .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-12 {
-    transition: all 0.3s ease-in-out;
+        transition: all 0.3s ease-in-out;
     }
+    
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+        -webkit-appearance: none;
+        margin: 0;
     }
-
 </style>
 
 <script>
@@ -849,6 +927,20 @@
 document.addEventListener('DOMContentLoaded', function() {
     const remarksTextarea = document.getElementById('remarks');
     const charCountDisplay = document.getElementById('charCount');
+    const accountTab = document.getElementById('account-tab');
+    
+    if (accountTab) {
+        // Add tab change listener to re-focus the address input when the account tab is shown
+        accountTab.addEventListener('shown.bs.tab', function() {
+            const addressField = document.getElementById('address');
+            if (addressField) {
+                setTimeout(() => {
+                    addressField.focus();
+                }, 100); // Small delay to ensure the tab is fully shown
+            }
+        });
+    }
+
     
     if (remarksTextarea && charCountDisplay) {
         remarksTextarea.addEventListener('input', function() {
@@ -1141,11 +1233,13 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
         tab.addEventListener('shown.bs.tab', function(e) {
             // Set focus on the first input field of the active tab
-            if (e.target.id === 'arrears-tab') {
-                document.getElementById('arrears_addressId').focus();
-            } else if (e.target.id === 'account-tab') {
-                document.getElementById('address').focus();
-            }
+            setTimeout(() => {
+                if (e.target.id === 'arrears-tab') {
+                    document.getElementById('arrears_addressId').focus();
+                } else if (e.target.id === 'account-tab') {
+                    document.getElementById('address').focus();
+                }
+            }, 100); // Small delay to ensure proper focus
         });
     });
     
@@ -1158,7 +1252,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (activeTabId === 'account') {
             document.getElementById('address').focus();
         }
-    }, 800);
+    }, 500);
 });
 
 // Toast Notification Handler
