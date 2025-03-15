@@ -7,9 +7,10 @@ class ArrearsAddressLookup {
         this.addressInput = document.getElementById('arrears_addressId');
         this.memberNameField = document.getElementById('memberName');
         this.memberAddressField = document.getElementById('memberAddress');
-        this.arrearsAmountField = document.getElementById('arrears_amount'); // Updated ID to match HTML
+        this.arrearsAmountField = document.getElementById('arrears_amount');
         this.lastPaydateField = document.getElementById('lastPaydate');
         this.lastPaymentField = document.getElementById('lastPayment');
+        this.lastORField = document.getElementById('lastOR');
         this.lookupStatusElem = document.getElementById('lookupStatus');
 
         // Initialize state variables
@@ -21,7 +22,8 @@ class ArrearsAddressLookup {
         if (this.addressInput) {
             this.setupDropdownContainer();
             this.setupEventListeners();
-            this.ensureAddressValidation(); // Add this new method call
+            this.ensureAddressValidation();
+            this.setupPaymentHistoryButton();
         }
     }
 
@@ -252,7 +254,6 @@ class ArrearsAddressLookup {
             this.lookupStatusElem.classList.add('d-none');
         }, 3000);
     }
-
     clearFormFields() {
         // Clear all form fields in the Member Arrears Information section
         if (this.memberNameField) this.memberNameField.value = '';
@@ -260,6 +261,13 @@ class ArrearsAddressLookup {
         if (this.arrearsAmountField) this.arrearsAmountField.value = '';
         if (this.lastPaydateField) this.lastPaydateField.value = '';
         if (this.lastPaymentField) this.lastPaymentField.value = '';
+        if (this.lastORField) this.lastORField.value = '';
+        
+        // Disable the payment history button when clearing form
+        const viewPaymentHistoryBtn = document.getElementById('viewPaymentHistory');
+        if (viewPaymentHistoryBtn) {
+            viewPaymentHistoryBtn.disabled = true;
+        }
     }
 
     async searchAddress(query) {
@@ -354,6 +362,159 @@ class ArrearsAddressLookup {
             this.showToastNotification('error', 'Failed to load member details');
         }
     }
+
+    setupPaymentHistoryButton() {
+        const paymentHistoryBtn = document.getElementById('viewPaymentHistory');
+        
+        if (paymentHistoryBtn) {
+            paymentHistoryBtn.addEventListener('click', () => {
+                this.openPaymentHistoryModal();
+            });
+        }
+    }
+    
+    openPaymentHistoryModal() {
+        // Get the current member ID from our lookup
+        const addressId = this.addressInput?.value;
+        
+        // If no address is selected, show an error and return
+        if (!addressId) {
+            showToast('error', 'Please select a member address first');
+            return;
+        }
+        
+        // Populate the modal with member info
+        document.getElementById('modalMemberName').textContent = this.memberNameField?.value || '-';
+        document.getElementById('modalMemberAddress').textContent = this.memberAddressField?.value || '-';
+        document.getElementById('modalCurrentArrears').textContent = this.arrearsAmountField?.value || '-';
+        
+        // Show loading state
+        document.getElementById('paymentHistoryLoading').classList.remove('d-none');
+        document.getElementById('paymentHistoryTableContainer').classList.add('d-none');
+        document.getElementById('paymentHistoryError').classList.add('d-none');
+        document.getElementById('noPaymentHistory').classList.add('d-none');
+        
+        // Create and show the modal
+        const modal = new bootstrap.Modal(document.getElementById('paymentHistoryModal'));
+        modal.show();
+        
+        // Get the member ID from our last REST call, stored in a data attribute
+        // We need to first find the member ID using the address ID
+        this.validateAddress(addressId)
+            .then(memberId => {
+                // Now fetch the payment history
+                return this.fetchPaymentHistory(memberId);
+            })
+            .then(paymentHistory => {
+                // Populate the table with the payment history
+                this.populatePaymentHistoryTable(paymentHistory);
+            })
+            .catch(error => {
+                console.error('Error fetching payment history:', error);
+                document.getElementById('paymentHistoryLoading').classList.add('d-none');
+                document.getElementById('paymentHistoryError').classList.remove('d-none');
+            });
+    }
+    
+    async validateAddress(addressId) {
+        try {
+            const response = await fetch(`/residents/validate-address/${addressId}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+    
+            if (!response.ok) throw new Error('Address not found');
+            const addressData = await response.json();
+            
+            return addressData.mem_id;
+        } catch (error) {
+            console.error('Error validating address:', error);
+            throw error;
+        }
+    }
+    
+    // Add this method to the ArrearsAddressLookup class
+    async fetchPaymentHistory(memberId) {
+        try {
+            const response = await fetch(`/accounts/receivables/payment-history/${memberId}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+    
+            if (!response.ok) throw new Error('Failed to fetch payment history');
+            const result = await response.json();
+            
+            return result.data;
+        } catch (error) {
+            console.error('Error fetching payment history:', error);
+            throw error;
+        }
+    }
+    
+    populatePaymentHistoryTable(paymentHistory) {
+        // Hide loading, show table
+        document.getElementById('paymentHistoryLoading').classList.add('d-none');
+        
+        // If no records, show no records message
+        if (!paymentHistory || paymentHistory.length === 0) {
+            document.getElementById('noPaymentHistory').classList.remove('d-none');
+            return;
+        }
+        
+        // Get the table body
+        const tableBody = document.querySelector('#paymentHistoryTable tbody');
+        tableBody.innerHTML = '';
+        
+        // Populate the table
+        paymentHistory.forEach(payment => {
+            const row = document.createElement('tr');
+            
+            // Format the date
+            const paymentDate = new Date(payment.ar_date);
+            const formattedDate = paymentDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Format the amounts - handle edge cases to prevent ₱NaN
+            let formattedAmount = 'N/A';
+            let formattedBalance = 'N/A';
+            
+            // Safely format amount
+            if (payment.ar_amount !== null && payment.ar_amount !== undefined) {
+                const amountValue = parseFloat(payment.ar_amount);
+                if (!isNaN(amountValue)) {
+                    formattedAmount = '₱ ' + amountValue.toFixed(2);
+                }
+            }
+            
+            // Safely format balance
+            if (payment.arrear_bal !== null && payment.arrear_bal !== undefined) {
+                const balanceValue = parseFloat(payment.arrear_bal);
+                if (!isNaN(balanceValue)) {
+                    formattedBalance = '₱ ' + balanceValue.toFixed(2);
+                }
+            }
+            
+            row.innerHTML = `
+                <td class="text-start">${formattedDate}</td>
+                <td class="text-start">${payment.or_number}</td>
+                <td class="text-start">${formattedAmount}</td>
+                <td class="text-start">${formattedBalance}</td>
+                <td class="text-start">${payment.ar_remarks || '-'}</td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+        
+        // Show the table container
+        document.getElementById('paymentHistoryTableContainer').classList.remove('d-none');
+    }    
     
     populateForm(data) {
         if (!data) {
@@ -448,12 +609,25 @@ class ArrearsAddressLookup {
             */
         }
         
+        if (this.lastORField) {
+            // Log what we're getting for last OR
+            console.log('Last OR value:', memberSum.last_salesinvoice);
+            
+            // Set the value of the Last OR field
+            this.lastORField.value = memberSum.last_or || 'N/A';
+        }
         // Also update the arrears_receivedFrom field to match the member name
         const receivedFromField = document.getElementById('arrears_receivedFrom');
         if (receivedFromField && memberData.mem_name) {
             receivedFromField.value = memberData.mem_name;
         }
-        
+
+        // Enable the payment history button when we have a valid member
+        const viewPaymentHistoryBtn = document.getElementById('viewPaymentHistory');
+        if (viewPaymentHistoryBtn) {
+            viewPaymentHistoryBtn.disabled = false;
+        }
+
         // Trigger change events for any dependent logic
         document.querySelectorAll('input, select, textarea').forEach(element => {
             element.dispatchEvent(new Event('change', { bubbles: true }));

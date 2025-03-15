@@ -15,7 +15,7 @@ return new class extends Migration
             $table->decimal('arrear', 9, 2)->nullable();
             $table->integer('arrear_count')->nullable();
             $table->decimal('arrear_interest', 9, 2)->nullable();
-            $table->string('last_salesinvoice', 45)->nullable();
+            $table->string('last_or', 45)->nullable();
             $table->string('last_paydate', 45)->nullable();
             $table->string('last_payamount', 45)->nullable();
             $table->integer('user_id')->nullable();

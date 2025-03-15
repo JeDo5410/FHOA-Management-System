@@ -40,14 +40,18 @@ class AcctReceivable extends Model
      * @var array
      */
     protected $fillable = [
-        'mem_transno',
+        'mem_id',
         'or_number',
         'ar_date',
-        'ar_total',
-        'ar_remarks',
-        'receive_by',
+        'ar_amount',
+        'arrear_bal',
+        'acct_type_id',
+        'payor_name',
+        'payor_address',
         'payment_type',
-        'payment_ref',
+        'payment_Ref',
+        'receive_by',
+        'ar_remarks',
         'user_id'
     ];
 
@@ -58,17 +62,10 @@ class AcctReceivable extends Model
      */
     protected $casts = [
         'ar_date' => 'date',
-        'ar_total' => 'decimal:2',
+        'ar_amount' => 'decimal:2',
+        'arrear_bal' => 'decimal:2',
         'timestamp' => 'datetime',
     ];
-
-    /**
-     * Get the AR details associated with this receivable.
-     */
-    public function details()
-    {
-        return $this->hasMany(ArDetail::class, 'ar_transno', 'ar_transno');
-    }
 
     /**
      * Get the user that created this record.
@@ -83,6 +80,6 @@ class AcctReceivable extends Model
      */
     public function member()
     {
-        return $this->belongsTo(MemberData::class, 'mem_transno', 'mem_transno');
+        return $this->belongsTo(MemberData::class, 'mem_id', 'mem_id');
     }
 }

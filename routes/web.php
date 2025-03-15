@@ -55,6 +55,9 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
         // Receivables routes
         Route::get('/receivables', [AccountReceivableController::class, 'index'])->name('accounts.receivables');
         Route::post('/receivables/store', [AccountReceivableController::class, 'store'])->name('accounts.receivables.store');
+        Route::get('/receivables/payment-history/{memberId}', [AccountReceivableController::class, 'getPaymentHistory'])
+            ->name('accounts.receivables.payment-history');
+
         
         // If you want to add more specific routes for different receivable types, you could add:
         // Route::post('/receivables/store-account', [AccountReceivableController::class, 'storeAccountReceivable'])->name('accounts.receivables.store-account');

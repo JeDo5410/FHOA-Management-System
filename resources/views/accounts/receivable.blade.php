@@ -172,6 +172,26 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-2">
+                                            <label for="lastOR" class="form-label">Last OR Number</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="bi bi-receipt"></i></span>
+                                                <input type="text" 
+                                                    class="form-control form-control-sm" 
+                                                    id="lastOR" 
+                                                    name="last_or"
+                                                    disabled>
+                                                <button class="btn btn-outline-secondary btn-sm" 
+                                                    type="button" 
+                                                    id="viewPaymentHistory" 
+                                                    disabled>
+                                                    <i class="bi bi-clock-history"></i>
+                                                </button>
+                                            </div>
+                                            <small class="form-text text-muted">Click <i class="bi bi-clock-history"></i> to view payment history</small>
+                                        </div>
+                                    </div>                                    
                                 </div>
 
                                 <!-- Line Items Table -->
@@ -513,6 +533,70 @@
                 <span id="errorMessage">An error occurred</span>
             </div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+    <!-- Payment History Modal -->
+    <div class="modal fade" id="paymentHistoryModal" tabindex="-1" aria-labelledby="paymentHistoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymentHistoryModalLabel">Payment History</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Member info summary -->
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Member:</strong> <span id="modalMemberName">-</span></p>
+                                <p class="mb-0"><strong>Address:</strong> <span id="modalMemberAddress">-</span></p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <p class="mb-1"><strong>Current Arrears:</strong> <span id="modalCurrentArrears" class="text-danger">-</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Loading indicator -->
+                    <div id="paymentHistoryLoading" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading payment history...</p>
+                    </div>
+                    
+                    <!-- Error message -->
+                    <div id="paymentHistoryError" class="alert alert-danger d-none">
+                        Failed to load payment history. Please try again later.
+                    </div>
+                    
+                    <!-- Payment history table -->
+                    <div id="paymentHistoryTableContainer" class="table-responsive d-none">
+                        <table class="table table-sm table-hover" id="paymentHistoryTable">
+                            <thead>
+                                <tr>
+                                    <th class="text-start">Date</th>
+                                    <th class="text-start">OR Number</th>
+                                    <th class="text-start">Amount</th>
+                                    <th class="text-start">Balance After Payment</th>
+                                    <th class="text-start">Remarks</th>
+                                    </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Table rows will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- No records found message -->
+                    <div id="noPaymentHistory" class="alert alert-info d-none">
+                        No payment history found for this member.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>

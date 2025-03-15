@@ -8,6 +8,7 @@ use App\Models\ArDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AccountReceivableController extends Controller
 {
@@ -147,6 +148,33 @@ class AccountReceivableController extends Controller
             \Log::error('Error creating HOA monthly dues record: ' . $e->getMessage());
             return back()->with('error', 'Error creating HOA monthly dues record: ' . $e->getMessage())
                 ->withInput();
+        }
+    }
+
+    /**
+     * Get payment history for a member with type 101
+     */
+    public function getPaymentHistory($memberId)
+    {
+        try {
+            // Get all payments for this member with acct_type_id = 101
+            $payments = AcctReceivable::where('mem_id', $memberId)
+                ->where('acct_type_id', 101)
+                ->orderBy('ar_date', 'desc')
+                ->get(['ar_transno', 'ar_date', 'ar_amount', 'or_number', 'arrear_bal', 'ar_remarks']);
+                
+            return response()->json([
+                'success' => true,
+                'data' => $payments,
+                'message' => 'Payment history retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching payment history: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching payment history: ' . $e->getMessage()
+            ], 500);
         }
     }
 }
