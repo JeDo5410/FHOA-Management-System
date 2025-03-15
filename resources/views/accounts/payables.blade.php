@@ -495,12 +495,17 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {    
-    // Set current date as default for date fields
+    // Set current date as default for date fields using Philippine time (UTC+8)
     const dateFields = document.querySelectorAll('input[type="date"]');
-    const today = new Date().toISOString().split('T')[0];
-    
+
+    // Get current date adjusted for Philippine timezone (UTC+8)
+    const now = new Date();
+    const philippineTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
+    // Format as YYYY-MM-DD for date inputs
+    const formattedDate = philippineTime.toISOString().split('T')[0];
+
     dateFields.forEach(field => {
-        field.value = today;
+        field.value = formattedDate;
     });
     
 });
