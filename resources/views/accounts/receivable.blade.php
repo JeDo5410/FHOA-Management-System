@@ -227,7 +227,7 @@
                                                 </td>
                                             </tr>
                                         </tbody>
-                                        <tfoot>
+                                        {{-- <tfoot>
                                             <tr>
                                             </tr>
                                             <tr>
@@ -240,7 +240,7 @@
                                                 </td>
                                                 <td></td>
                                             </tr>
-                                        </tfoot>
+                                        </tfoot> --}}
                                     </table>
                                 </div>
                                 <!-- Received By Field -->
@@ -256,6 +256,48 @@
                                                     id="arrears_receivedBy" 
                                                     name="arrears_received_by"
                                                     required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Payment Details for HOA Monthly Dues tab -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-8">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <label class="form-label mb-0">Mode of Payment:</label>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="arrears_payment_mode" 
+                                                    id="arrears_cash" value="CASH" required>
+                                                <label class="form-check-label" for="arrears_cash">Cash</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="arrears_payment_mode" 
+                                                    id="arrears_gcash" value="GCASH">
+                                                <label class="form-check-label" for="arrears_gcash">GCash</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="arrears_payment_mode" 
+                                                    id="arrears_check" value="CHECK">
+                                                <label class="form-check-label" for="arrears_check">Check</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="arrears_payment_mode" 
+                                                    id="arrears_bankTransfer" value="BANK_TRANSFER">
+                                                <label class="form-check-label" for="arrears_bankTransfer">Bank Transfer</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="row g-2 align-items-center">
+                                            <div class="col-md-4">
+                                                <label for="arrears_reference" class="col-form-label">Reference No.</label>
+                                            </div>
+                                            <div class="col-md-8">
+                                                <input type="text" 
+                                                    class="form-control form-control-sm" 
+                                                    id="arrears_reference" 
+                                                    name="arrears_reference_no"
+                                                    autocomplete="off">
                                             </div>
                                         </div>
                                     </div>
@@ -1234,9 +1276,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-    
-    // Validate the Account Receivable form
-    function validateAccountReceivableForm(form) {
+// Validate the Account Receivable form
+function validateAccountReceivableForm(form) {
         // Basic HTML5 validation
         if (!form.checkValidity()) {
             form.reportValidity();
@@ -1294,8 +1335,38 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
         
+        // Additional validation for reference number when payment is not CASH
+        const arrearsPaymentMode = form.querySelector('input[name="arrears_payment_mode"]:checked')?.value;
+        const arrearsReferenceNo = form.querySelector('#arrears_reference').value;
+        
+        if (arrearsPaymentMode && arrearsPaymentMode !== 'CASH' && !arrearsReferenceNo) {
+            showToast('error', 'Reference number is required for ' + arrearsPaymentMode + ' payments');
+            form.querySelector('#arrears_reference').focus();
+            return false;
+        }
+        
         return true;
-    };
+    }
+    
+    // Set default payment mode to CASH for arrears tab
+    const arrearsPaymentCash = document.getElementById('arrears_cash');
+    if (arrearsPaymentCash) {
+        arrearsPaymentCash.checked = true;
+    }
+    
+    // Handle payment mode change for reference number validation in arrears tab
+    document.querySelectorAll('input[name="arrears_payment_mode"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const referenceField = document.getElementById('arrears_reference');
+            
+            if (this.value !== 'CASH') {
+                referenceField.setAttribute('required', 'required');
+                referenceField.focus();
+            } else {
+                referenceField.removeAttribute('required');
+            }
+        });
+    });
     
     // Attach change event to amount inputs
     document.addEventListener('input', function(e) {
