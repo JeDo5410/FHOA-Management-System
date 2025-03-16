@@ -448,6 +448,17 @@ class ArrearsAddressLookup {
             if (!response.ok) throw new Error('Failed to fetch payment history');
             const result = await response.json();
             
+            // Sort the payment history by OR number in descending order
+            if (result.data && Array.isArray(result.data)) {
+                result.data.sort((a, b) => {
+                    // Convert OR numbers to integers for proper numeric sorting
+                    const orA = parseInt(a.or_number) || 0;
+                    const orB = parseInt(b.or_number) || 0;
+                    // Sort in descending order (largest/newest first)
+                    return orB - orA;
+                });
+            }
+            
             return result.data;
         } catch (error) {
             console.error('Error fetching payment history:', error);
@@ -504,6 +515,7 @@ class ArrearsAddressLookup {
             row.innerHTML = `
                 <td class="text-start">${formattedDate}</td>
                 <td class="text-start">${payment.or_number}</td>
+                <td class="text-start">${payment.acct_description || 'N/A'}</td>
                 <td class="text-start">${formattedAmount}</td>
                 <td class="text-start">${formattedBalance}</td>
                 <td class="text-start">${payment.ar_remarks || '-'}</td>
@@ -514,7 +526,7 @@ class ArrearsAddressLookup {
         
         // Show the table container
         document.getElementById('paymentHistoryTableContainer').classList.remove('d-none');
-    }    
+    }        
     
     populateForm(data) {
         if (!data) {

@@ -5,6 +5,7 @@
 @section('content')
 @php
     $isNgrok = str_contains(request()->getHost(), 'ngrok');
+    $currentUserName = Auth::user()->fullname ?? '';
 @endphp
 
 <div class="container-fluid px-4">
@@ -194,7 +195,7 @@
                                     </div>                                    
                                 </div>
 
-                                <!-- Line Items Table -->
+                                <!-- Item Table -->
                                 <div class="table-responsive mb-3">
                                     <table class="table table-sm table-borderless" id="arrearsLineItemsTable">
                                         <thead>
@@ -255,6 +256,8 @@
                                                     class="form-control form-control-sm" 
                                                     id="arrears_receivedBy" 
                                                     name="arrears_received_by"
+                                                    value="{{ $currentUserName }}"
+                                                    autocomplete="off"
                                                     required>
                                             </div>
                                         </div>
@@ -461,6 +464,7 @@
                                                     class="form-control form-control-sm" 
                                                     id="receivedBy" 
                                                     name="received_by"
+                                                    value="{{ $currentUserName }}"
                                                     required>
                                             </div>
                                         </div>
@@ -579,7 +583,7 @@
     </div>
     <!-- Payment History Modal -->
     <div class="modal fade" id="paymentHistoryModal" tabindex="-1" aria-labelledby="paymentHistoryModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="paymentHistoryModalLabel">Payment History</h5>
@@ -619,10 +623,11 @@
                                 <tr>
                                     <th class="text-start">Date</th>
                                     <th class="text-start">OR Number</th>
+                                    <th class="text-start">Account Type</th>
                                     <th class="text-start">Amount</th>
                                     <th class="text-start">Balance After Payment</th>
                                     <th class="text-start">Remarks</th>
-                                    </tr>
+                                </tr>
                             </thead>
                             <tbody>
                                 <!-- Table rows will be populated by JavaScript -->
@@ -1282,8 +1287,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-// Validate the Account Receivable form
-function validateAccountReceivableForm(form) {
+    // Validate the Account Receivable form
+    function validateAccountReceivableForm(form) {
         // Basic HTML5 validation
         if (!form.checkValidity()) {
             form.reportValidity();
@@ -1354,12 +1359,6 @@ function validateAccountReceivableForm(form) {
         return true;
     }
     
-    // Set default payment mode to CASH for arrears tab
-    const arrearsPaymentCash = document.getElementById('arrears_cash');
-    if (arrearsPaymentCash) {
-        arrearsPaymentCash.checked = true;
-    }
-    
     // Handle payment mode change for reference number validation in arrears tab
     document.querySelectorAll('input[name="arrears_payment_mode"]').forEach(radio => {
         radio.addEventListener('change', function() {
@@ -1414,6 +1413,19 @@ function validateAccountReceivableForm(form) {
             document.getElementById('address').focus();
         }
     }, 500);
+
+    // Store the initial user name for reset functionality
+    const currentUserName = "{{ $currentUserName }}";
+
+    // Optional: Add reset functionality to restore original user
+    document.querySelectorAll('#receivedBy, #arrears_receivedBy').forEach(field => {
+        field.addEventListener('focus', function() {
+            // Add double-click handler to reset to original name
+            field.addEventListener('dblclick', function() {
+                field.value = currentUserName;
+            });
+        });
+    });
 });
 
 // Toast Notification Handler
