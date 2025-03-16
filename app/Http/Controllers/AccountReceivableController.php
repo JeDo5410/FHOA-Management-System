@@ -69,32 +69,25 @@ class AccountReceivableController extends Controller
                 'reference_no' => 'nullable|string|max:45',
                 'remarks' => 'nullable|string|max:45'
             ]);
-
+    
             // Begin transaction for data integrity
             DB::beginTransaction();
             
-            // Create the account receivable record
-            $accountReceivable = new AcctReceivable();
-            $accountReceivable->or_number = $validated['service_invoice_no'];
-            $accountReceivable->ar_date = $validated['date'];
-            $accountReceivable->ar_total = $validated['total_amount'];
-            $accountReceivable->ar_remarks = $validated['remarks'] ?? null;
-            $accountReceivable->receive_by = $validated['received_by'];
-            $accountReceivable->payment_type = $validated['payment_mode'];
-            $accountReceivable->payment_ref = $validated['reference_no'] ?? null;
-            $accountReceivable->user_id = Auth::id(); // Get the currently logged-in user's ID
-            $accountReceivable->save();
-            
-            // Create the AR detail records
+            // Create a separate transaction record for each line item
             foreach ($validated['items'] as $item) {
-                $detail = new ArDetail();
-                $detail->ar_transno = $accountReceivable->ar_transno;
-                $detail->payor_name = $validated['received_from'];
-                $detail->payor_address = $validated['address'];
-                $detail->acct_type_id = $item['coa'];
-                $detail->ar_amount = $item['amount'];
-                $detail->user_id = Auth::id();
-                $detail->save();
+                $accountReceivable = new AcctReceivable();
+                $accountReceivable->or_number = $validated['service_invoice_no'];
+                $accountReceivable->ar_date = $validated['date'];
+                $accountReceivable->ar_amount = $item['amount'];
+                $accountReceivable->acct_type_id = $item['coa'];
+                $accountReceivable->payor_name = $validated['received_from'];
+                $accountReceivable->payor_address = $validated['address'];
+                $accountReceivable->payment_type = $validated['payment_mode'];
+                $accountReceivable->payment_Ref = $validated['reference_no'] ?? null; // Note the capital R in Ref
+                $accountReceivable->receive_by = $validated['received_by'];
+                $accountReceivable->ar_remarks = $validated['remarks'] ?? null;
+                $accountReceivable->user_id = Auth::id(); // Get the currently logged-in user's ID
+                $accountReceivable->save();
             }
             
             // Commit the transaction
@@ -119,7 +112,7 @@ class AccountReceivableController extends Controller
             return back()->with('error', 'Error creating account receivable: ' . $e->getMessage())
                 ->withInput();
         }
-    }
+    }    
     
     /**
      * Store an arrears receivable record (HOA Monthly Dues tab)
