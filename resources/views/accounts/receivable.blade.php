@@ -1270,7 +1270,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Handle form submission based on active tab
+    let isSubmitting = false; // Flag to prevent multiple submissions
+
     document.getElementById('accountSaveBtn').addEventListener('click', function() {
+        // Prevent multiple submissions
+        if (isSubmitting) {
+            return;
+        }
+        
         const activeTab = document.querySelector('.tab-pane.active');
         const activeTabId = activeTab.getAttribute('id');
         
@@ -1278,15 +1285,34 @@ document.addEventListener('DOMContentLoaded', function() {
         if (activeTabId === 'account') {
             const form = document.getElementById('accountReceivableForm');
             if (validateAccountReceivableForm(form)) {
+                // Set submitting flag and disable the button
+                isSubmitting = true;
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+                
+                // Show processing message
+                showToast('info', 'Processing your request...');
+                
+                // Submit the form
                 form.submit();
             }
         } else if (activeTabId === 'arrears') {
             const form = document.getElementById('arrearsReceivableForm');
             if (validateArrearsReceivableForm(form)) {
+                // Set submitting flag and disable the button
+                isSubmitting = true;
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+                
+                // Show processing message
+                showToast('info', 'Processing your request...');
+                
+                // Submit the form
                 form.submit();
             }
         }
     });
+
     // Validate the Account Receivable form
     function validateAccountReceivableForm(form) {
         // Basic HTML5 validation
