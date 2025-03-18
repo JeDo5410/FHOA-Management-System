@@ -223,6 +223,7 @@ class AccountReceivableController extends Controller
                     'acct_receivable.or_number',
                     'acct_receivable.arrear_bal',
                     'acct_receivable.ar_remarks',
+                    'acct_receivable.payor_name',
                     'charts_of_account.acct_description'
                 )
                 ->get();

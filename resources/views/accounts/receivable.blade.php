@@ -54,145 +54,147 @@
                     <form action="{{route('accounts.receivables.store')}}" method="POST" id="arrearsReceivableForm">
                         @csrf
                         <input type="hidden" name="form_type" value="arrears_receivable">
-                        <!-- Header Section for Arrears tab with Labels Above Inputs -->
-                        <div class="row g-2 mb-3">
-                            <!-- First Column: Received From -->
-                            <div class="col-md-3">
+                        <!-- Member Info Fields moved outside the container -->
+                        <div class="row g-2 member-data mb-3">
+                            <div class="col-md-4">
                                 <div class="mb-2">
-                                    <label for="arrears_addressId" class="form-label">Address ID</label>
-                                    <input type="text" 
-                                        class="form-control form-control-sm"
-                                        id="arrears_addressId" 
-                                        name="arrears_address_id"
-                                        autocomplete="off"
-                                        required>
+                                    <label for="memberName" class="form-label">Member Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                                        <input type="text" 
+                                            class="form-control form-control-sm" 
+                                            id="memberName" 
+                                            name="member_name"
+                                            disabled>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="mb-2">
-                                    <label for="arrears_receivedFrom" class="form-label">Received From</label>
-                                    <input type="text" 
-                                        class="form-control form-control-sm"
-                                        id="arrears_receivedFrom" 
-                                        name="arrears_received_from"
-                                        autocomplete="off"
-                                        required>
+                                    <label for="memberAddress" class="form-label">Member Address</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-geo-alt"></i></span>
+                                        <input type="text" 
+                                            class="form-control form-control-sm" 
+                                            id="memberAddress" 
+                                            name="member_address"
+                                            disabled>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <!-- Second Column: Service Invoice No. -->
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="mb-2">
-                                    <label for="arrears_serviceInvoiceNo" class="form-label">Service Invoice No.</label>
-                                    <input type="number" 
-                                        class="form-control form-control-sm" 
-                                        id="arrears_serviceInvoiceNo" 
-                                        name="arrears_service_invoice_no"
-                                        min="1"
-                                        autocomplete="off"
-                                        required>
+                                    <label for="arrears" class="form-label">Arrears Amount</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">₱</span>
+                                        <input type="text" class="form-control form-control-sm text-danger fw-bold" id="arrears_amount" name="arrears_amount" disabled>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <!-- Third Column: Date -->
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="mb-2">
-                                    <label for="arrears_date" class="form-label">Date</label>
-                                    <input type="date" 
-                                        class="form-control form-control-sm" 
-                                        id="arrears_date" 
-                                        name="arrears_date"
-                                        required>
+                                    <label for="lastPaydate" class="form-label">Last Payment Date</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-calendar"></i></span>
+                                        <input type="text" 
+                                            class="form-control form-control-sm" 
+                                            id="lastPaydate" 
+                                            name="last_paydate"
+                                            disabled>
+                                    </div>
                                 </div>
                             </div>
+                            <div class="col-md-4">
+                                <div class="mb-2">
+                                    <label for="lastPayment" class="form-label">Last Payment Amount</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-cash"></i></span>
+                                        <input type="text" 
+                                            class="form-control form-control-sm" 
+                                            id="lastPayment" 
+                                            name="last_payment"
+                                            disabled>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-2">
+                                    <label for="lastOR" class="form-label">Last OR Number</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-receipt"></i></span>
+                                        <input type="text" 
+                                            class="form-control form-control-sm" 
+                                            id="lastOR" 
+                                            name="last_or"
+                                            disabled>
+                                        <button class="btn btn-outline-secondary btn-sm" 
+                                            type="button" 
+                                            id="viewPaymentHistory" 
+                                            disabled>
+                                            <i class="bi bi-clock-history"></i>
+                                        </button>
+                                    </div>
+                                    <small class="form-text text-muted">Click <i class="bi bi-clock-history"></i> to view payment history</small>
+                                </div>
+                            </div>                                    
                         </div>
 
                         <!-- Single container for HOA Monthly Dues tab -->
                         <div class="card shadow-sm mb-3">
                             <div class="card-body p-3">                                
-                                <!-- Member Info Fields -->
-                                <div class="row g-2 member-data mb-3">
-                                    <div class="col-md-4">
+                                <!-- Header Section for Arrears tab with Labels Above Inputs (moved inside the container) -->
+                                <div class="row g-2 mb-3">
+                                    <!-- First Column: Service Invoice No. -->
+                                    <div class="col-md-3">
                                         <div class="mb-2">
-                                            <label for="memberName" class="form-label">Member Name</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
-                                                <input type="text" 
-                                                    class="form-control form-control-sm" 
-                                                    id="memberName" 
-                                                    name="member_name"
-                                                    disabled>
-                                            </div>
+                                            <label for="arrears_serviceInvoiceNo" class="form-label">Service Invoice No.</label>
+                                            <input type="number" 
+                                                class="form-control form-control-sm" 
+                                                id="arrears_serviceInvoiceNo" 
+                                                name="arrears_service_invoice_no"
+                                                min="1"
+                                                autocomplete="off"
+                                                required>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    
+                                    <!-- Second Column: Date -->
+                                    <div class="col-md-3">
                                         <div class="mb-2">
-                                            <label for="memberAddress" class="form-label">Member Address</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light"><i class="bi bi-geo-alt"></i></span>
-                                                <input type="text" 
-                                                    class="form-control form-control-sm" 
-                                                    id="memberAddress" 
-                                                    name="member_address"
-                                                    disabled>
-                                            </div>
+                                            <label for="arrears_date" class="form-label">Date</label>
+                                            <input type="date" 
+                                                class="form-control form-control-sm" 
+                                                id="arrears_date" 
+                                                name="arrears_date"
+                                                required>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    
+                                    <!-- Third Column: Received From -->
+                                    <div class="col-md-3">
                                         <div class="mb-2">
-                                            <label for="arrears" class="form-label">Arrears Amount</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light">₱</span>
-                                                <input type="text" class="form-control form-control-sm text-danger fw-bold" id="arrears_amount" name="arrears_amount" disabled>
-                                            </div>
+                                            <label for="arrears_receivedFrom" class="form-label">Received From</label>
+                                            <input type="text" 
+                                                class="form-control form-control-sm"
+                                                id="arrears_receivedFrom" 
+                                                name="arrears_received_from"
+                                                autocomplete="off"
+                                                required>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    
+                                    <!-- Fourth Column: Address ID -->
+                                    <div class="col-md-3">
                                         <div class="mb-2">
-                                            <label for="lastPaydate" class="form-label">Last Payment Date</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light"><i class="bi bi-calendar"></i></span>
-                                                <input type="text" 
-                                                    class="form-control form-control-sm" 
-                                                    id="lastPaydate" 
-                                                    name="last_paydate"
-                                                    disabled>
-                                            </div>
+                                            <label for="arrears_addressId" class="form-label">Address ID</label>
+                                            <input type="text" 
+                                                class="form-control form-control-sm"
+                                                id="arrears_addressId" 
+                                                name="arrears_address_id"
+                                                autocomplete="off"
+                                                required>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-2">
-                                            <label for="lastPayment" class="form-label">Last Payment Amount</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light"><i class="bi bi-cash"></i></span>
-                                                <input type="text" 
-                                                    class="form-control form-control-sm" 
-                                                    id="lastPayment" 
-                                                    name="last_payment"
-                                                    disabled>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-2">
-                                            <label for="lastOR" class="form-label">Last OR Number</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light"><i class="bi bi-receipt"></i></span>
-                                                <input type="text" 
-                                                    class="form-control form-control-sm" 
-                                                    id="lastOR" 
-                                                    name="last_or"
-                                                    disabled>
-                                                <button class="btn btn-outline-secondary btn-sm" 
-                                                    type="button" 
-                                                    id="viewPaymentHistory" 
-                                                    disabled>
-                                                    <i class="bi bi-clock-history"></i>
-                                                </button>
-                                            </div>
-                                            <small class="form-text text-muted">Click <i class="bi bi-clock-history"></i> to view payment history</small>
-                                        </div>
-                                    </div>                                    
                                 </div>
 
                                 <!-- Item Table -->
@@ -623,6 +625,7 @@
                                 <tr>
                                     <th class="text-start">Date</th>
                                     <th class="text-start">OR Number</th>
+                                    <th class="text-start">Payor Name</th>
                                     <th class="text-start">Account Type</th>
                                     <th class="text-start">Amount</th>
                                     <th class="text-start">Balance After Payment</th>

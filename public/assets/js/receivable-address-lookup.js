@@ -515,6 +515,7 @@ class ArrearsAddressLookup {
             row.innerHTML = `
                 <td class="text-start">${formattedDate}</td>
                 <td class="text-start">${payment.or_number}</td>
+                <td class="text-start">${payment.payor_name || '-'}</td>
                 <td class="text-start">${payment.acct_description || 'N/A'}</td>
                 <td class="text-start">${formattedAmount}</td>
                 <td class="text-start">${formattedBalance}</td>
