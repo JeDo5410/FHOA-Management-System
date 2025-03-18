@@ -94,9 +94,9 @@ class AccountReceivableController extends Controller
             DB::commit();
             
             // Return success response with toast notification
-            return redirect()->route('accounts.receivables')
+            return redirect()->route('accounts.receivables', ['tab' => $request->input('active_tab', 'account')])
                 ->with('success', 'Account receivable created successfully');
-                
+                        
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Validation error, no need to rollback as no DB operations were performed
             return back()->withErrors($e->errors())->withInput();
@@ -184,9 +184,9 @@ class AccountReceivableController extends Controller
             DB::commit();
             
             // Return success response with toast notification
-            return redirect()->route('accounts.receivables')
+            return redirect()->route('accounts.receivables', ['tab' => $request->input('active_tab', 'arrears')])
                 ->with('success', 'HOA Monthly Dues payment recorded successfully');
-                
+                        
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Validation error, no need to rollback as no DB operations were performed
             return back()->withErrors($e->errors())->withInput();

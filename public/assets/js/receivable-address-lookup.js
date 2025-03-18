@@ -645,6 +645,30 @@ class ArrearsAddressLookup {
         document.querySelectorAll('input, select, textarea').forEach(element => {
             element.dispatchEvent(new Event('change', { bubbles: true }));
         });
+        
+        // Make sure CASH is selected and trigger its change event specifically
+        const cashRadio = document.getElementById('arrears_cash');
+        if (cashRadio) {
+            cashRadio.checked = true;
+            cashRadio.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        
+        // Hide reference field explicitly
+        const referenceContainer = document.getElementById('arrears_reference')?.closest('.col-md-4');
+        if (referenceContainer) {
+            referenceContainer.style.display = 'none';
+        }
+        
+        // redirect focus after address lookup
+        setTimeout(() => {
+            // Focus on amount field
+            const amountInput = document.querySelector('.arrears-amount-input');
+            if (amountInput) {
+                amountInput.focus();
+            } else {
+                document.getElementById('arrears_serviceInvoiceNo').focus();
+            }
+        }, 50);
     }
     
     showToastNotification(type, message) {

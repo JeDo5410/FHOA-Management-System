@@ -53,6 +53,7 @@
                 <div class="tab-pane fade show active" id="arrears" role="tabpanel" aria-labelledby="arrears-tab">
                     <form action="{{route('accounts.receivables.store')}}" method="POST" id="arrearsReceivableForm">
                         @csrf
+                        <input type="hidden" name="active_tab" id="arrears_active_tab" value="arrears">
                         <input type="hidden" name="form_type" value="arrears_receivable">
                         <!-- Member Info Fields moved outside the container -->
                         <div class="row g-2 member-data mb-3">
@@ -340,6 +341,7 @@
                 <div class="tab-pane fade" id="account" role="tabpanel" aria-labelledby="account-tab">
                     <form action="{{route('accounts.receivables.store')}}" method="POST" id="accountReceivableForm">
                         @csrf
+                        <input type="hidden" name="active_tab" id="account_active_tab" value="account">
                         <input type="hidden" name="form_type" value="account_receivable">
                         <!-- Header Section with Labels Above Inputs -->
                         <div class="row g-2 mb-3">                    
@@ -1059,6 +1061,31 @@
 <script>
 // Character count for remarks textarea
 document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab');
+    
+    // If tab parameter exists in URL, activate that tab
+    if (activeTab) {
+        // First, find the corresponding tab button
+        const tabToActivate = document.getElementById(`${activeTab}-tab`);
+        if (tabToActivate) {
+            // Create a new bootstrap Tab instance and show it
+            const tab = new bootstrap.Tab(tabToActivate);
+            tab.show();
+        }
+    }
+    
+    // Update active_tab field whenever tabs change
+    document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            const tabId = e.target.getAttribute('id').replace('-tab', '');
+            
+            // Update both hidden fields to ensure the correct one is submitted
+            document.getElementById('arrears_active_tab').value = tabId;
+            document.getElementById('account_active_tab').value = tabId;
+        });
+    });
+
     const remarksTextarea = document.getElementById('remarks');
     const charCountDisplay = document.getElementById('charCount');
     const accountTab = document.getElementById('account-tab');
@@ -1403,10 +1430,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // For Account Receivable tab
         const accountReferenceContainer = document.querySelector('#reference').closest('.col-md-4');
         const accountPaymentRadios = document.querySelectorAll('input[name="payment_mode"]');
+        const referenceField = document.getElementById('reference');
         
         // For HOA Monthly Dues tab
         const arrearsReferenceContainer = document.querySelector('#arrears_reference').closest('.col-md-4');
         const arrearsPaymentRadios = document.querySelectorAll('input[name="arrears_payment_mode"]');
+        const arrearsReferenceField = document.getElementById('arrears_reference');
         
         // Event handlers for Account Receivable tab
         if (accountPaymentRadios) {
@@ -1414,11 +1443,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 radio.addEventListener('change', function() {
                     if (this.value === 'CASH') {
                         accountReferenceContainer.style.display = 'none';
-                        document.getElementById('reference').removeAttribute('required');
+                        referenceField.removeAttribute('required');
+                        referenceField.value = ''; // Clear value
+                        
+                        // Move focus to another field if reference had focus
+                        if (document.activeElement === referenceField) {
+                            document.getElementById('remarks').focus();
+                        }
                     } else {
                         accountReferenceContainer.style.display = 'block';
-                        document.getElementById('reference').setAttribute('required', 'required');
-                        document.getElementById('reference').focus();
+                        referenceField.setAttribute('required', 'required');
+                        referenceField.focus();
                     }
                 });
             });
@@ -1430,19 +1465,65 @@ document.addEventListener('DOMContentLoaded', function() {
                 radio.addEventListener('change', function() {
                     if (this.value === 'CASH') {
                         arrearsReferenceContainer.style.display = 'none';
-                        document.getElementById('arrears_reference').removeAttribute('required');
+                        arrearsReferenceField.removeAttribute('required');
+                        arrearsReferenceField.value = ''; // Clear value
+                        
+                        // Move focus to another field if reference had focus
+                        if (document.activeElement === arrearsReferenceField) {
+                            document.getElementById('arrears_remarks').focus();
+                        }
                     } else {
                         arrearsReferenceContainer.style.display = 'block';
-                        document.getElementById('arrears_reference').setAttribute('required', 'required');
-                        document.getElementById('arrears_reference').focus();
+                        arrearsReferenceField.setAttribute('required', 'required');
+                        arrearsReferenceField.focus();
                     }
                 });
             });
         }
         
-        // Set initial state - hide reference fields
-        if (accountReferenceContainer) accountReferenceContainer.style.display = 'none';
-        if (arrearsReferenceContainer) arrearsReferenceContainer.style.display = 'none';
+        // Set initial state for both tabs
+        if (accountReferenceContainer) {
+            accountReferenceContainer.style.display = 'none';
+            referenceField.removeAttribute('required');
+        }
+        
+        if (arrearsReferenceContainer) {
+            arrearsReferenceContainer.style.display = 'none';
+            arrearsReferenceField.removeAttribute('required');
+        }
+        
+        // Fix for address lookup focus issue - intercept focus events
+        if (arrearsReferenceField) {
+            arrearsReferenceField.addEventListener('focus', function(e) {
+                const cashRadio = document.getElementById('arrears_cash');
+                if (cashRadio && cashRadio.checked) {
+                    e.preventDefault();
+                    // Move focus to amount field instead
+                    const amountInput = document.querySelector('.arrears-amount-input');
+                    if (amountInput) {
+                        amountInput.focus();
+                    } else {
+                        document.getElementById('arrears_serviceInvoiceNo').focus();
+                    }
+                }
+            });
+        }
+        
+        if (referenceField) {
+            referenceField.addEventListener('focus', function(e) {
+                const cashRadio = document.getElementById('cash');
+                if (cashRadio && cashRadio.checked) {
+                    e.preventDefault();
+                    // Move focus to amount field instead
+                    const amountInput = document.querySelector('.amount-input');
+                    if (amountInput) {
+                        amountInput.focus();
+                    } else {
+                        document.getElementById('serviceInvoiceNo').focus();
+                    }
+                }
+            });
+        }
     }
 
     // Initialize on page load
