@@ -145,6 +145,52 @@ class PayableForm {
      * Handle adding a new line item
      */
     handleAddLineItem() {
+        // First check if current lines are all valid
+        const currentRows = this.tbody.querySelectorAll(PayableForm.SELECTORS.LINE_ITEM);
+        let allRowsComplete = true;
+        let incompleteRow = null;
+        
+        // Check each existing row for completeness
+        for (const row of currentRows) {
+            const particularField = row.querySelector('input[name^="items"][name$="[particular]"]');
+            const amountField = row.querySelector(PayableForm.SELECTORS.AMOUNT_INPUT);
+            const selectField = row.querySelector('select[name^="items"][name$="[account_type]"]');
+            
+            // Check if any field is empty or invalid
+            if (!particularField.value.trim() || 
+                !amountField.value || 
+                parseFloat(amountField.value) <= 0 ||
+                !selectField.value) {
+                
+                allRowsComplete = false;
+                incompleteRow = row;
+                break;
+            }
+        }
+        
+        if (!allRowsComplete) {
+            // Show error message
+            showToast('error', 'Please complete the current line item before adding a new one');
+            
+            // Focus on the first invalid field in the incomplete row
+            if (incompleteRow) {
+                const particularField = incompleteRow.querySelector('input[name^="items"][name$="[particular]"]');
+                const amountField = incompleteRow.querySelector(PayableForm.SELECTORS.AMOUNT_INPUT);
+                const selectField = incompleteRow.querySelector('select[name^="items"][name$="[account_type]"]');
+                
+                if (!particularField.value.trim()) {
+                    particularField.focus();
+                } else if (!amountField.value || parseFloat(amountField.value) <= 0) {
+                    amountField.focus();
+                } else if (!selectField.value) {
+                    selectField.focus();
+                }
+            }
+            
+            return;
+        }
+        
+        // If all rows are complete, proceed with adding a new row
         const template = this.tbody.querySelector(PayableForm.SELECTORS.LINE_ITEM);
         const newRow = template.cloneNode(true);
         const rowCount = this.tbody.querySelectorAll(PayableForm.SELECTORS.LINE_ITEM).length;
@@ -162,7 +208,13 @@ class PayableForm {
     
         this.tbody.appendChild(newRow);
         this.updateFormState();
-    }
+        
+        // Focus on the first field of the new row (particular)
+        const newParticularField = newRow.querySelector('input[name^="items"][name$="[particular]"]');
+        if (newParticularField) {
+            newParticularField.focus();
+        }
+    }    
 
     /**
      * Handle removing a line item
