@@ -272,7 +272,7 @@
                                             <label class="form-label mb-0">Mode of Payment:</label>
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input" type="radio" name="arrears_payment_mode" 
-                                                    id="arrears_cash" value="CASH" required>
+                                                    id="arrears_cash" value="CASH" required checked>
                                                 <label class="form-check-label" for="arrears_cash">Cash</label>
                                             </div>
                                             <div class="form-check form-check-inline">
@@ -481,7 +481,7 @@
                                             <label class="form-label mb-0">Mode of Payment:</label>
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input" type="radio" name="payment_mode" 
-                                                    id="cash" value="CASH" required>
+                                                    id="cash" value="CASH" required checked>
                                                 <label class="form-check-label" for="cash">Cash</label>
                                             </div>
                                             <div class="form-check form-check-inline">
@@ -1117,13 +1117,54 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (e) {
         console.log("Immediate focus failed, will retry with delay");
     }
-    
+
     // Add line functionality for Account Receivable tab
     const addLineBtn = document.querySelector('.add-line');
     const tbody = document.querySelector('#lineItemsTable tbody');
-    
+
     if (addLineBtn && tbody) {
         addLineBtn.addEventListener('click', function() {
+            // First check if current lines are all valid
+            const currentRows = tbody.querySelectorAll('tr.line-item');
+            let allRowsComplete = true;
+            let incompleteRow = null;
+            
+            // Check each existing row for completeness
+            for (const row of currentRows) {
+                const selectField = row.querySelector('select');
+                const amountField = row.querySelector('.amount-input');
+                
+                // Check if either field is empty or invalid
+                if (!selectField.value || 
+                    !amountField.value || 
+                    parseFloat(amountField.value) <= 0) {
+                    
+                    allRowsComplete = false;
+                    incompleteRow = row;
+                    break;
+                }
+            }
+            
+            if (!allRowsComplete) {
+                // Show error message
+                showToast('error', 'Please complete the current line item before adding a new one');
+                
+                // Focus on the first invalid field in the incomplete row
+                if (incompleteRow) {
+                    const selectField = incompleteRow.querySelector('select');
+                    const amountField = incompleteRow.querySelector('.amount-input');
+                    
+                    if (!selectField.value) {
+                        selectField.focus();
+                    } else if (!amountField.value || parseFloat(amountField.value) <= 0) {
+                        amountField.focus();
+                    }
+                }
+                
+                return;
+            }
+            
+            // If all rows are complete, proceed with adding a new row
             const rowCount = tbody.querySelectorAll('tr').length;
             const newRow = document.createElement('tr');
             newRow.className = 'line-item';
@@ -1152,43 +1193,12 @@ document.addEventListener('DOMContentLoaded', function() {
             tbody.appendChild(newRow);
             attachRemoveLineListeners();
             calculateTotal();
-        });
-    }
-    
-    // Add line functionality for Arrears Receivable tab
-    const addArrearsLineBtn = document.querySelector('.add-arrears-line');
-    const arrearsTbody = document.querySelector('#arrearsLineItemsTable tbody');
-    
-    if (addArrearsLineBtn && arrearsTbody) {
-        addArrearsLineBtn.addEventListener('click', function() {
-            const rowCount = arrearsTbody.querySelectorAll('tr').length;
-            const newRow = document.createElement('tr');
-            newRow.className = 'line-item';
             
-            newRow.innerHTML = `
-                <td>
-                    <select class="form-select form-select-sm enhanced" name="arrears_items[${rowCount}][coa]" required>
-                        <option value="">Select Account Type</option>
-                        @foreach($duesAccountTypes as $type)
-                            <option value="{{ $type->acct_type_id }}">
-                                {{ $type->acct_description }}
-                            </option>
-                        @endforeach
-                    </select>
-                </td>
-                <td>
-                    <input type="number" class="form-control form-control-sm arrears-amount-input" name="arrears_items[${rowCount}][amount]" step="0.01" min="0.01" required>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-link text-danger remove-arrears-line">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            `;
-            
-            arrearsTbody.appendChild(newRow);
-            attachRemoveArrearsLineListeners();
-            calculateArrearsTotal();
+            // Focus on the newly added row's select field
+            const newSelect = newRow.querySelector('select');
+            if (newSelect) {
+                newSelect.focus();
+            }
         });
     }
     
@@ -1388,20 +1398,57 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     }
     
-    // Handle payment mode change for reference number validation in arrears tab
-    document.querySelectorAll('input[name="arrears_payment_mode"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            const referenceField = document.getElementById('arrears_reference');
-            
-            if (this.value !== 'CASH') {
-                referenceField.setAttribute('required', 'required');
-                referenceField.focus();
-            } else {
-                referenceField.removeAttribute('required');
-            }
-        });
-    });
-    
+    // Function to handle payment mode display logic
+    function initializePaymentModeLogic() {
+        // For Account Receivable tab
+        const accountReferenceContainer = document.querySelector('#reference').closest('.col-md-4');
+        const accountPaymentRadios = document.querySelectorAll('input[name="payment_mode"]');
+        
+        // For HOA Monthly Dues tab
+        const arrearsReferenceContainer = document.querySelector('#arrears_reference').closest('.col-md-4');
+        const arrearsPaymentRadios = document.querySelectorAll('input[name="arrears_payment_mode"]');
+        
+        // Event handlers for Account Receivable tab
+        if (accountPaymentRadios) {
+            accountPaymentRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'CASH') {
+                        accountReferenceContainer.style.display = 'none';
+                        document.getElementById('reference').removeAttribute('required');
+                    } else {
+                        accountReferenceContainer.style.display = 'block';
+                        document.getElementById('reference').setAttribute('required', 'required');
+                        document.getElementById('reference').focus();
+                    }
+                });
+            });
+        }
+        
+        // Event handlers for HOA Monthly Dues tab
+        if (arrearsPaymentRadios) {
+            arrearsPaymentRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'CASH') {
+                        arrearsReferenceContainer.style.display = 'none';
+                        document.getElementById('arrears_reference').removeAttribute('required');
+                    } else {
+                        arrearsReferenceContainer.style.display = 'block';
+                        document.getElementById('arrears_reference').setAttribute('required', 'required');
+                        document.getElementById('arrears_reference').focus();
+                    }
+                });
+            });
+        }
+        
+        // Set initial state - hide reference fields
+        if (accountReferenceContainer) accountReferenceContainer.style.display = 'none';
+        if (arrearsReferenceContainer) arrearsReferenceContainer.style.display = 'none';
+    }
+
+    // Initialize on page load
+    initializePaymentModeLogic();
+
+
     // Attach change event to amount inputs
     document.addEventListener('input', function(e) {
         if (e.target.classList.contains('amount-input')) {
@@ -1412,25 +1459,71 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Auto-focus amount field after account type selection
+    document.addEventListener('change', function(e) {
+        // For Account Receivable tab
+        if (e.target.matches('#lineItemsTable select[name^="items"]')) {
+            const row = e.target.closest('tr');
+            const amountInput = row.querySelector('.amount-input');
+            if (amountInput && e.target.value) {
+                amountInput.focus();
+            }
+        }
+        
+        // For HOA Monthly Dues tab
+        if (e.target.matches('#arrearsLineItemsTable select[name^="arrears_items"]')) {
+            const row = e.target.closest('tr');
+            const amountInput = row.querySelector('.arrears-amount-input');
+            if (amountInput && e.target.value) {
+                amountInput.focus();
+            }
+        }
+    });
+
+    
     // Initialize
     attachRemoveLineListeners();
     attachRemoveArrearsLineListeners();
     calculateTotal();
     calculateArrearsTotal();
     
-    // Add event listener for tab changes
+    // Handle tab switching events
     document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
         tab.addEventListener('shown.bs.tab', function(e) {
             // Set focus on the first input field of the active tab
             setTimeout(() => {
                 if (e.target.id === 'arrears-tab') {
                     document.getElementById('arrears_addressId').focus();
+                    
+                    // Reset to CASH payment option for HOA Monthly Dues tab
+                    const cashRadio = document.getElementById('arrears_cash');
+                    if (cashRadio && !cashRadio.checked) {
+                        cashRadio.checked = true;
+                        cashRadio.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                    
+                    // Hide reference field
+                    const arrearsReferenceContainer = document.querySelector('#arrears_reference').closest('.col-md-4');
+                    if (arrearsReferenceContainer) arrearsReferenceContainer.style.display = 'none';
+                    
                 } else if (e.target.id === 'account-tab') {
                     document.getElementById('address').focus();
+                    
+                    // Reset to CASH payment option for Account Receivable tab
+                    const cashRadio = document.getElementById('cash');
+                    if (cashRadio && !cashRadio.checked) {
+                        cashRadio.checked = true;
+                        cashRadio.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                    
+                    // Hide reference field
+                    const accountReferenceContainer = document.querySelector('#reference').closest('.col-md-4');
+                    if (accountReferenceContainer) accountReferenceContainer.style.display = 'none';
                 }
             }, 100); // Small delay to ensure proper focus
         });
     });
+
     
     // BACKUP FOCUS: Set focus again after a delay in case the immediate focus failed
     // This adds redundancy to make sure the focus is set
