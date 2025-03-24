@@ -1244,21 +1244,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Attach remove line event listeners for arrears tab
-    function attachRemoveArrearsLineListeners() {
-        document.querySelectorAll('.remove-arrears-line').forEach(button => {
-            button.addEventListener('click', function() {
-                if (arrearsTbody.querySelectorAll('tr').length > 1) {
-                    this.closest('tr').remove();
-                    reindexArrearsRows();
-                    calculateArrearsTotal();
-                } else {
-                    showToast('info', 'Cannot remove the last line item');
-                }
-            });
-        });
-    }
-    
     // Reindex rows after removal
     function reindexRows() {
         const rows = tbody.querySelectorAll('tr');
@@ -1295,20 +1280,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.getElementById('totalAmount').value = total.toFixed(2);
     }
-    
-    // Calculate total amount for arrears tab
-    function calculateArrearsTotal() {
-        const amountInputs = document.querySelectorAll('.arrears-amount-input');
-        let total = 0;
         
-        amountInputs.forEach(input => {
-            const value = parseFloat(input.value) || 0;
-            total += value;
-        });
-        
-        document.getElementById('arrearsTotalAmount').value = total.toFixed(2);
-    }
-    
     // Handle form submission based on active tab
     let isSubmitting = false; // Flag to prevent multiple submissions
 
@@ -1535,9 +1507,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target.classList.contains('amount-input')) {
             calculateTotal();
         }
-        if (e.target.classList.contains('arrears-amount-input')) {
-            calculateArrearsTotal();
-        }
     });
     
     // Auto-focus amount field after account type selection
@@ -1564,9 +1533,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize
     attachRemoveLineListeners();
-    attachRemoveArrearsLineListeners();
     calculateTotal();
-    calculateArrearsTotal();
     
     // Handle tab switching events
     document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
@@ -1629,6 +1596,27 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+
+    document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            // Reset any reversal mode when switching tabs
+            if (typeof resetReversalMode === 'function') {
+                resetReversalMode();
+            }
+            
+            // Rest of your existing tab-switching code...
+        });
+    });
+    
+    // Add this to your cancel button click handler
+    document.querySelector('button.btn-secondary').addEventListener('click', function() {
+        // Reset reversal mode when canceling
+        if (typeof resetReversalMode === 'function') {
+            resetReversalMode();
+        }
+        
+        // Your existing cancel code...
+    });
 });
 
 // Toast Notification Handler
@@ -1667,4 +1655,5 @@ window.addEventListener('load', function() {
 $jsVersion = '1.2.0';
 @endphp
 <script src="{{ asset('assets/js/receivable-address-lookup.js') }}?v={{ $jsVersion }}"></script>
+<script src="{{ asset('assets/js/transaction-reversal.js') }}?v={{ $jsVersion }}"></script>
 @endsection
