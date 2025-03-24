@@ -1327,13 +1327,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Validate the Account Receivable form
     function validateAccountReceivableForm(form) {
+        // Check payment mode first
+        const paymentMode = form.querySelector('input[name="payment_mode"]:checked')?.value;
+        const referenceField = form.querySelector('#reference');
+        
+        // If payment mode is CASH, temporarily remove the required attribute before validation
+        if (paymentMode === 'CASH' && referenceField) {
+            referenceField.removeAttribute('required');
+        } else if (paymentMode !== 'CASH' && referenceField && !referenceField.value) {
+            // If other payment modes and reference is empty, show custom error
+            showToast('error', 'Reference number is required for ' + paymentMode + ' payments');
+            referenceField.focus();
+            return false;
+        }
+        
         // Basic HTML5 validation
         if (!form.checkValidity()) {
             form.reportValidity();
             return false;
         }
         
-        // Check if at least one line item is added
+        // Check if at least one line item is added with positive amount
         const lineItems = form.querySelectorAll('.amount-input');
         let hasValue = false;
         
@@ -1345,16 +1359,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!hasValue) {
             showToast('error', 'Please add at least one line item with an amount greater than zero');
-            return false;
-        }
-        
-        // Additional validation for reference number when payment is not CASH
-        const paymentMode = form.querySelector('input[name="payment_mode"]:checked')?.value;
-        const referenceNo = form.querySelector('#reference').value;
-        
-        if (paymentMode && paymentMode !== 'CASH' && !referenceNo) {
-            showToast('error', 'Reference number is required for ' + paymentMode + ' payments');
-            form.querySelector('#reference').focus();
             return false;
         }
         
