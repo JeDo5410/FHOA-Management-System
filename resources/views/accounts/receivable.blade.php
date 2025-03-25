@@ -56,7 +56,9 @@
                         <input type="hidden" name="active_tab" id="arrears_active_tab" value="arrears">
                         <input type="hidden" name="form_type" value="arrears_receivable">
                         <!-- Member Info Fields moved outside the container -->
+                        <!-- Modified Member Info Fields in 2 rows layout -->
                         <div class="row g-2 member-data mb-3">
+                            <!-- First Row - 3 columns -->
                             <div class="col-md-4">
                                 <div class="mb-2">
                                     <label for="memberName" class="form-label">Member Name</label>
@@ -85,14 +87,16 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-2">
-                                    <label for="arrears" class="form-label">Arrears Amount</label>
+                                    <label for="totalArrears" class="form-label">Total Arrears (with Interest)</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light">₱</span>
-                                        <input type="text" class="form-control form-control-sm text-danger fw-bold" id="arrears_amount" name="arrears_amount" disabled>
+                                        <input type="text" class="form-control form-control-sm text-danger fw-bold" id="total_arrears" name="total_arrears" disabled>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            
+                            <!-- Second Row - 4 columns -->
+                            <div class="col-md-3">
                                 <div class="mb-2">
                                     <label for="lastPaydate" class="form-label">Last Payment Date</label>
                                     <div class="input-group">
@@ -105,7 +109,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="mb-2">
                                     <label for="lastPayment" class="form-label">Last Payment Amount</label>
                                     <div class="input-group">
@@ -118,7 +122,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="mb-2">
                                     <label for="lastOR" class="form-label">Last OR Number</label>
                                     <div class="input-group">
@@ -137,7 +141,16 @@
                                     </div>
                                     <small class="form-text text-muted">Click <i class="bi bi-clock-history"></i> to view payment history</small>
                                 </div>
-                            </div>                                    
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-2">
+                                    <label for="arrears" class="form-label">Arrears (Principal)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">₱</span>
+                                        <input type="text" class="form-control form-control-sm text-danger fw-bold" id="arrears_amount" name="arrears_amount" disabled>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Single container for HOA Monthly Dues tab -->
@@ -602,7 +615,8 @@
                                 <p class="mb-0"><strong>Address:</strong> <span id="modalMemberAddress">-</span></p>
                             </div>
                             <div class="col-md-6 text-md-end">
-                                <p class="mb-1"><strong>Current Arrears:</strong> <span id="modalCurrentArrears" class="text-danger">-</span></p>
+                                <p class="mb-1"><strong>Arrears (Principal):</strong> <span id="modalCurrentArrears" class="text-danger">-</span></p>
+                                <p class="mb-0"><strong>Total Arrears (with Interest):</strong> <span id="modalTotalArrears" class="text-danger">-</span></p>
                             </div>
                         </div>
                     </div>

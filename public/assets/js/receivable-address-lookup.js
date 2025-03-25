@@ -454,6 +454,7 @@ class ArrearsAddressLookup {
         document.getElementById('modalMemberName').textContent = this.memberNameField?.value || '-';
         document.getElementById('modalMemberAddress').textContent = this.memberAddressField?.value || '-';
         document.getElementById('modalCurrentArrears').textContent = this.arrearsAmountField?.value || '-';
+        document.getElementById('modalTotalArrears').textContent = document.getElementById('total_arrears')?.value || '-';
         
         // Show loading state
         document.getElementById('paymentHistoryLoading').classList.remove('d-none');
@@ -634,15 +635,18 @@ class ArrearsAddressLookup {
             
             // Use a simple toString approach first to ensure we see something
             this.arrearsAmountField.value = parseFloat(arrearValue).toFixed(2);
+        }
+
+        const totalArrearsField = document.getElementById('total_arrears');
+        if (totalArrearsField) {
+            // Log what we're getting for total arrears
+            console.log('Total arrears value:', memberSum.arrear_total);
             
-            // Also try alternative formatting
-            /* 
-            this.arrearsAmountField.value = parseFloat(arrearValue).toLocaleString('en-US', {
-                style: 'currency',
-                currency: 'PHP',
-                minimumFractionDigits: 2
-            });
-            */
+            // Format the total arrears amount as currency
+            const totalArrearValue = memberSum.arrear_total !== undefined ? memberSum.arrear_total : 0;
+            
+            // Use a simple toString approach
+            totalArrearsField.value = parseFloat(totalArrearValue).toFixed(2);
         }
         
         // Populate Last Payment Date
