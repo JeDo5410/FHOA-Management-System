@@ -337,6 +337,15 @@ class ArrearsAddressLookup {
         try {
             if (!address) return;
             
+            // Store original values if in reversal mode
+            let originalPayorName = null;
+            let originalAddressId = null;
+            
+            if (window.isReversalMode) {
+                originalPayorName = document.getElementById('arrears_receivedFrom').value;
+                originalAddressId = document.getElementById('arrears_addressId').value;
+            }
+            
             // Format the address ID immediately upon selection
             const formattedAddress = this.translateAddressId(address.mem_add_id);
             this.addressInput.value = address.mem_add_id;
@@ -353,6 +362,22 @@ class ArrearsAddressLookup {
             if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
             this.populateForm(data);
+            
+            // Restore original values if in reversal mode
+            if (window.isReversalMode) {
+                document.getElementById('arrears_receivedFrom').value = originalPayorName;
+                
+                // In reversal mode, we want to keep the addressId from the member lookup
+                // because it's the correct one from the database, not from the transaction
+                // Only restore if original was different from loaded one and not "Loading..."
+                if (originalAddressId && originalAddressId !== "Loading..." && 
+                    originalAddressId !== address.mem_add_id) {
+                    console.log('Address ID from member lookup differs from original, keeping the lookup value');
+                }
+                
+                window.isReversalMode = false; // Reset the flag
+            }
+            
             this.hideDropdown();
             this.showLookupSuccess();
             this.showToastNotification('success', 'Member details loaded successfully');
@@ -362,6 +387,48 @@ class ArrearsAddressLookup {
             this.showToastNotification('error', 'Failed to load member details');
         }
     }
+
+    selectAddressById(addressId, memberId) {
+        console.log('Direct address selection by ID:', addressId, 'Member ID:', memberId);
+        
+        if (!addressId) {
+            console.error('No address ID provided for selection');
+            return;
+        }
+        
+        // Format the address for display
+        const formattedAddress = this.translateAddressId(addressId);
+        this.addressInput.value = addressId;
+        this.memberAddressField.value = formattedAddress;
+        
+        // Get the member details directly using the member ID
+        this.fetchMemberDetails(memberId)
+            .then(data => {
+                console.log('Member details fetched successfully for reversal');
+                this.populateForm(data);
+                
+                // If in reversal mode, restore the payor name (this will be handled by the calling function)
+                this.hideDropdown();
+                this.showLookupSuccess();
+            })
+            .catch(error => {
+                console.error('Error fetching member details for reversal:', error);
+                this.showToastNotification('error', 'Failed to load member details');
+            });
+    }
+    
+    // Add this helper method as well
+    async fetchMemberDetails(memberId) {
+        const response = await fetch(`/residents/get-member-details/${memberId}`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+    
+        if (!response.ok) throw new Error('Failed to fetch member details');
+        return await response.json();
+    }    
 
     setupPaymentHistoryButton() {
         const paymentHistoryBtn = document.getElementById('viewPaymentHistory');
@@ -631,7 +698,7 @@ class ArrearsAddressLookup {
         }
         // Also update the arrears_receivedFrom field to match the member name
         const receivedFromField = document.getElementById('arrears_receivedFrom');
-        if (receivedFromField && memberData.mem_name) {
+        if (receivedFromField && memberData.mem_name && !window.isReversalMode) {
             receivedFromField.value = memberData.mem_name;
         }
 
@@ -717,7 +784,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const arrearsTab = document.getElementById('arrears-tab');
     
     if (arrearsTab) {
+        // Create the instance
         const arrearsAddressLookup = new ArrearsAddressLookup();
+        
+        // Expose the instance globally for other scripts to use
+        window.arrearsAddressLookup = arrearsAddressLookup;
         
         // Add tab change listener to re-focus the address ID input when the arrears tab is shown
         arrearsTab.addEventListener('shown.bs.tab', function() {

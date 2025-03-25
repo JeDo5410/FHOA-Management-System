@@ -1305,6 +1305,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show processing message
                 showToast('info', 'Processing your request...');
                 
+                // Re-enable disabled fields for form submission
+                prepareFormForSubmission(form);
+                
                 // Submit the form
                 form.submit();
             }
@@ -1319,6 +1322,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show processing message
                 showToast('info', 'Processing your request...');
                 
+                // Re-enable disabled fields for form submission
+                prepareFormForSubmission(form);
+                
                 // Submit the form
                 form.submit();
             }
@@ -1327,38 +1333,48 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Validate the Account Receivable form
     function validateAccountReceivableForm(form) {
-        // Check payment mode first
-        const paymentMode = form.querySelector('input[name="payment_mode"]:checked')?.value;
-        const referenceField = form.querySelector('#reference');
+        // Check if we're in reversal mode
+        const isReversalMode = document.getElementById('accountSaveBtn').getAttribute('data-reversal-mode') === 'true' || 
+                            (document.getElementById('remarks').value || '').includes('CANCELLED OR');
         
-        // If payment mode is CASH, temporarily remove the required attribute before validation
-        if (paymentMode === 'CASH' && referenceField) {
-            referenceField.removeAttribute('required');
-        } else if (paymentMode !== 'CASH' && referenceField && !referenceField.value) {
-            // If other payment modes and reference is empty, show custom error
-            showToast('error', 'Reference number is required for ' + paymentMode + ' payments');
-            referenceField.focus();
-            return false;
-        }
+        console.log("Validation in reversal mode:", isReversalMode);
         
         // Basic HTML5 validation
         if (!form.checkValidity()) {
+            console.log("Form validity check failed");
             form.reportValidity();
             return false;
         }
         
-        // Check if at least one line item is added with positive amount
+        // Check if at least one line item is added
         const lineItems = form.querySelectorAll('.amount-input');
         let hasValue = false;
         
         lineItems.forEach(input => {
-            if (parseFloat(input.value) > 0) {
+            const value = parseFloat(input.value);
+            // In reversal mode we want negative values, otherwise positive values
+            if (isReversalMode && value < 0) {
+                hasValue = true;
+            } else if (!isReversalMode && value > 0) {
                 hasValue = true;
             }
         });
         
         if (!hasValue) {
-            showToast('error', 'Please add at least one line item with an amount greater than zero');
+            const message = isReversalMode 
+                ? 'Please add at least one line item with a negative amount for reversal'
+                : 'Please add at least one line item with an amount greater than zero';
+            showToast('error', message);
+            return false;
+        }
+        
+        // Additional validation for reference number when payment is not CASH
+        const paymentMode = form.querySelector('input[name="payment_mode"]:checked')?.value;
+        const referenceNo = form.querySelector('#reference').value;
+        
+        if (paymentMode && paymentMode !== 'CASH' && !referenceNo) {
+            showToast('error', 'Reference number is required for ' + paymentMode + ' payments');
+            form.querySelector('#reference').focus();
             return false;
         }
         
@@ -1367,24 +1383,38 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Validate the Arrears Receivable form
     function validateArrearsReceivableForm(form) {
+        // Check if we're in reversal mode
+        const isReversalMode = document.getElementById('accountSaveBtn').getAttribute('data-reversal-mode') === 'true' || 
+                            (document.getElementById('arrears_remarks').value || '').includes('CANCELLED OR');
+        
+        console.log("Arrears validation in reversal mode:", isReversalMode);
+        
         // Basic HTML5 validation
         if (!form.checkValidity()) {
+            console.log("Form validity check failed");
             form.reportValidity();
             return false;
         }
         
-        // Check if at least one line item is added
+        // Check if the line item has a valid amount
         const lineItems = form.querySelectorAll('.arrears-amount-input');
         let hasValue = false;
         
         lineItems.forEach(input => {
-            if (parseFloat(input.value) > 0) {
+            const value = parseFloat(input.value);
+            // In reversal mode we want negative values, otherwise positive values
+            if (isReversalMode && value < 0) {
+                hasValue = true;
+            } else if (!isReversalMode && value > 0) {
                 hasValue = true;
             }
         });
         
         if (!hasValue) {
-            showToast('error', 'Please add at least one line item with an amount greater than zero');
+            const message = isReversalMode 
+                ? 'Please add at least one line item with a negative amount for reversal'
+                : 'Please add at least one line item with an amount greater than zero';
+            showToast('error', message);
             return false;
         }
         
@@ -1400,7 +1430,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         return true;
     }
-    
+        
     // Function to handle payment mode display logic
     function initializePaymentModeLogic() {
         // For Account Receivable tab
@@ -1652,6 +1682,22 @@ window.addEventListener('load', function() {
             document.getElementById('address').focus();
         }
     }, 300);
+});
+
+// Add this to the existing DOMContentLoaded event handler or create a new one
+document.addEventListener('DOMContentLoaded', function() {
+    // Check for flash messages from the server
+    @if(session('success'))
+        showToast('success', "{{ session('success') }}");
+    @endif
+    
+    @if(session('error'))
+        showToast('error', "{{ session('error') }}");
+    @endif
+    
+    @if(session('info'))
+        showToast('info', "{{ session('info') }}");
+    @endif
 });
 </script>
 @php
