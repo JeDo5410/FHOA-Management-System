@@ -1764,4 +1764,5 @@ $jsVersion = '1.2.0';
 @endphp
 <script src="{{ asset('assets/js/receivable-address-lookup.js') }}?v={{ $jsVersion }}"></script>
 <script src="{{ asset('assets/js/transaction-reversal.js') }}?v={{ $jsVersion }}"></script>
+<script src="{{ asset('assets/js/form-reset.js') }}?v={{ $jsVersion }}"></script>
 @endsection
