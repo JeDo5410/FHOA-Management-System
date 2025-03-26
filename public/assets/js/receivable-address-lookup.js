@@ -733,12 +733,7 @@ class ArrearsAddressLookup {
         // redirect focus after address lookup
         setTimeout(() => {
             // Focus on amount field
-            const amountInput = document.querySelector('.arrears-amount-input');
-            if (amountInput) {
-                amountInput.focus();
-            } else {
-                document.getElementById('arrears_serviceInvoiceNo').focus();
-            }
+            document.getElementById('arrears_serviceInvoiceNo').focus();
         }, 50);
     }
     
