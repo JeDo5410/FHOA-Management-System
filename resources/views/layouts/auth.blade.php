@@ -8,6 +8,7 @@
         $isNgrok = str_contains(request()->getHost(), 'ngrok');
     @endphp
 
+    <link rel="shortcut icon" href="{{ $isNgrok ? secure_asset('assets/images/5682373.png') : asset('assets/images/5682373.png') }}" type="image/x-icon">
     <link href="{{ $isNgrok ? secure_asset('assets/lib/bootstrap/css/bootstrap.min.css') : asset('assets/lib/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ $isNgrok ? secure_asset('assets/lib/sweetalert2/css/sweetalert2.min.css') : asset('assets/lib/sweetalert2/css/sweetalert2.min.css') }}" rel="stylesheet">
     <style>
