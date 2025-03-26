@@ -357,18 +357,34 @@
                         <input type="hidden" name="active_tab" id="account_active_tab" value="account">
                         <input type="hidden" name="form_type" value="account_receivable">
                         <!-- Header Section with Labels Above Inputs -->
-                        <div class="row g-2 mb-3">                    
+                        <div class="row g-2 mb-3">
+                            <!-- First Column: Service Invoice No. -->
                             <div class="col-md-3">
                                 <div class="mb-2">
-                                    <label for="address" class="form-label">Address</label>
-                                    <input type="text" 
+                                    <label for="serviceInvoiceNo" class="form-label">Service Invoice No.</label>
+                                    <input type="number" 
                                         class="form-control form-control-sm" 
-                                        id="address" 
-                                        name="address"
+                                        id="serviceInvoiceNo" 
+                                        name="service_invoice_no"
+                                        min="1"
                                         autocomplete="off"
                                         required>
                                 </div>
                             </div>
+                            
+                            <!-- Second Column: Date -->
+                            <div class="col-md-3">
+                                <div class="mb-2">
+                                    <label for="date" class="form-label">Date</label>
+                                    <input type="date" 
+                                        class="form-control form-control-sm" 
+                                        id="date" 
+                                        name="date"
+                                        required>
+                                </div>
+                            </div>
+                            
+                            <!-- Third Column: Received From -->
                             <div class="col-md-3">
                                 <div class="mb-2">
                                     <label for="receivedFrom" class="form-label">Received From</label>
@@ -380,24 +396,16 @@
                                         required>
                                 </div>
                             </div>
+                            
+                            <!-- Fourth Column: Address -->
                             <div class="col-md-3">
                                 <div class="mb-2">
-                                    <label for="serviceInvoiceNo" class="form-label">Service Invoice No.</label>
-                                    <input type="number" 
+                                    <label for="address" class="form-label">Address</label>
+                                    <input type="text" 
                                         class="form-control form-control-sm" 
-                                        id="serviceInvoiceNo" 
-                                        name="service_invoice_no"
+                                        id="address" 
+                                        name="address"
                                         autocomplete="off"
-                                        required>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-2">
-                                    <label for="date" class="form-label">Date</label>
-                                    <input type="date" 
-                                        class="form-control form-control-sm" 
-                                        id="date" 
-                                        name="date"
                                         required>
                                 </div>
                             </div>
@@ -1105,12 +1113,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const accountTab = document.getElementById('account-tab');
     
     if (accountTab) {
-        // Add tab change listener to re-focus the address input when the account tab is shown
+        // Add tab change listener to re-focus the service invoice no when the account tab is shown
         accountTab.addEventListener('shown.bs.tab', function() {
-            const addressField = document.getElementById('address');
-            if (addressField) {
+            const serviceInvoiceField = document.getElementById('serviceInvoiceNo');
+            if (serviceInvoiceField) {
                 setTimeout(() => {
-                    addressField.focus();
+                    serviceInvoiceField.focus();
                 }, 100); // Small delay to ensure the tab is fully shown
             }
         });
@@ -1639,7 +1647,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (arrearsReferenceContainer) arrearsReferenceContainer.style.display = 'none';
                     
                 } else if (e.target.id === 'account-tab') {
-                    document.getElementById('address').focus();
+                    document.getElementById('serviceInvoiceNo').focus();
                     
                     // Reset to CASH payment option for Account Receivable tab
                     const cashRadio = document.getElementById('cash');
@@ -1664,7 +1672,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (activeTabId === 'arrears') {
             document.getElementById('arrears_addressId').focus();
         } else if (activeTabId === 'account') {
-            document.getElementById('address').focus();
+            document.getElementById('serviceInvoiceNo').focus();
         }
     }, 500);
 
@@ -1729,7 +1737,7 @@ window.addEventListener('load', function() {
         if (activeTabId === 'arrears') {
             document.getElementById('arrears_addressId').focus();
         } else if (activeTabId === 'account') {
-            document.getElementById('address').focus();
+            document.getElementById('serviceInvoiceNo').focus();
         }
     }, 300);
 });
