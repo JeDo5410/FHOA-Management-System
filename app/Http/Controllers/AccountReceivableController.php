@@ -40,14 +40,14 @@ class AccountReceivableController extends Controller
         
         if ($request->has('remarks')) {
             $remarks = trim($request->input('remarks'));
-            if (stripos($remarks, 'CANCELLED OR') === 0) {
+            if (stripos($remarks, 'CANCELLED SIN') === 0) {
                 $isReversal = true;
             }
         }
         
         if ($request->has('arrears_remarks')) {
             $remarks = trim($request->input('arrears_remarks'));
-            if (stripos($remarks, 'CANCELLED OR') === 0) {
+            if (stripos($remarks, 'CANCELLED SIN') === 0) {
                 $isReversal = true;
             }
         }

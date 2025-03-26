@@ -228,7 +228,7 @@ function setupArrearsReversal(transaction) {
     // Set remarks - prepend "CANCELLED OR: "
     const remarksField = document.getElementById('arrears_remarks');
     if (remarksField) {
-        remarksField.value = `CANCELLED OR: ${transaction.or_number}`;
+        remarksField.value = `CANCELLED SIN: ${transaction.or_number}`;
         
         // Append original remarks if they exist
         if (transaction.ar_remarks) {
@@ -362,7 +362,7 @@ function setupAccountReversal(transaction, lineItems) {
     // Set remarks - prepend "CANCELLED OR: "
     const remarksField = document.getElementById('remarks');
     if (remarksField) {
-        remarksField.value = `CANCELLED OR: ${transaction.or_number}`;
+        remarksField.value = `CANCELLED SIN: ${transaction.or_number}`;
         
         // Append original remarks if they exist
         if (transaction.ar_remarks) {
@@ -453,7 +453,7 @@ function changeToReversalMode() {
     // Change the save button text and styling
     const saveButton = document.getElementById('accountSaveBtn');
     if (saveButton) {
-        saveButton.textContent = 'Reverse Transaction';
+        saveButton.textContent = 'Cancel SIN';
         saveButton.classList.remove('btn-primary');
         saveButton.classList.add('btn-danger');
         saveButton.setAttribute('data-reversal-mode', 'true');
@@ -488,19 +488,27 @@ function showReversalConfirmation() {
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header bg-danger text-white">
-                            <h5 class="modal-title" id="reversalConfirmationModalLabel">Confirm Transaction Reversal</h5>
+                            <h5 class="modal-title" id="reversalConfirmationModalLabel">Confirm SIN Cancellation</h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <div class="alert alert-warning">
                                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                <strong>Warning:</strong> You are about to reverse this transaction. This action cannot be undone.
+                                <strong>Warning:</strong> You are about to cancel this SIN. This action cannot be undone.
                             </div>
-                            <p>Are you sure you want to reverse this transaction?</p>
+                            <p>Are you sure you want to cancel this SIN?</p>
+                            
+                            <!-- Reason input field -->
+                            <div class="mb-3">
+                                <label for="cancellationReason" class="form-label">Reason for Cancellation:</label>
+                                <input type="text" class="form-control" id="cancellationReason" 
+                                    placeholder="Please provide a reason" required>
+                                <div class="form-text text-muted">This reason will be recorded in the system.</div>
+                            </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-danger" id="confirmReversalBtn">Confirm Reversal</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep SIN</button>
+                            <button type="button" class="btn btn-danger" id="confirmReversalBtn">Yes, Cancel SIN</button>
                         </div>
                     </div>
                 </div>
@@ -522,18 +530,42 @@ function showReversalConfirmation() {
         // Add the event listener with proper error handling
         newBtn.addEventListener('click', function() {
             try {
-                showToast('info', 'Processing reversal...');
+                // Get the cancellation reason
+                const reasonField = document.getElementById('cancellationReason');
+                const cancellationReason = reasonField ? reasonField.value.trim() : '';
+                
+                // Validate that reason is provided
+                if (!cancellationReason) {
+                    // Show error and prevent submission
+                    reasonField.classList.add('is-invalid');
+                    const invalidFeedback = document.createElement('div');
+                    invalidFeedback.className = 'invalid-feedback';
+                    invalidFeedback.textContent = 'Please provide a reason for cancellation';
+                    
+                    // Only append if it doesn't exist already
+                    if (!reasonField.nextElementSibling || !reasonField.nextElementSibling.classList.contains('invalid-feedback')) {
+                        reasonField.parentNode.insertBefore(invalidFeedback, reasonField.nextElementSibling);
+                    }
+                    
+                    return; // Stop execution if no reason provided
+                }
+                
+                showToast('info', 'Processing cancellation...');
                 
                 // Determine which form to submit
                 const activeTab = document.querySelector('.tab-pane.active');
                 console.log('Active tab for reversal:', activeTab.id);
                 
                 let form;
+                let remarksField;
+                
                 if (activeTab.id === 'arrears') {
                     form = document.getElementById('arrearsReceivableForm');
+                    remarksField = document.getElementById('arrears_remarks');
                     console.log('Submitting arrears form for reversal');
                 } else {
                     form = document.getElementById('accountReceivableForm');
+                    remarksField = document.getElementById('remarks');
                     console.log('Submitting account form for reversal');
                 }
                 
@@ -541,18 +573,30 @@ function showReversalConfirmation() {
                     throw new Error('Form not found');
                 }
                 
-                // Re-enable disabled fields for submission
-                form.querySelectorAll('input:disabled, select:disabled').forEach(field => {
-                    // Store the disabled state to restore after form submission
-                    field.dataset.wasDisabled = 'true';
+                // Append the reason to the existing remarks
+                if (remarksField) {
+                    // Add the reason to the remarks field
+                    remarksField.value = remarksField.value + ` - Reason: ${cancellationReason}`;
+                }
+                
+                // Re-enable ALL form elements for submission, not just disabled ones
+                console.log('Enabling all form fields for submission...');
+                form.querySelectorAll('input, select, textarea, button').forEach(field => {
                     field.disabled = false;
                 });
                 
-                // Submit the form
-                console.log('Form is being submitted:', form.id);
-                form.submit();
+                // This is the critical part - bypass any event listeners by directly submitting
+                // a copy of the form with all values
+                console.log('Form is about to submit:', form.id);
                 
-                // Close modal
+                // Add a submission flag to ensure we know the form is actually submitting
+                const hiddenFlag = document.createElement('input');
+                hiddenFlag.type = 'hidden';
+                hiddenFlag.name = 'sin_cancellation';
+                hiddenFlag.value = 'true';
+                form.appendChild(hiddenFlag);
+                
+                // Close modal before submitting to prevent interference
                 try {
                     const modalInstance = bootstrap.Modal.getInstance(document.getElementById('reversalConfirmationModal'));
                     if (modalInstance) {
@@ -566,6 +610,13 @@ function showReversalConfirmation() {
                     const backdrop = document.querySelector('.modal-backdrop');
                     if (backdrop) backdrop.remove();
                 }
+                
+                // Force the form to submit after a brief delay to ensure modal is fully closed
+                setTimeout(function() {
+                    console.log('Submitting form now...');
+                    form.submit();
+                }, 100);
+                
             } catch (error) {
                 console.error('Error during reversal confirmation:', error);
                 showToast('error', 'Error processing reversal: ' + error.message);
@@ -575,6 +626,11 @@ function showReversalConfirmation() {
         console.error('Confirm button not found');
         showToast('error', 'UI error: Confirmation button not found');
     }
+    
+    // Focus on the reason field when the modal opens
+    document.getElementById('reversalConfirmationModal').addEventListener('shown.bs.modal', function() {
+        document.getElementById('cancellationReason').focus();
+    });
     
     // Show the modal
     try {
