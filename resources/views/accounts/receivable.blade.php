@@ -1395,6 +1395,42 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     }
     
+
+    // Set default account type for arrears tab to "Association Dues"
+    function setDefaultAccountType() {
+        // Get the select element in the arrears tab
+        const arrearsSelect = document.querySelector('#arrearsLineItemsTable select[name="arrears_items[0][coa]"]');
+        
+        if (arrearsSelect) {
+            // Look through all options to find "Association Dues"
+            const options = arrearsSelect.options;
+            for (let i = 0; i < options.length; i++) {
+                if (options[i].text.includes("Association Dues")) {
+                    arrearsSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    // Run when page loads
+    setDefaultAccountType();
+
+    // Also update the code to run this when switching to the arrears tab
+    document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            if (e.target.id === 'arrears-tab') {
+                // Add this line to set default account type when switching to arrears tab
+                setDefaultAccountType();
+                
+                // Rest of the existing code for the arrears tab...
+                document.getElementById('arrears_addressId').focus();
+                // ...
+            }
+            // Rest of your existing tab-switching code...
+        });
+    });
+
     // Validate the Arrears Receivable form
     function validateArrearsReceivableForm(form) {
         // Check if we're in reversal mode
