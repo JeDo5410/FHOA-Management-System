@@ -401,7 +401,7 @@ class AccountReceivableController extends Controller
                 $accountReceivable->ar_date = $validated['date'];
                 $accountReceivable->ar_amount = $item['amount']; // Should already be negative
                 $accountReceivable->acct_type_id = $item['coa'];
-                $accountReceivable->payor_name = $validated['received_from'];
+                $accountReceivable->payor_name = strtoupper($validated['received_from']);
                 $accountReceivable->payor_address = $validated['address'];
                 $accountReceivable->payment_type = $validated['payment_mode'];
                 $accountReceivable->payment_Ref = $validated['reference_no'] ?? null;
@@ -486,7 +486,7 @@ class AccountReceivableController extends Controller
             $accountReceivable->ar_amount = $reversalAmount; // Should be negative
             $accountReceivable->arrear_bal = $newArrearBalance; // The new running balance after reversal
             $accountReceivable->acct_type_id = $validated['arrears_items'][0]['coa'];
-            $accountReceivable->payor_name = $validated['arrears_received_from'];
+            $accountReceivable->payor_name = strtoupper($validated['arrears_received_from']);
             $accountReceivable->payor_address = $validated['arrears_address_id'];
             $accountReceivable->payment_type = $validated['arrears_payment_mode'];
             $accountReceivable->payment_Ref = $validated['arrears_reference_no'] ?? null;
