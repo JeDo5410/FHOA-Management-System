@@ -122,7 +122,7 @@ class AccountReceivableController extends Controller
                 $accountReceivable->ar_date = $validated['date'];
                 $accountReceivable->ar_amount = $item['amount'];
                 $accountReceivable->acct_type_id = $item['coa'];
-                $accountReceivable->payor_name = $validated['received_from'];
+                $accountReceivable->payor_name = strtoupper($validated['received_from']);
                 $accountReceivable->payor_address = $validated['address'];
                 $accountReceivable->payment_type = $validated['payment_mode'];
                 $accountReceivable->payment_Ref = $validated['reference_no'] ?? null; // Note the capital R in Ref
@@ -204,7 +204,7 @@ class AccountReceivableController extends Controller
             $accountReceivable->ar_amount = $paymentAmount;
             $accountReceivable->arrear_bal = $newArrearBalance; // The running balance after this payment
             $accountReceivable->acct_type_id = $validated['arrears_items'][0]['coa'];
-            $accountReceivable->payor_name = $validated['arrears_received_from'];
+            $accountReceivable->payor_name = strtoupper($validated['arrears_received_from']);
             $accountReceivable->payor_address = $validated['arrears_address_id']; // Use the address ID
             $accountReceivable->payment_type = $validated['arrears_payment_mode'];
             $accountReceivable->payment_Ref = $validated['arrears_reference_no'] ?? null; // Note the exact casing from model
