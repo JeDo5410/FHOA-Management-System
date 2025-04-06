@@ -1,0 +1,49 @@
+/* General text styles */
+#statement-details {
+    font-size: 12.8px;
+}
+
+#statement-details h1 {
+    font-size: 18px;
+}
+
+#statement-details h2 {
+    font-size: 16px;
+}
+
+#statement-details h3,
+#statement-details h4 {
+    font-size: 14px;
+}
+
+#statement-details table {
+    font-size: 12.8px;
+}
+
+#statement-details .table th {
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+/* Print specific styles */
+@media print {
+    body {
+        font-size: 12.8px;
+    }
+    
+    .no-print {
+        display: none;
+    }
+    
+    h1 {
+        font-size: 18px;
+    }
+    
+    h2 {
+        font-size: 16px;
+    }
+    
+    h3, h4 {
+        font-size: 14px;
+    }
+}

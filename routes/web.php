@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ResidentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AccountReceivableController;
+use App\Http\Controllers\StatementOfAccountController;
 use Illuminate\Support\Facades\Auth;
 
 // Root URL will redirect to dashboard
@@ -60,10 +61,14 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
         Route::get('/receivables/check-invoice/{invoiceNumber}', [AccountReceivableController::class, 'checkInvoice'])
             ->name('accounts.receivables.check-invoice');
         
-        
-        // If you want to add more specific routes for different receivable types, you could add:
-        // Route::post('/receivables/store-account', [AccountReceivableController::class, 'storeAccountReceivable'])->name('accounts.receivables.store-account');
-        // Route::post('/receivables/store-arrears', [AccountReceivableController::class, 'storeArrearsReceivable'])->name('accounts.receivables.store-arrears');
+        Route::get('/soa', [StatementOfAccountController::class, 'index'])
+            ->name('accounts.soa.index');
+        Route::get('/soa/details', [StatementOfAccountController::class, 'getDetails'])
+            ->name('accounts.soa.details');
+        Route::get('/soa/print/{id}', [StatementOfAccountController::class, 'printStatement'])
+            ->name('accounts.soa.print');
+        Route::get('/soa/print-multiple', [StatementOfAccountController::class, 'printMultiple'])
+            ->name('accounts.soa.print-multiple');
     });
 });
 
