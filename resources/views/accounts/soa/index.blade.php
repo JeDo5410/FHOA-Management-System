@@ -5,7 +5,7 @@
 <style>
     /* General text styles */
     td, th {
-        font-size: 12.8px;
+        font-size: 11px;
     }
     h4 {
         font-size: 1.5rem;
@@ -18,6 +18,22 @@
     }
     .table th, .table td {
         vertical-align: middle;
+        white-space: nowrap;
+    }
+    .table-responsive {
+        overflow-x: auto;
+    }
+    .table-container {
+        max-width: 100%;
+    }
+    .date-cell {
+        min-width: 100px;
+    }
+    .actions-cell {
+        min-width: 180px;
+    }
+    .last-payment-cell {
+        min-width: 200px;
     }
 </style>
 <div class="container-fluid">
@@ -40,7 +56,7 @@
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="delinquent" name="delinquent" {{ request()->has('delinquent') ? 'checked' : '' }}>
                                         <label class="form-check-label" for="delinquent">
-                                            Delinquent Only (≥ 3 months)
+                                            Delinquent Members Only
                                         </label>
                                     </div>
                                 </div>
@@ -56,57 +72,72 @@
                             No records found. Please adjust your search criteria.
                         </div>
                     @else
-                        <!-- Removed the static alert that was here previously -->
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th><input type="checkbox" id="select-all"></th>
-                                        <th>Member ID</th>
-                                        <th>Name</th>
-                                        <th>Type</th>
-                                        <th>Monthly Dues</th>
-                                        <th>Arrears</th>
-                                        <th>Arrears Interest</th>
-                                        <th>Total Due</th>
-                                        <th>Last Payment</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($arrears as $arrear)
-                                    <tr>
-                                        <td><input type="checkbox" class="member-checkbox" value="{{ $arrear->mem_id }}"></td>
-                                        <td>{{ $arrear->mem_id }}</td>
-                                        <td>{{ $arrear->mem_name }}</td>
-                                        <td>{{ $arrear->mem_type }}</td>
-                                        <td>₱{{ number_format($arrear->mem_monthlydues, 2) }}</td>
-                                        <td>₱{{ number_format($arrear->current_arrear, 2) }}</td>
-                                        <td>₱{{ number_format($arrear->arrear_interest, 2) }}</td>
-                                        <td>₱{{ number_format($arrear->arrear_total, 2) }}</td>
-                                        <td>
-                                            @if($arrear->last_paydate)
-                                                {{ date('M d, Y', strtotime($arrear->last_paydate)) }}<br>
-                                                OR#: {{ $arrear->last_or }}<br>
-                                                Amount: ₱{{ number_format($arrear->last_payamount, 2) }}
-                                            @else
-                                                No recent payment
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-info view-details" data-id="{{ $arrear->mem_id }}" 
-                                                    data-toggle="modal" data-target="#statementModal">
-                                                View Details
-                                            </button>
-                                            <a href="{{ route('accounts.soa.print', ['id' => $arrear->mem_id]) }}" 
-                                               class="btn btn-sm btn-primary" target="_blank">
-                                                Print
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                        <div class="table-container">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th><input type="checkbox" id="select-all"></th>
+                                            <th>Member ID</th>
+                                            <th>Transaction No</th>
+                                            <th>Address ID</th>
+                                            <th>Name</th>
+                                            <th>SPA/Tenant</th>
+                                            <th>Type</th>
+                                            <th>Monthly Dues</th>
+                                            <th>Arrear Month</th>
+                                            <th>Current Month</th>
+                                            <th>HOA Status</th>
+                                            <th>Arrear Count</th>
+                                            <th>Arrears</th>
+                                            <th>Arrear Interest</th>
+                                            <th>Total Due</th>
+                                            <th>Last Payment</th>
+                                            <th class="actions-cell">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($arrears as $arrear)
+                                        <tr>
+                                            <td><input type="checkbox" class="member-checkbox" value="{{ $arrear->mem_id }}"></td>
+                                            <td>{{ $arrear->mem_id }}</td>
+                                            <td>{{ $arrear->mem_transno }}</td>
+                                            <td>{{ $arrear->mem_add_id }}</td>
+                                            <td>{{ $arrear->mem_name }}</td>
+                                            <td>{{ $arrear->mem_SPA_Tenant ?? 'N/A' }}</td>
+                                            <td>{{ $arrear->mem_type }}</td>
+                                            <td>₱{{ number_format($arrear->mem_monthlydues, 2) }}</td>
+                                            <td class="date-cell">{{ date('M d, Y', strtotime($arrear->arrear_month)) }}</td>
+                                            <td class="date-cell">{{ date('M d, Y', strtotime($arrear->current_month)) }}</td>
+                                            <td>{{ $arrear->hoa_status }}</td>
+                                            <td>{{ $arrear->arrear_count }}</td>
+                                            <td>₱{{ number_format($arrear->arrear, 2) }}</td>
+                                            <td>₱{{ number_format($arrear->arrear_interest, 2) }}</td>
+                                            <td>₱{{ number_format($arrear->arrear_total, 2) }}</td>
+                                            <td class="last-payment-cell">
+                                                @if($arrear->last_paydate)
+                                                    {{ date('M d, Y', strtotime($arrear->last_paydate)) }}<br>
+                                                    OR#: {{ $arrear->last_or }}<br>
+                                                    Amount: ₱{{ number_format($arrear->last_payamount, 2) }}
+                                                @else
+                                                    No recent payment
+                                                @endif
+                                            </td>
+                                            <td class="actions-cell">
+                                                <button class="btn btn-sm btn-info view-details" data-id="{{ $arrear->mem_id }}" 
+                                                        data-toggle="modal" data-target="#statementModal">
+                                                    View Details
+                                                </button>
+                                                <a href="{{ route('accounts.soa.print', ['id' => $arrear->mem_id]) }}" 
+                                                   class="btn btn-sm btn-primary" target="_blank">
+                                                    Print
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     @endif
                 </div>

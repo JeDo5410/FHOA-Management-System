@@ -27,13 +27,19 @@ class StatementOfAccountController extends Controller
             $query->where('mem_add_id', $addressId);
         }
         
-        // Filter for delinquent accounts (current_arrear_count >= 3)
+        // Filter for delinquent accounts using hoa_status column
         if ($delinquent) {
-            $query->where('current_arrear_count', '>=', 3);
+            $query->where('hoa_status', 'DELIQUENT');
         }
         
-        // Execute query
-        $arrears = $query->get();
+        // Execute query and modify the result set to ensure consistent property naming
+        $arrears = $query->get()->map(function($item) {
+            // Make sure to map the arrear_count field to match the view expectations
+            $item->current_arrear_count = $item->arrear_count;
+            // Add a current_arrear field for backward compatibility with the view
+            $item->current_arrear = $item->arrear;
+            return $item;
+        });
         
         // Prepare success message with count information
         $count = $arrears->count();
@@ -79,6 +85,10 @@ class StatementOfAccountController extends Controller
             return response()->json(['error' => 'Member not found'], 404);
         }
         
+        // Add property for backward compatibility
+        $member->current_arrear_count = $member->arrear_count;
+        $member->current_arrear = $member->arrear;
+        
         return view('accounts.soa.details', compact('member'));
     }
 
@@ -98,6 +108,10 @@ class StatementOfAccountController extends Controller
         if (!$member) {
             return back()->with('error', 'Member not found');
         }
+        
+        // Add property for backward compatibility
+        $member->current_arrear_count = $member->arrear_count;
+        $member->current_arrear = $member->arrear;
         
         // Flash success message for confirmation
         session()->flash('success', "Statement generated for {$member->mem_name}");
@@ -123,7 +137,13 @@ class StatementOfAccountController extends Controller
         $members = DB::table('vw_arrear_staging')
             ->whereIn('mem_id', $memberIds)
             ->orderBy('mem_id', 'asc')
-            ->get();
+            ->get()
+            ->map(function($member) {
+                // Add property for backward compatibility
+                $member->current_arrear_count = $member->arrear_count;
+                $member->current_arrear = $member->arrear;
+                return $member;
+            });
         
         if ($members->isEmpty()) {
             return back()->with('error', 'No members found');
