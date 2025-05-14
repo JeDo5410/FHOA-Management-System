@@ -223,7 +223,7 @@
         </a>
         <a href="{{ route('accounts.soa.index') }}" class="nav-link {{ request()->routeIs('accounts.soa.index') ? 'active' : '' }}">
             <i class="bi bi-file-text"></i>
-            <span>Statement of Account</span>
+            <span>Statement Of Account</span>
         </a>
     </nav>
 

@@ -21,7 +21,17 @@
         white-space: nowrap;
     }
     .table-responsive {
-        overflow-x: auto;
+        overflow-y: auto;
+        max-height: 70vh;
+    }
+
+    .table thead th {
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa; /* Match your table header background */
+        z-index: 10;
+        /* Add box-shadow to create a visible separation */
+        box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);
     }
     .table-container {
         max-width: 100%;
@@ -30,11 +40,116 @@
         min-width: 100px;
     }
     .actions-cell {
-        min-width: 180px;
+        min-width: 100px; 
     }
     .last-payment-cell {
         min-width: 200px;
     }
+    /* Add these styles to your existing style section */
+    .filter-card {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .filter-form {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .filter-input-group {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .filter-label {
+        font-weight: 600;
+        margin-bottom: 0;
+        white-space: nowrap;
+    }
+
+    .filter-input {
+        min-width: 180px;
+        border-radius: 4px;
+        border: 1px solid #ced4da;
+        padding: 6px 12px;
+        transition: border-color 0.15s ease-in-out;
+    }
+
+    .filter-input:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+    }
+
+    .filter-checkbox-container {
+        display: flex;
+        align-items: center;
+        margin-left: 8px;
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 8px;
+        margin-left: auto;
+    }
+
+    @media (max-width: 768px) {
+        .filter-form {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .filter-actions {
+            margin-left: 0;
+            margin-top: 16px;
+            width: 100%;
+            justify-content: flex-end;
+        }
+    }
+
+    .btn {
+        border-radius: 4px;
+        padding: 8px 16px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .btn-primary:hover {
+        background-color: #0069d9;
+        border-color: #0062cc;
+    }
+
+    .btn-outline-secondary {
+        color: #6c757d;
+        border-color: #6c757d;
+    }
+
+    .btn-outline-secondary:hover {
+        color: #fff;
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }   
 </style>
 <div class="container-fluid">
     <div class="row">
@@ -45,26 +160,28 @@
                 </div>
                 <div class="card-body">
                     <!-- Search Filter -->
-                    <div class="row mb-4">
-                        <div class="col-md-12">
-                            <form action="{{ route('accounts.soa.index') }}" method="GET" class="form-inline">
-                                <div class="form-group mr-2">
-                                    <label for="address_id" class="mr-2">Address ID:</label>
-                                    <input type="text" class="form-control" id="address_id" name="address_id" value="{{ request('address_id') }}">
+                    <div class="filter-card">
+                        <form action="{{ route('accounts.soa.index') }}" method="GET" class="filter-form">
+                            <div class="filter-input-group">
+                                <label for="address_id" class="filter-label">Address ID:</label>
+                                <input type="text" class="form-control filter-input" id="address_id" name="address_id" value="{{ request('address_id') }}">
+                            </div>
+                            
+                            <div class="filter-checkbox-container">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="delinquent" name="delinquent" {{ request()->has('delinquent') ? 'checked' : '' }}>
+                                    <label class="form-check-label filter-label" for="delinquent">
+                                        Delinquent Members Only
+                                    </label>
                                 </div>
-                                <div class="form-group mr-3">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="delinquent" name="delinquent" {{ request()->has('delinquent') ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="delinquent">
-                                            Delinquent Members Only
-                                        </label>
-                                    </div>
-                                </div>
+                            </div>
+                            
+                            <div class="filter-actions">
                                 <button type="submit" class="btn btn-primary">Filter</button>
-                                <a href="{{ route('accounts.soa.index') }}" class="btn btn-outline-secondary ml-2">Reset</a>
-                                <button type="button" class="btn btn-success ml-2" onclick="printStatements()">Print Selected</button>
-                            </form>
-                        </div>
+                                <a href="{{ route('accounts.soa.index') }}" class="btn btn-outline-secondary">Reset</a>
+                                <button type="button" class="btn btn-success" onclick="printStatements()">Print Selected</button>
+                            </div>
+                        </form>
                     </div>
 
                     @if($arrears->isEmpty())
@@ -123,11 +240,7 @@
                                                     No recent payment
                                                 @endif
                                             </td>
-                                            <td class="actions-cell">
-                                                <button class="btn btn-sm btn-info view-details" data-id="{{ $arrear->mem_id }}" 
-                                                        data-toggle="modal" data-target="#statementModal">
-                                                    View Details
-                                                </button>
+                                            <td class="actions-cell text-center">
                                                 <a href="{{ route('accounts.soa.print', ['id' => $arrear->mem_id]) }}" 
                                                    class="btn btn-sm btn-primary" target="_blank">
                                                     Print
@@ -146,30 +259,6 @@
     </div>
 </div>
 
-<!-- Statement of Account Modal -->
-<div class="modal fade" id="statementModal" tabindex="-1" role="dialog" aria-labelledby="statementModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="statementModalLabel">Statement of Account</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body" id="statement-details">
-                <div class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="sr-only">Loading...</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary print-statement">Print</button>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection
 
 @push('scripts')
@@ -196,55 +285,6 @@
                 }
             });
         });
-        
-        // View details button click handler
-        const viewDetailsButtons = document.querySelectorAll('.view-details');
-        viewDetailsButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const memberId = this.getAttribute('data-id');
-                const statementDetails = document.getElementById('statement-details');
-                statementDetails.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>';
-                
-                // AJAX request to get statement details
-                fetch(`{{ route('accounts.soa.details') }}?member_id=${memberId}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.text();
-                    })
-                    .then(data => {
-                        statementDetails.innerHTML = data;
-                    })
-                    .catch(error => {
-                        statementDetails.innerHTML = '<div class="alert alert-danger">Error loading statement details.</div>';
-                    });
-            });
-        });
-        
-        // Print statement from modal
-        const printStatementButton = document.querySelector('.print-statement');
-        if(printStatementButton) {
-            printStatementButton.addEventListener('click', function() {
-                const printContents = document.getElementById('statement-details').innerHTML;
-                const originalContents = document.body.innerHTML;
-                
-                document.body.innerHTML = `
-                    <div style="padding: 20px;">
-                        <div style="text-align: right; margin-bottom: 20px;">
-                            <button onclick="window.print();" class="no-print">Print</button>
-                            <button onclick="window.location.reload();" class="no-print">Back</button>
-                        </div>
-                        ${printContents}
-                    </div>
-                `;
-                
-                window.onafterprint = function() {
-                    document.body.innerHTML = originalContents;
-                    window.location.reload();
-                };
-            });
-        }
     });
     
     // Function to print selected statements
@@ -263,4 +303,9 @@
         window.open(url, '_blank');
     }
 </script>
+@php
+// Update this version when you change your JS files
+$jsVersion = '1.2.0';
+@endphp
+<script src="{{ asset('assets/js/address-id-validation.js') }}?v={{ $jsVersion }}"></script>
 @endpush
