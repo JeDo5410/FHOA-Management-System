@@ -9,7 +9,7 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 16px;
-            font-size: 10px;
+            font-size: 11px;
         }
         
         .document-container {
@@ -42,19 +42,19 @@
         .title-cell {
             text-align: center;
             font-weight: bold;
-            font-size: 9px;
+            font-size: 14px;
         }
 
         .form-info-label {
             width: 96px;
             font-weight: bold;
-            font-size: 7px;
+            font-size: 9px;
             padding: 1px; 
         }
 
         .form-info-value {
             width: 104px;
-            font-size: 7px; 
+            font-size: 9px; 
             padding: 1px; 
         }
         
@@ -70,7 +70,7 @@
         .form-info-table td {
             border: 1px solid black;
             padding: 3px 6px;
-            font-size: 9px;
+            font-size: 11px;
         }
         
         .form-info-table .label {
@@ -86,7 +86,7 @@
         .customer-info-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10px;
+            font-size: 11px;
         }
         
         .customer-info-table td {
@@ -109,6 +109,10 @@
             width: 80px;
         }
         
+        .letter-info {
+            font-size: 11px;
+        }
+
         .right-align {
             text-align: right;
         }
@@ -118,7 +122,7 @@
             font-style: italic;
             text-align: right;
             margin-top: 4px;
-            font-size: 9px;
+            font-size: 11px;
         }
         
         .reference-number {
@@ -141,7 +145,7 @@
         }
         
         .note {
-            font-size: 9px;
+            font-size: 11px;
             margin-top: 8px;
         }
         
@@ -176,7 +180,7 @@
             padding: 0 10px;
             font-weight: bold;
             font-style: italic;
-            font-size: 9px;
+            font-size: 11px;
             color: #444;
         }
         
@@ -346,7 +350,7 @@
         </div>
         
         <!-- Commitments and Reminders Section -->
-        <div style="margin-top: 16px; font-size: 9px;">
+        <div style="margin-top: 16px; font-size: 11px;">
             <p style="margin-bottom: 6px;"><strong>* Per commitment to pay UNPAID MONTHLY MAINTENANCE DUES as per Promissory Note arranged with the FHOAI - Board of Directors (BOD)...</strong></p>
             <p style="margin-bottom: 6px;"><strong>** REMINDERs:</strong></p>
             
@@ -366,17 +370,17 @@
         </div>
         
         <!-- Signature Section -->
-        <div style="margin-top: 16px; display: flex; justify-content: space-between;">
-            <div style="width: 45%;">
+        <div style="display: flex; justify-content: space-between;">
+            <div style="width: 45%;  margin-top: 0;">
                 <p>Prepared by:</p>
-                <div style="margin-top: 40px; border-top: 1px solid black; margin-right: 16px;">
+                <div style="margin-top: 20px; border-top: 1px solid black; margin-right: 16px;">
                     <p style="text-align: center; margin-bottom: 0;">CHARLES B. ICAMINA</p>
                     <p style="text-align: center; margin-top: 0;">Admin Assistant</p>
                 </div>
             </div>
-            <div style="width: 45%; text-align: right;">
+            <div style="width: 45%; text-align: right; margin-top: 0;">
                 <p>Noted by:</p>
-                <div style="margin-top: 40px; border-top: 1px solid black; margin-left: 16px;">
+                <div style="margin-top: 20px; border-top: 1px solid black; margin-left: 16px;">
                     <p style="text-align: center; margin-bottom: 0;">GEORGINA M. SCHRIER / ARIEL M. AREGLO</p>
                     <p style="text-align: center; margin-top: 0;">FHOAI - BOD Treasurer / President</p>
                 </div>
@@ -443,32 +447,26 @@
         <!-- Header Table with Logo, Title and Form Info -->
         <table class="header-table">
             <tr>
-                <td class="logo-cell">
+                <td class="logo-cell" rowspan="4">
                     <img class="logo-img" src="{{ asset('assets/images/Picture1.jpg') }}" alt="Logo">
                 </td>
-                <td class="title-cell">
+                <td class="title-cell" rowspan="4">
                     DEMAND LETTER
                 </td>
-                <td class="form-info-cell">
-                    <table class="form-info-table">
-                        <tr>
-                            <td class="label">FORM NO.</td>
-                            <td>AD - 021</td>
-                        </tr>
-                        <tr>
-                            <td class="label">REVISION NO.</td>
-                            <td>0</td>
-                        </tr>
-                        <tr>
-                            <td class="label">EFFECTIVITY</td>
-                            <td>09/21/2024</td>
-                        </tr>
-                        <tr>
-                            <td class="label">PAGE NO.</td>
-                            <td>1 OF 1</td>
-                        </tr>
-                    </table>
-                </td>
+                <td class="form-info-label">FORM NO.</td>
+                <td class="form-info-value">AD - 021</td>
+            </tr>
+            <tr>
+                <td class="form-info-label">REVISION NO.</td>
+                <td class="form-info-value">0</td>
+            </tr>
+            <tr>
+                <td class="form-info-label">EFFECTIVITY</td>
+                <td class="form-info-value">09/21/2024</td>
+            </tr>
+            <tr>
+                <td class="form-info-label">PAGE NO.</td>
+                <td class="form-info-value">1 OF 1</td>
             </tr>
         </table>
         
@@ -482,23 +480,23 @@
             <table>
                 <tr>
                     <td width="60"><strong>DATE :</strong></td>
-                    <td>{{ date('M.j, Y') }}</td>
+                    <td class="value-field">{{ date('M.j, Y') }}</td>
                 </tr>
                 <tr>
                     <td><strong>TO :</strong></td>
-                    <td><strong>MR./MS.</strong> {{ $member->mem_name }}</td>
+                    <td><span class="fixed-width-field"><strong>MR./MS.</strong> {{ $member->mem_name }}</span></td>
                 </tr>
                 <tr>
                     <td><strong>ADDRESS:</strong></td>
-                    <td>{{ $member->mem_add_id }}</td>
+                    <td><span class="fixed-width-field">{{ $member->mem_add_id }}</span></td>
                 </tr>
                 <tr>
                     <td></td>
-                    <td>FORTEZZA SUBDIVISION</td>
+                    <td><span class="fixed-width-field">FORTEZZA SUBDIVISION</span></td>
                 </tr>
                 <tr>
                     <td></td>
-                    <td>SAN ISIDRO, CITY of CABUYAO 4025 LAGUNA</td>
+                    <td><span class="fixed-width-field">SAN ISIDRO, CITY of CABUYAO 4025 LAGUNA</span></td>
                 </tr>
             </table>
         </div>
