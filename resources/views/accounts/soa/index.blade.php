@@ -150,6 +150,57 @@
         background-color: #218838;
         border-color: #1e7e34;
     }   
+
+    .table-responsive {
+        overflow-y: auto;
+        overflow-x: hidden; /* Hide the original horizontal scrollbar */
+        max-height: 70vh;
+        position: relative;
+        padding-bottom: 16px; /* Space for the sticky scrollbar */
+    }
+
+    /* Create a sticky scrollbar container */
+    .sticky-scrollbar-container {
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 16px;
+        background-color: #f8f9fa;
+        overflow-x: auto;
+        overflow-y: hidden;
+        z-index: 100;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* The scrollbar mimic element */
+    .scrollbar-content {
+        height: 1px;
+    }
+
+    /* Style only the sticky scrollbar */   
+    .table-responsive, .sticky-scrollbar-container {
+        scrollbar-width: thin; /* For Firefox */
+        scrollbar-color: #aaa #f1f1f1; /* For Firefox */
+    }
+
+    .table-responsive::-webkit-scrollbar, 
+    .sticky-scrollbar-container::-webkit-scrollbar {
+        height: 8px;
+        width: 8px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb, 
+    .sticky-scrollbar-container::-webkit-scrollbar-thumb {
+        background: #aaa; 
+        border-radius: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track, 
+    .sticky-scrollbar-container::-webkit-scrollbar-track {
+        background: #f1f1f1; 
+    }
+
 </style>
 <div class="container-fluid">
     <div class="row">
@@ -190,8 +241,8 @@
                         </div>
                     @else
                         <div class="table-container">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-striped">
+                            <div class="table-responsive" id="mainTableContainer">
+                                <table class="table table-bordered table-striped" id="mainTable">
                                     <thead>
                                         <tr>
                                             <th><input type="checkbox" id="select-all"></th>
@@ -251,6 +302,9 @@
                                     </tbody>
                                 </table>
                             </div>
+                                <div class="sticky-scrollbar-container" id="stickyScrollbar">
+                                <div class="scrollbar-content" id="scrollbarContent"></div>
+                            </div>
                         </div>
                     @endif
                 </div>
@@ -302,6 +356,36 @@
         const url = "{{ route('accounts.soa.print-multiple') }}?member_ids=" + selectedMembers.join(',');
         window.open(url, '_blank');
     }
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const mainTable = document.getElementById('mainTable');
+    const mainTableContainer = document.getElementById('mainTableContainer');
+    const stickyScrollbar = document.getElementById('stickyScrollbar');
+    const scrollbarContent = document.getElementById('scrollbarContent');
+    
+    // Set the width of scrollbar content to match table width
+    function updateScrollbarWidth() {
+        if (mainTable && scrollbarContent) {
+            scrollbarContent.style.width = mainTable.offsetWidth + 'px';
+        }
+    }
+    
+    // Update width on load and resize
+    updateScrollbarWidth();
+    window.addEventListener('resize', updateScrollbarWidth);
+    
+    // Sync scroll positions
+    if (mainTableContainer && stickyScrollbar) {
+        mainTableContainer.addEventListener('scroll', function() {
+            stickyScrollbar.scrollLeft = mainTableContainer.scrollLeft;
+        });
+        
+        stickyScrollbar.addEventListener('scroll', function() {
+            mainTableContainer.scrollLeft = stickyScrollbar.scrollLeft;
+        });
+    }
+});
 </script>
 @php
 // Update this version when you change your JS files
