@@ -63,36 +63,6 @@ class StatementOfAccountController extends Controller
     }
 
     /**
-     * Get statement of account details for a specific member
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function getDetails(Request $request)
-    {
-        $memberId = $request->input('member_id');
-        
-        if (!$memberId) {
-            return response()->json(['error' => 'Member ID is required'], 400);
-        }
-        
-        // Get member details from vw_arrear_staging
-        $member = DB::table('vw_arrear_staging')
-            ->where('mem_id', $memberId)
-            ->first();
-        
-        if (!$member) {
-            return response()->json(['error' => 'Member not found'], 404);
-        }
-        
-        // Add property for backward compatibility
-        $member->current_arrear_count = $member->arrear_count;
-        $member->current_arrear = $member->arrear;
-        
-        return view('accounts.soa.details', compact('member'));
-    }
-
-    /**
      * Print statement of account for a specific member
      *
      * @param  int  $id
