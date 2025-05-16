@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
@@ -88,6 +89,14 @@ class LoginController extends Controller
             
             // Add this line to set last_activity immediately after login
             session(['last_activity' => time()]);
+            
+            // Call the stored procedure after successful login
+            try {
+                DB::statement('CALL sp_monthly_dues()');
+                Log::info('Monthly dues stored procedure called successfully');
+            } catch (\Exception $e) {
+                Log::error('Error executing monthly dues procedure: ' . $e->getMessage());
+            }
             
             return response()->json([
                 'success' => true,
