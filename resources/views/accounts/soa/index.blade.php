@@ -339,6 +339,18 @@
                 }
             });
         });
+
+        // Clear address ID when delinquent checkbox is checked
+        const delinquentCheckbox = document.getElementById('delinquent');
+        const addressIdInput = document.getElementById('address_id');
+
+        if(delinquentCheckbox && addressIdInput) {
+            delinquentCheckbox.addEventListener('change', function() {
+                if(this.checked) {
+                    addressIdInput.value = '';
+                }
+            });
+        }
     });
     
     // Function to print selected statements
