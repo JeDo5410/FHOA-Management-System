@@ -237,6 +237,10 @@
                                     <input class="form-check-input" type="radio" name="document_type" id="type_demand" value="demand">
                                     <label class="form-check-label" for="type_demand">Demand Letter Only</label>
                                 </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="document_type" id="type_nncv1" value="nncv1">
+                                    <label class="form-check-label" for="type_nncv1">NNCV Only</label>
+                                </div>
                             </div>
                             
                             <div class="filter-actions">

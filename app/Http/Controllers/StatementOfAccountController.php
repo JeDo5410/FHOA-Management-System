@@ -87,12 +87,19 @@ class StatementOfAccountController extends Controller
         $documentType = $request->input('document_type', 'soa');
         
         // Flash success message for confirmation
-        $docTypeName = $documentType === 'soa' ? 'Statement of Account' : 'Demand Letter';
+        $docTypeName = 'Document';
+        if ($documentType === 'soa') {
+            $docTypeName = 'Statement of Account';
+        } elseif ($documentType === 'demand') {
+            $docTypeName = 'Demand Letter';
+        } elseif ($documentType === 'nncv1') {
+            $docTypeName = 'Notice of Non-Compliance/Violation';
+        }
+        
         session()->flash('success', "{$docTypeName} generated for {$member->mem_name}");
         
         return view('accounts.soa.print', compact('member', 'documentType'));
     }
-
 
     /**
      * Print multiple statements of account
@@ -128,7 +135,15 @@ class StatementOfAccountController extends Controller
         $documentType = $request->input('document_type', 'soa');
         
         // Flash success message with count
-        $docTypeName = $documentType === 'soa' ? 'Statements of Account' : 'Demand Letters';
+        $docTypeName = 'Documents';
+        if ($documentType === 'soa') {
+            $docTypeName = 'Statements of Account';
+        } elseif ($documentType === 'demand') {
+            $docTypeName = 'Demand Letters';
+        } elseif ($documentType === 'nncv1') {
+            $docTypeName = 'Notices of Non-Compliance/Violation';
+        }
+        
         $count = $members->count();
         session()->flash('success', "Generated {$count} {$docTypeName}");
         

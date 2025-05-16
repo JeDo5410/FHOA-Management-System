@@ -3,7 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $documentType === 'soa' ? 'Statement of Account' : 'Demand Letter' }}</title>
+    <title>
+        @if($documentType === 'soa')
+            Statement of Account
+        @elseif($documentType === 'demand')
+            Demand Letter
+        @elseif($documentType === 'nncv1')
+            Notice of Non-Compliance/Violation
+        @else
+            Document
+        @endif
+    </title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -455,6 +465,138 @@
         </div>
     </div>
 
+    <!-- No divider between documents -->
+
+    @elseif($documentType === 'nncv1')
+    <!-- NOTICE OF NON-COMPLIANCE VIOLATION -->
+    <div class="document-container" style="margin-top: 25px; padding-top: 25px;">
+        <!-- Header Table with Logo, Title and Form Info -->
+        <table class="header-table">
+            <tr>
+                <td class="logo-cell" rowspan="4">
+                    <img class="logo-img" src="{{ asset('assets/images/Picture1.jpg') }}" alt="Logo">
+                </td>
+                <td class="title-cell" rowspan="4">
+                    NOTICE OF NON-COMPLIANCE /<br>VIOLATION
+                </td>
+                <td class="form-info-label">FORM NO.</td>
+                <td class="form-info-value">AD - 019 A</td>
+            </tr>
+            <tr>
+                <td class="form-info-label">REVISION NO.</td>
+                <td class="form-info-value">3</td>
+            </tr>
+            <tr>
+                <td class="form-info-label">EFFECTIVITY</td>
+                <td class="form-info-value">05/10/2023</td>
+            </tr>
+            <tr>
+                <td class="form-info-label">PAGE NO.</td>
+                <td class="form-info-value">1 OF 1</td>
+            </tr>
+        </table>
+        
+        <!-- Reference Number -->
+        <div class="reference-number">
+            NNCV1 - {{ date('Y') }}/{{ sprintf('%03d', $member->mem_id) }}
+        </div>
+        
+        <!-- Letter Information -->
+        <div class="letter-info">
+            <table>
+                <tr>
+                    <td width="60"><strong>DATE :</strong></td>
+                    <td class="value-field">{{ date('M.j, Y') }}</td>
+                </tr>
+                <tr>
+                    <td><strong>TO :</strong></td>
+                    <td><span class="fixed-width-field"><strong>MR./MS.</strong> {{ $member->mem_name }}</span></td>
+                </tr>
+                <tr>
+                    <td><strong>ADDRESS:</strong></td>
+                    <td><span class="fixed-width-field">
+                        @php
+                        $addressId = $member->mem_add_id;
+                        if (strlen($addressId) === 5) {
+                            $phase = substr($addressId, 0, 1);
+                            $block = substr($addressId, 1, 2);
+                            $lot = substr($addressId, 3, 2);
+                            echo "Ph. {$phase} Blk. {$block} Lot {$lot}";
+                        } else {
+                            echo $addressId;
+                        }
+                        @endphp
+                    </span></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><span class="fixed-width-field">FORTEZZA SUBDIVISION</span></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><span class="fixed-width-field">SAN ISIDRO, CITY of CABUYAO 4025 LAGUNA</span></td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Salutation and Introduction -->
+        <div style="margin-bottom: 16px;">
+            <p><strong>Dear Mr./Ms. {{ $member->mem_name }}</strong></p>
+            <p>It has come to our attention that you are one of the Homeowners in 
+                @php
+                $addressId = $member->mem_add_id;
+                if (strlen($addressId) === 5) {
+                    $phase = substr($addressId, 0, 1);
+                    $block = substr($addressId, 1, 2);
+                    $lot = substr($addressId, 3, 2);
+                    echo "Ph. {$phase} Blk. {$block} Lot {$lot}";
+                } else {
+                    echo $addressId;
+                }
+                @endphp
+            who have not yet paid your monthly maintenance dues from {{ date('M Y', strtotime($member->arrear_month)) }} - {{ date('M Y', strtotime($member->current_month)) }}
+            equivalent to {{ $member->current_arrear_count }} month(s) of arrears
+            amounting to {{ number_format($member->arrear, 2) }}₱. 
+            Thus, your payables as of {{ date('M.j, Y') }} amount to total of {{ number_format($member->arrear_total, 2) }}₱. 
+            Including the 30% per annum penalty charges for your {{ $member->current_arrear_count }} months of arrears as per attached Statement of Account (SOA) in Annex A.</p>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="demand-text">
+            <p>As per <em>DHSUD's Department Order No. 2021-007, Series of 2021 – 2021 Revised Implementing Rules and Regulations (IRR) of Republic Act No. 9904</em>, otherwise known as <em>the Magna Carta for Homeowners & Homeowners Associations</em>, this letter serves as our Written Notice on your violation of its <em>Sections 13-16 in Pages 9-11</em>, and non-compliance with our <em>FHOAI's Rules & Regulations' Section XV B.1-B.4</em> concerning delinquency in paying monthly maintenance dues <em>(details in attached SOA No. H&T / {{ date('Y') }} – {{ sprintf('%03d', $member->mem_id) }})</em>.</p>
+            
+            <p>You are hereby given sixty (60) days grace period upon receipt of this notice, to fully settle your unpaid monthly maintenance dues. Please respond in writing within fifteen (15) days upon receipt of this notice for setting an appointment with the BODs on how you plan to settle your payables, if you shall avail of such grace period, and why you should not be declared as Delinquent Member of the Association.</p>
+            
+            <p>Please be reminded that the 30% per annum interest for penalty / charges of unpaid monthly maintenance dues shall continuously apply while you have not fully paid for them, as per FHOAI {{ date('Y') }} / CIR-003.</p>
+            
+            <p>Not responding to this notice and/or not taking action to address non-payment of dues as per given deadline, shall automatically waive your rights as a Member of Good Standing of the FHOAI, which can lead to SANCTIONS as mandated in FHOAI {{ date('Y') }} / CIR – 003 (in alignment with the <em>2021 IRR of RA 9904 – Rule III, Section 18, Page 11</em>). Moreover, collection shall be legally facilitated through Small Money Claims.</p>
+            
+            <p>For your immediate attention and prompt action, thank you.</p>
+        </div>
+        
+        <!-- Signature Section -->
+        <div style="margin-top: 20px;">
+            <p>THE FHOAI BOARD OF DIRECTORS:</p>
+            
+            <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+                <div style="width: 45%;">
+                    <div class="signature-line"></div>
+                    <p style="margin-top: 5px; margin-bottom: 5px;"><strong>GEORGINA M. SCHRIER</strong><br>
+                    FHOAI-BOD Treasurer</p>
+                </div>
+                <div style="width: 45%;">
+                    <div class="signature-line" style="margin-left: auto;"></div>
+                    <p style="margin-top: 5px; margin-bottom: 5px; text-align: right;"><strong>ARIEL M. AREGLO</strong><br>
+                    FHOAI – BOD President</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Acknowledgment Section -->
+        <div style="margin-top: 40px; padding-top: 10px;">
+            <p>CC: 201 File</p>
+        </div>
+    </div>
     <!-- No divider between documents -->
     
     @else
