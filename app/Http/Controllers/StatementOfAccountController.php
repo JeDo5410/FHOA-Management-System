@@ -68,7 +68,7 @@ class StatementOfAccountController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function printStatement($id)
+    public function printStatement(Request $request, $id)
     {
         // Get member details from vw_arrear_staging
         $member = DB::table('vw_arrear_staging')
@@ -83,11 +83,16 @@ class StatementOfAccountController extends Controller
         $member->current_arrear_count = $member->arrear_count;
         $member->current_arrear = $member->arrear;
         
-        // Flash success message for confirmation
-        session()->flash('success', "Statement generated for {$member->mem_name}");
+        // Get document type from request (default to 'soa' if not specified)
+        $documentType = $request->input('document_type', 'soa');
         
-        return view('accounts.soa.print', compact('member'));
+        // Flash success message for confirmation
+        $docTypeName = $documentType === 'soa' ? 'Statement of Account' : 'Demand Letter';
+        session()->flash('success', "{$docTypeName} generated for {$member->mem_name}");
+        
+        return view('accounts.soa.print', compact('member', 'documentType'));
     }
+
 
     /**
      * Print multiple statements of account
@@ -119,10 +124,14 @@ class StatementOfAccountController extends Controller
             return back()->with('error', 'No members found');
         }
         
-        // Flash success message with count
-        $count = $members->count();
-        session()->flash('success', "Generated {$count} statement" . ($count > 1 ? "s" : ""));
+        // Get document type from request (default to 'soa' if not specified)
+        $documentType = $request->input('document_type', 'soa');
         
-        return view('accounts.soa.print-multiple', compact('members'));
+        // Flash success message with count
+        $docTypeName = $documentType === 'soa' ? 'Statements of Account' : 'Demand Letters';
+        $count = $members->count();
+        session()->flash('success', "Generated {$count} {$docTypeName}");
+        
+        return view('accounts.soa.print-multiple', compact('members', 'documentType'));
     }
 }

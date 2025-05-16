@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Member Documents</title>
+    <title>{{ $documentType === 'soa' ? 'Statement of Account' : 'Demand Letter' }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -257,6 +257,7 @@
         <button class="btn btn-secondary" onclick="window.close();">Close</button>
     </div>
     
+    @if($documentType === 'soa')
     <!-- STATEMENT OF ACCOUNT -->
     <div class="document-container" style="margin-top: 0; padding-top: 0;">
         <!-- Header Table with Logo, Title and Form Info -->
@@ -456,6 +457,7 @@
 
     <!-- No divider between documents -->
     
+    @else
     <!-- DEMAND LETTER -->
     <div class="document-container" style="margin-top: 25px; padding-top: 25px;">
         <!-- Header Table with Logo, Title and Form Info -->
@@ -641,6 +643,9 @@
             <p>CC: 201 File</p>
         </div>
     </div>
+
+    @endif
+
     <script>
         // Script to suppress headers and footers in print
         window.onbeforeprint = function() {

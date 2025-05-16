@@ -226,6 +226,18 @@
                                     </label>
                                 </div>
                             </div>
+
+                            <div class="filter-input-group">
+                                <label class="filter-label">Document Type:</label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="document_type" id="type_soa" value="soa" checked>
+                                    <label class="form-check-label" for="type_soa">SOA Only</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="document_type" id="type_demand" value="demand">
+                                    <label class="form-check-label" for="type_demand">Demand Letter Only</label>
+                                </div>
+                            </div>
                             
                             <div class="filter-actions">
                                 <button type="submit" class="btn btn-primary">Filter</button>
@@ -292,8 +304,9 @@
                                                 @endif
                                             </td>
                                             <td class="actions-cell text-center">
-                                                <a href="{{ route('accounts.soa.print', ['id' => $arrear->mem_id]) }}" 
-                                                   class="btn btn-sm btn-primary" target="_blank">
+                                                <a href="#" 
+                                                onclick="event.preventDefault(); window.open('{{ route('accounts.soa.print', ['id' => $arrear->mem_id]) }}' + '?document_type=' + document.querySelector('input[name=\'document_type\']:checked').value, '_blank');" 
+                                                class="btn btn-sm btn-primary">
                                                     Print
                                                 </a>
                                             </td>
@@ -365,7 +378,10 @@
             return;
         }
         
-        const url = "{{ route('accounts.soa.print-multiple') }}?member_ids=" + selectedMembers.join(',');
+        // Get the selected document type from the radio buttons
+        const documentType = document.querySelector('input[name="document_type"]:checked').value;
+        
+        const url = "{{ route('accounts.soa.print-multiple') }}?member_ids=" + selectedMembers.join(',') + "&document_type=" + documentType;
         window.open(url, '_blank');
     }
 </script>
