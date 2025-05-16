@@ -306,7 +306,19 @@
                 </tr>
                 <tr>
                     <td class="label">ADDRESS:</td>
-                    <td><span class="fixed-width-field">{{ $member->mem_add_id }}</span></td>
+                    <td><span class="fixed-width-field">
+                        @php
+                        $addressId = $member->mem_add_id;
+                        if (strlen($addressId) === 5) {
+                            $phase = substr($addressId, 0, 1);
+                            $block = substr($addressId, 1, 2);
+                            $lot = substr($addressId, 3, 2);
+                            echo "Ph. {$phase} Blk. {$block} Lot {$lot}";
+                        } else {
+                            echo $addressId;
+                        }
+                        @endphp
+                    </span></td>
                     <td class="right-align"><strong>DUE DATE :</strong></td>
                     <td style="text-align: right;" class="value-field">ASAP</td>
                 </tr>
@@ -488,7 +500,19 @@
                 </tr>
                 <tr>
                     <td><strong>ADDRESS:</strong></td>
-                    <td><span class="fixed-width-field">{{ $member->mem_add_id }}</span></td>
+                    <td><span class="fixed-width-field">
+                        @php
+                        $addressId = $member->mem_add_id;
+                        if (strlen($addressId) === 5) {
+                            $phase = substr($addressId, 0, 1);
+                            $block = substr($addressId, 1, 2);
+                            $lot = substr($addressId, 3, 2);
+                            echo "Ph. {$phase} Blk. {$block} Lot {$lot}";
+                        } else {
+                            echo $addressId;
+                        }
+                        @endphp
+                    </span></td>
                 </tr>
                 <tr>
                     <td></td>
