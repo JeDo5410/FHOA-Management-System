@@ -230,16 +230,16 @@
                             <div class="filter-input-group">
                                 <label class="filter-label">Document Type:</label>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="document_type" id="type_soa" value="soa" checked>
-                                    <label class="form-check-label" for="type_soa">SOA Only</label>
+                                    <input class="form-check-input document-type-checkbox" type="checkbox" name="document_type[]" id="type_soa" value="soa" checked>
+                                    <label class="form-check-label" for="type_soa">SOA</label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="document_type" id="type_demand" value="demand">
-                                    <label class="form-check-label" for="type_demand">Demand Letter Only</label>
+                                    <input class="form-check-input document-type-checkbox" type="checkbox" name="document_type[]" id="type_demand" value="demand">
+                                    <label class="form-check-label" for="type_demand">Demand Letter</label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="document_type" id="type_nncv1" value="nncv1">
-                                    <label class="form-check-label" for="type_nncv1">NNCV Only</label>
+                                    <input class="form-check-input document-type-checkbox" type="checkbox" name="document_type[]" id="type_nncv1" value="nncv1">
+                                    <label class="form-check-label" for="type_nncv1">NNCV</label>
                                 </div>
                             </div>
                             
@@ -308,8 +308,17 @@
                                                 @endif
                                             </td>
                                             <td class="actions-cell text-center">
-                                                <a href="#" 
-                                                onclick="event.preventDefault(); window.open('{{ route('accounts.soa.print', ['id' => $arrear->mem_id]) }}' + '?document_type=' + document.querySelector('input[name=\'document_type\']:checked').value, '_blank');" 
+                                               <a href="#" 
+                                                onclick="event.preventDefault(); 
+                                                        const selectedDocTypes = [];
+                                                        document.querySelectorAll('.document-type-checkbox:checked').forEach(checkbox => {
+                                                            selectedDocTypes.push(checkbox.value);
+                                                        });
+                                                        if (selectedDocTypes.length === 0) {
+                                                            alert('Please select at least one document type to print.');
+                                                            return;
+                                                        }
+                                                        window.open('{{ route('accounts.soa.print', ['id' => $arrear->mem_id]) }}' + '?document_types=' + selectedDocTypes.join(','), '_blank');" 
                                                 class="btn btn-sm btn-primary">
                                                     Print
                                                 </a>
@@ -382,10 +391,18 @@
             return;
         }
         
-        // Get the selected document type from the radio buttons
-        const documentType = document.querySelector('input[name="document_type"]:checked').value;
+        // Get all selected document types
+        const selectedDocTypes = [];
+        document.querySelectorAll('.document-type-checkbox:checked').forEach(checkbox => {
+            selectedDocTypes.push(checkbox.value);
+        });
         
-        const url = "{{ route('accounts.soa.print-multiple') }}?member_ids=" + selectedMembers.join(',') + "&document_type=" + documentType;
+        if (selectedDocTypes.length === 0) {
+            alert('Please select at least one document type to print.');
+            return;
+        }
+        
+        const url = "{{ route('accounts.soa.print-multiple') }}?member_ids=" + selectedMembers.join(',') + "&document_types=" + selectedDocTypes.join(',');
         window.open(url, '_blank');
     }
 </script>

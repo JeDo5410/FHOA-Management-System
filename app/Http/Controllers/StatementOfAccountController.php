@@ -83,22 +83,26 @@ class StatementOfAccountController extends Controller
         $member->current_arrear_count = $member->arrear_count;
         $member->current_arrear = $member->arrear;
         
-        // Get document type from request (default to 'soa' if not specified)
-        $documentType = $request->input('document_type', 'soa');
+        // Get document types from request (default to 'soa' if not specified)
+        $documentTypes = $request->input('document_types', 'soa');
+        $documentTypes = explode(',', $documentTypes);
         
         // Flash success message for confirmation
-        $docTypeName = 'Document';
-        if ($documentType === 'soa') {
-            $docTypeName = 'Statement of Account';
-        } elseif ($documentType === 'demand') {
-            $docTypeName = 'Demand Letter';
-        } elseif ($documentType === 'nncv1') {
-            $docTypeName = 'Notice of Non-Compliance/Violation';
+        if (count($documentTypes) > 1) {
+            session()->flash('success', "Multiple documents generated for {$member->mem_name}");
+        } else {
+            $docTypeName = 'Document';
+            if ($documentTypes[0] === 'soa') {
+                $docTypeName = 'Statement of Account';
+            } elseif ($documentTypes[0] === 'demand') {
+                $docTypeName = 'Demand Letter';
+            } elseif ($documentTypes[0] === 'nncv1') {
+                $docTypeName = 'Notice of Non-Compliance/Violation';
+            }
+            session()->flash('success', "{$docTypeName} generated for {$member->mem_name}");
         }
         
-        session()->flash('success', "{$docTypeName} generated for {$member->mem_name}");
-        
-        return view('accounts.soa.print', compact('member', 'documentType'));
+        return view('accounts.soa.print', compact('member', 'documentTypes'));
     }
 
     /**
@@ -131,22 +135,26 @@ class StatementOfAccountController extends Controller
             return back()->with('error', 'No members found');
         }
         
-        // Get document type from request (default to 'soa' if not specified)
-        $documentType = $request->input('document_type', 'soa');
+        // Get document types from request (default to 'soa' if not specified)
+        $documentTypes = $request->input('document_types', 'soa');
+        $documentTypes = explode(',', $documentTypes);
         
         // Flash success message with count
-        $docTypeName = 'Documents';
-        if ($documentType === 'soa') {
-            $docTypeName = 'Statements of Account';
-        } elseif ($documentType === 'demand') {
-            $docTypeName = 'Demand Letters';
-        } elseif ($documentType === 'nncv1') {
-            $docTypeName = 'Notices of Non-Compliance/Violation';
+        $count = $members->count();
+        if (count($documentTypes) > 1) {
+            session()->flash('success', "Generated multiple document types for {$count} member(s)");
+        } else {
+            $docTypeName = 'Documents';
+            if ($documentTypes[0] === 'soa') {
+                $docTypeName = 'Statements of Account';
+            } elseif ($documentTypes[0] === 'demand') {
+                $docTypeName = 'Demand Letters';
+            } elseif ($documentTypes[0] === 'nncv1') {
+                $docTypeName = 'Notices of Non-Compliance/Violation';
+            }
+            session()->flash('success', "Generated {$count} {$docTypeName}");
         }
         
-        $count = $members->count();
-        session()->flash('success', "Generated {$count} {$docTypeName}");
-        
-        return view('accounts.soa.print-multiple', compact('members', 'documentType'));
+        return view('accounts.soa.print-multiple', compact('members', 'documentTypes'));
     }
 }

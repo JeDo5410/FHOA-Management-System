@@ -1,14 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
+    @php
+    function numberToWords($number) {
+        $number = number_format($number, 2, '.', '');
+        list($whole, $decimal) = explode('.', $number);
+        
+        $dictionary = [
+            0 => 'zero',
+            1 => 'one',
+            2 => 'two',
+            3 => 'three',
+            4 => 'four',
+            5 => 'five',
+            6 => 'six',
+            7 => 'seven',
+            8 => 'eight',
+            9 => 'nine',
+            10 => 'ten',
+            11 => 'eleven',
+            12 => 'twelve',
+            13 => 'thirteen',
+            14 => 'fourteen',
+            15 => 'fifteen',
+            16 => 'sixteen',
+            17 => 'seventeen',
+            18 => 'eighteen',
+            19 => 'nineteen',
+            20 => 'twenty',
+            30 => 'thirty',
+            40 => 'forty',
+            50 => 'fifty',
+            60 => 'sixty',
+            70 => 'seventy',
+            80 => 'eighty',
+            90 => 'ninety',
+        ];
+        
+        $result = '';
+        
+        // Handle thousands
+        if ($whole >= 1000) {
+            $thousands = (int)($whole / 1000);
+            $result .= (($thousands > 99) ? numberToWords($thousands) . ' ' : '') . 'thousand ';
+            $whole %= 1000;
+        }
+        
+        // Handle hundreds
+        if ($whole >= 100) {
+            $hundreds = (int)($whole / 100);
+            $result .= $dictionary[$hundreds] . ' hundred ';
+            $whole %= 100;
+        }
+        
+        // Handle tens and units
+        if ($whole <= 0) {
+            $result = $result ?: 'zero';
+        } elseif ($whole < 20) {
+            $result .= $dictionary[$whole];
+        } else {
+            $tens = (int)($whole / 10) * 10;
+            $units = $whole % 10;
+            $result .= $dictionary[$tens];
+            if ($units > 0) {
+                $result .= '-' . $dictionary[$units];
+            }
+        }
+        
+        // Add cents if necessary
+        if ((int)$decimal > 0) {
+            $result .= ' and ' . $decimal . '/100';
+        }
+        
+        return $result;
+    }
+    @endphp
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multiple 
-        @if($documentType === 'soa')
+        @if($documentTypes === 'soa')
             Statements of Account
-        @elseif($documentType === 'demand')
+        @elseif($documentTypes === 'demand')
             Demand Letters
-        @elseif($documentType === 'nncv1')
+        @elseif($documentTypes === 'nncv1')
             Notices of Non-Compliance/Violation
         @else
             Documents
@@ -262,12 +336,22 @@
     </style>
 </head>
 <body>
+    @php 
+        // Ensure we have an array of document types
+        if (!isset($documentTypes)) {
+            $documentTypes = ['soa'];
+        } elseif (!is_array($documentTypes)) {
+            $documentTypes = [$documentTypes];
+        }
+    @endphp
+
     <div class="print-controls no-print">
         <button class="btn btn-primary" onclick="window.print();">Print All Documents</button>
         <button class="btn btn-secondary" onclick="window.close();">Close</button>
     </div>
     
     @foreach($members as $member)
+    @foreach($documentTypes as $documentType)
     @if($documentType === 'soa')
     <!-- STATEMENT OF ACCOUNT -->
     <div class="document-container" style="margin-top: 0; padding-top: 0;">
@@ -464,8 +548,9 @@
             <p style="margin-top: 16px;">CC: 201 File</p>
         </div>
     </div>
+    @endif
 
-    @elseif($documentType === 'nncv1')
+    @if($documentType === 'nncv1')
     <!-- NOTICE OF NON-COMPLIANCE VIOLATION -->
     <div class="document-container" style="margin-top: 0; padding-top: 0;">
         <!-- Header Table with Logo, Title and Form Info -->
@@ -554,8 +639,8 @@
                 @endphp
             who have not yet paid your monthly maintenance dues from {{ date('M Y', strtotime($member->arrear_month)) }} - {{ date('M Y', strtotime($member->current_month)) }}
             equivalent to {{ $member->current_arrear_count }} month(s) of arrears
-            amounting to {{ number_format($member->arrear, 2) }}₱. 
-            Thus, your payables as of {{ date('M.j, Y') }} amount to total of {{ number_format($member->arrear_total, 2) }}₱. 
+            amounting to  ({{ strtoupper(numberToWords($member->arrear)) }} PESOS) ₱{{ number_format($member->arrear, 2) }}. 
+            Thus, your payables as of {{ date('M.j, Y') }} amount to total of ({{ strtoupper(numberToWords($member->arrear_total)) }} PESOS) ₱{{ number_format($member->arrear_total, 2) }}. 
             Including the 30% per annum penalty charges for your {{ $member->current_arrear_count }} months of arrears as per attached Statement of Account (SOA) in Annex A.</p>
         </div>
         
@@ -578,13 +663,13 @@
             
             <div style="display: flex; justify-content: space-between; margin-top: 15px;">
                 <div style="width: 45%;">
-                    <div class="signature-line"></div>
-                    <p style="margin-top: 5px; margin-bottom: 5px;"><strong>GEORGINA M. SCHRIER</strong><br>
+                    <div class="signature-line" style="margin-left: auto; margin-right: auto;"></div>
+                    <p style="margin-top: 5px; margin-bottom: 5px; text-align: center;"><strong>GEORGINA M. SCHRIER</strong><br>
                     FHOAI-BOD Treasurer</p>
                 </div>
                 <div style="width: 45%;">
-                    <div class="signature-line" style="margin-left: auto;"></div>
-                    <p style="margin-top: 5px; margin-bottom: 5px; text-align: right;"><strong>ARIEL M. AREGLO</strong><br>
+                    <div class="signature-line" style="margin-left: auto; margin-right: auto;"></div>
+                    <p style="margin-top: 5px; margin-bottom: 5px;  text-align: center;"><strong>ARIEL M. AREGLO</strong><br>
                     FHOAI – BOD President</p>
                 </div>
             </div>
@@ -595,8 +680,9 @@
             <p>CC: 201 File</p>
         </div>
     </div>
+    @endif
 
-    @else
+    @if($documentType === 'demand')
     <!-- DEMAND LETTER -->
     <div class="document-container" style="margin-top: 25px; padding-top: 25px;">
         <!-- Header Table with Logo, Title and Form Info -->
@@ -783,6 +869,7 @@
         </div>
     </div>
     @endif
+    @endforeach
     @endforeach
     
     <script>
