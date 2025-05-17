@@ -201,6 +201,158 @@
         background: #f1f1f1; 
     }
 
+    /* New Filter Form Styles */
+    .filter-card {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 24px;
+        border-left: 4px solid #007bff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .filter-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .filter-column {
+        flex: 1 1 calc(33.333% - 20px); 
+        min-width: 200px;
+        max-width: calc(33.333% - 20px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .column-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 16px;
+        text-align: left;
+    }
+
+    /* Search Criteria styles */
+    .search-input {
+        margin-bottom: 12px;
+    }
+
+    .search-input input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .delinquent-option {
+        display: flex;
+        align-items: center;
+        margin-top: 8px;
+    }
+
+    .delinquent-label {
+        margin-left: 8px;
+        background-color: #ffc107;
+        color: #000;
+        font-size: 12px;
+        font-weight: 500;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+
+    /* Document Types styles */
+    .document-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .document-option {
+        display: flex;
+        align-items: center;
+    }
+
+    .document-checkbox {
+        margin-right: 10px;
+    }
+
+    .document-label {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+    }
+
+    .document-icon {
+        margin-right: 5px;
+        font-size: 16px;
+    }
+
+    /* Actions styles */
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        width: 100%;
+        text-align: center;
+    }
+
+    .btn-apply {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-reset {
+        background-color: #f8f9fa;
+        color: #495057;
+        border: 1px solid #ced4da;
+        text-decoration: none;
+        display: block;
+    }
+
+    .btn-print {
+        background-color: #28a745;
+        color: white;
+    }
+
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .filter-container {
+            flex-direction: column;
+        }
+        
+        .filter-column {
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 20px;
+        }
+    }
+
+    /* Custom document icons */
+    .soa-icon {
+        color: #6c757d;
+    }
+
+    .demand-icon {
+        color: #dc3545;
+    }
+
+    .nncv-icon {
+        color: #6610f2;
+    }
 </style>
 <div class="container-fluid">
     <div class="row">
@@ -213,40 +365,62 @@
                     <!-- Search Filter -->
                     <div class="filter-card">
                         <form action="{{ route('accounts.soa.index') }}" method="GET" class="filter-form">
-                            <div class="filter-input-group">
-                                <label for="address_id" class="filter-label">Address ID:</label>
-                                <input type="text" class="form-control filter-input" id="address_id" name="address_id" value="{{ request('address_id') }}">
-                            </div>
-                            
-                            <div class="filter-checkbox-container">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="delinquent" name="delinquent" {{ request()->has('delinquent') ? 'checked' : '' }}>
-                                    <label class="form-check-label filter-label" for="delinquent">
-                                        Delinquent Members Only
-                                    </label>
+                            <div class="filter-container">
+                                <!-- Search Criteria Column -->
+                                <div class="filter-column">
+                                    <div class="column-title">Search Criteria</div>
+                                    <div class="search-input">
+                                        <input type="text" class="form-control" id="address_id" name="address_id" 
+                                            value="{{ request('address_id') }}" placeholder="Address ID">
+                                    </div>
+                                    <div class="delinquent-option">
+                                        <input class="form-check-input" type="checkbox" id="delinquent" name="delinquent" 
+                                            {{ request()->has('delinquent') ? 'checked' : '' }}>
+                                        <label class="delinquent-label" for="delinquent">
+                                            Delinquent Members Only
+                                        </label>
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div class="filter-input-group">
-                                <label class="filter-label">Document Type:</label>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input document-type-checkbox" type="checkbox" name="document_type[]" id="type_soa" value="soa" checked>
-                                    <label class="form-check-label" for="type_soa">SOA</label>
+                                
+                                <!-- Document Types Column -->
+                                <div class="filter-column">
+                                    <div class="column-title">Document Types</div>
+                                    <div class="document-options">
+                                        <div class="document-option">
+                                            <input class="form-check-input document-type-checkbox" type="checkbox" 
+                                                name="document_type[]" id="type_soa" value="soa" checked>
+                                            <label class="document-label" for="type_soa">
+                                                <span class="document-icon soa-icon">📄</span> SOA
+                                            </label>
+                                        </div>
+                                        <div class="document-option">
+                                            <input class="form-check-input document-type-checkbox" type="checkbox" 
+                                                name="document_type[]" id="type_demand" value="demand">
+                                            <label class="document-label" for="type_demand">
+                                                <span class="document-icon demand-icon">📝</span> Demand Letter
+                                            </label>
+                                        </div>
+                                        <div class="document-option">
+                                            <input class="form-check-input document-type-checkbox" type="checkbox" 
+                                                name="document_type[]" id="type_nncv1" value="nncv1">
+                                            <label class="document-label" for="type_nncv1">
+                                                <span class="document-icon nncv-icon">📋</span> NNCV
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input document-type-checkbox" type="checkbox" name="document_type[]" id="type_demand" value="demand">
-                                    <label class="form-check-label" for="type_demand">Demand Letter</label>
+                                
+                                <!-- Actions Column -->
+                                <div class="filter-column">
+                                    <div class="column-title">Actions</div>
+                                    <div class="action-buttons">
+                                        <button type="submit" class="btn btn-apply">Apply Filter</button>
+                                        <a href="{{ route('accounts.soa.index') }}" class="btn btn-reset">Reset</a>
+                                        <button type="button" class="btn btn-print" onclick="printStatements()">
+                                            Print Selected
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input document-type-checkbox" type="checkbox" name="document_type[]" id="type_nncv1" value="nncv1">
-                                    <label class="form-check-label" for="type_nncv1">NNCV</label>
-                                </div>
-                            </div>
-                            
-                            <div class="filter-actions">
-                                <button type="submit" class="btn btn-primary">Filter</button>
-                                <a href="{{ route('accounts.soa.index') }}" class="btn btn-outline-secondary">Reset</a>
-                                <button type="button" class="btn btn-success" onclick="printStatements()">Print Selected</button>
                             </div>
                         </form>
                     </div>
