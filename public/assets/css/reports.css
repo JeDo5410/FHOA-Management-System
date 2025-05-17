@@ -1,0 +1,367 @@
+/* General text styles */
+td, th {
+    font-size: 11px;
+}
+h4 {
+    font-size: 1.5rem;
+}
+.card-title {
+    font-size: 1.5rem;
+}
+.btn-primary, .btn-success, .btn-info, .btn-outline-secondary {
+    font-size: 12px;
+}
+.table th, .table td {
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.table-responsive {
+    overflow-y: auto;
+    max-height: 70vh;
+}
+
+.table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa; /* Match your table header background */
+    z-index: 10;
+    /* Add box-shadow to create a visible separation */
+    box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);
+}
+.table-container {
+    max-width: 100%;
+}
+.date-cell {
+    min-width: 100px;
+}
+.actions-cell {
+    min-width: 100px; 
+}
+.last-payment-cell {
+    min-width: 200px;
+}
+/* Add these styles to your existing style section */
+.filter-card {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+}
+
+.filter-input-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-label {
+    font-weight: 600;
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.filter-input {
+    min-width: 180px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    padding: 6px 12px;
+    transition: border-color 0.15s ease-in-out;
+}
+
+.filter-input:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+.filter-checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+@media (max-width: 768px) {
+    .filter-form {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .filter-actions {
+        margin-left: 0;
+        margin-top: 16px;
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+.btn {
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+
+.btn-outline-secondary {
+    color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+    color: #fff;
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}   
+
+.table-responsive {
+    overflow-y: auto;
+    overflow-x: hidden; /* Hide the original horizontal scrollbar */
+    max-height: 70vh;
+    position: relative;
+    padding-bottom: 16px; /* Space for the sticky scrollbar */
+}
+
+    /* Tab navigation styling */
+.nav-tabs .nav-link {
+    color: #495057;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+    border-bottom: 2px solid #0d6efd;
+    background: none;
+}
+
+
+/* Create a sticky scrollbar container */
+.sticky-scrollbar-container {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 16px;
+    background-color: #f8f9fa;
+    overflow-x: auto;
+    overflow-y: hidden;
+    z-index: 100;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+}
+
+/* The scrollbar mimic element */
+.scrollbar-content {
+    height: 1px;
+}
+
+/* Style only the sticky scrollbar */   
+.table-responsive, .sticky-scrollbar-container {
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #aaa #f1f1f1; /* For Firefox */
+}
+
+.table-responsive::-webkit-scrollbar, 
+.sticky-scrollbar-container::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb, 
+.sticky-scrollbar-container::-webkit-scrollbar-thumb {
+    background: #aaa; 
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-track, 
+.sticky-scrollbar-container::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+}
+
+/* New Filter Form Styles */
+.filter-card {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+    border-left: 4px solid #007bff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.filter-column {
+    flex: 1 1 calc(33.333% - 20px); 
+    min-width: 200px;
+    max-width: calc(33.333% - 20px);
+    display: flex;
+    flex-direction: column;
+}
+
+.column-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+/* Search Criteria styles */
+.search-input {
+    margin-bottom: 12px;
+}
+
+.search-input input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.delinquent-option {
+    display: flex;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.delinquent-label {
+    margin-left: 8px;
+    background-color: #ffc107;
+    color: #000;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Document Types styles */
+.document-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.document-option {
+    display: flex;
+    align-items: center;
+}
+
+.document-checkbox {
+    margin-right: 10px;
+}
+
+.document-label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+}
+
+.document-icon {
+    margin-right: 5px;
+    font-size: 16px;
+}
+
+/* Actions styles */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+}
+
+.btn-apply {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-reset {
+    background-color: #f8f9fa;
+    color: #495057;
+    border: 1px solid #ced4da;
+    text-decoration: none;
+    display: block;
+}
+
+.btn-print {
+    background-color: #28a745;
+    color: white;
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .filter-container {
+        flex-direction: column;
+    }
+    
+    .filter-column {
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 20px;
+    }
+}
+
+/* Custom document icons */
+.soa-icon {
+    color: #6c757d;
+}
+
+.demand-icon {
+    color: #dc3545;
+}
+
+.nncv-icon {
+    color: #6610f2;
+}

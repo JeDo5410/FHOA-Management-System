@@ -225,6 +225,10 @@
             <i class="bi bi-file-text"></i>
             <span>Statement Of Account</span>
         </a>
+        <a href="{{ route('reports.extraction') }}" class="nav-link {{ request()->routeIs('reports.extraction') ? 'active' : '' }}">
+            <i class="bi bi-file-earmark-spreadsheet"></i>
+            <span>Data Extraction</span>
+        </a>
     </nav>
 
     <main class="main-content">

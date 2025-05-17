@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ResidentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AccountReceivableController;
+use App\Http\Controllers\ReportExtractionController;
 use App\Http\Controllers\StatementOfAccountController;
 use Illuminate\Support\Facades\Auth;
 
@@ -68,6 +69,20 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
         Route::get('/soa/print-multiple', [StatementOfAccountController::class, 'printMultiple'])
             ->name('accounts.soa.print-multiple');
     });
+
+    Route::prefix('reports')->group(function () {
+        Route::get('/extraction', [ReportExtractionController::class, 'index'])
+            ->name('reports.extraction');
+        Route::get('/get-members-data', [ReportExtractionController::class, 'getMembersData'])
+            ->name('reports.get-members-data');
+        Route::get('/get-car-sticker-data', [ReportExtractionController::class, 'getCarStickerData'])
+            ->name('reports.get-car-sticker-data');
+        Route::get('/download/members-data', [ReportExtractionController::class, 'downloadMembersData'])
+            ->name('reports.download.members-data');
+        Route::get('/download/car-sticker', [ReportExtractionController::class, 'downloadCarStickerData'])
+            ->name('reports.download.car-sticker');
+    });
+
 });
 
 // Utility routes accessible to all authenticated users
