@@ -81,6 +81,10 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
             ->name('reports.download.members-data');
         Route::get('/download/car-sticker', [ReportExtractionController::class, 'downloadCarStickerData'])
             ->name('reports.download.car-sticker');
+        Route::get('/get-payable-data', [ReportExtractionController::class, 'getPayableData'])
+            ->name('reports.get-payable-data');
+        Route::get('/download/payable-data', [ReportExtractionController::class, 'downloadPayableData'])
+            ->name('reports.download.payable-data');
     });
 
 });

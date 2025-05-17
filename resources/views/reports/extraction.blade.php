@@ -189,10 +189,74 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
 
 
                     <!-- Account Payable Tab -->
-                    <div class="tab-pane fade" id="payable" role="tabpanel" 
-                         aria-labelledby="payable-tab">
+                    <div class="tab-pane fade" id="payable" role="tabpanel" aria-labelledby="payable-tab">
                         <h5 class="mb-4">Account Payable Extraction</h5>
-                        <!-- Content will be added for payable tab -->
+                        
+                        <!-- Filters and Actions Container -->
+                        <div class="filter-card">
+                            <div class="filter-container">
+                                <!-- Date Range Column -->
+                                <div class="filter-column">
+                                    <div class="column-title">Date Range</div>
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label for="startDate" class="form-label">Start Date</label>
+                                            <input type="date" class="form-control" id="payableStartDate">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="endDate" class="form-label">End Date</label>
+                                            <input type="date" class="form-control" id="payableEndDate">
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-primary" id="applyPayableFilterBtn">
+                                        <i class="bi bi-funnel me-1"></i> Apply Filter
+                                    </button>
+                                </div>
+                                
+                                <!-- Actions Column -->
+                                <div class="filter-column">
+                                    <div class="column-title">Actions</div>
+                                    <div class="action-buttons">
+                                        <button type="button" class="btn btn-success" id="downloadPayableBtn">
+                                            <i class="bi bi-download me-1"></i> Download CSV
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Table Container -->
+                        <div class="table-container">
+                            <!-- Payable Data Table -->
+                            <div id="payableTableContainer" class="table-responsive">
+                                <table class="table table-bordered table-striped" id="payableDataTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Trans No.</th>
+                                            <th>Voucher No.</th>
+                                            <th>Date</th>
+                                            <th>Payee</th>
+                                            <th>Pay Type</th>
+                                            <th>Reference</th>
+                                            <th>Total</th>
+                                            <th>Particular</th>
+                                            <th>Amount</th>
+                                            <th>Account Type</th>
+                                            <th>Account Name</th>
+                                            <th>Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Data will be loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Sticky Scrollbar for Payable Table -->
+                            <div class="sticky-scrollbar-container" id="payableStickyScrollbar">
+                                <div class="scrollbar-content" id="payableScrollbarContent"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Account Receivable Tab -->
@@ -242,6 +306,7 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
     </div>
 </div>
 <script src="{{ asset('assets/js/report-members.js') }}"></script>
+<script src="{{ asset('assets/js/report-payable.js') }}"></script>
 <script>
     // Toast Notification Handler
     function showToast(type, message) {

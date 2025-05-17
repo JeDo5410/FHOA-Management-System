@@ -190,4 +190,79 @@ class ReportExtractionController extends Controller
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
     }
+
+    /**
+     * Get account payable data with date range filter
+     */
+    public function getPayableData(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        
+        $query = DB::table('vw_acct_payable');
+        
+        // Apply date range filter
+        if ($startDate && $endDate) {
+            $query->whereBetween('ap_date', [$startDate, $endDate]);
+        }
+        
+        $payables = $query->get();
+        
+        return response()->json($payables);
+    }
+
+    /**
+     * Download account payable data as CSV
+     */
+    public function downloadPayableData(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        
+        $query = DB::table('vw_acct_payable');
+        
+        // Apply date range filter
+        if ($startDate && $endDate) {
+            $query->whereBetween('ap_date', [$startDate, $endDate]);
+        }
+        
+        $payables = $query->get();
+        
+        // Create CSV content
+        $headers = [
+            'Trans No.', 'Voucher No.', 'Date', 'Payee', 'Pay Type', 
+            'Reference', 'Total', 'Particular', 'Amount', 
+            'Account Type', 'Account Name', 'Remarks'
+        ];
+        
+        $csv = implode(',', $headers) . "\n";
+        
+        foreach ($payables as $payable) {
+            $row = [
+                $payable->ap_transno,
+                '"' . str_replace('"', '""', $payable->ap_voucherno) . '"',
+                $payable->ap_date,
+                '"' . str_replace('"', '""', $payable->ap_payee) . '"',
+                '"' . str_replace('"', '""', $payable->ap_paytype) . '"',
+                '"' . str_replace('"', '""', $payable->paytype_reference) . '"',
+                $payable->ap_total,
+                '"' . str_replace('"', '""', $payable->ap_particular) . '"',
+                $payable->ap_amount,
+                '"' . str_replace('"', '""', $payable->acct_type) . '"',
+                '"' . str_replace('"', '""', $payable->acct_name) . '"',
+                '"' . str_replace('"', '""', $payable->remarks) . '"'
+            ];
+            
+            $csv .= implode(',', $row) . "\n";
+        }
+        
+        // Generate filename with date range
+        $filename = 'account_payable_' . $startDate . '_to_' . $endDate . '.csv';
+        
+        // Create download response
+        return Response::make($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
 }
