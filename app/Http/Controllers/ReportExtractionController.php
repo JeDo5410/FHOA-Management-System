@@ -265,4 +265,76 @@ class ReportExtractionController extends Controller
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
     }
+
+    /**
+     * Get account receivable data with date range filter
+     */
+    public function getReceivableData(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        
+        $query = DB::table('vw_acct_receivable');
+        
+        // Apply date range filter
+        if ($startDate && $endDate) {
+            $query->whereBetween('ar_date', [$startDate, $endDate]);
+        }
+        
+        $receivables = $query->get();
+        
+        return response()->json($receivables);
+    }
+
+    /**
+     * Download account receivable data as CSV
+     */
+    public function downloadReceivableData(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        
+        $query = DB::table('vw_acct_receivable');
+        
+        // Apply date range filter
+        if ($startDate && $endDate) {
+            $query->whereBetween('ar_date', [$startDate, $endDate]);
+        }
+        
+        $receivables = $query->get();
+        
+        // Create CSV content
+        $headers = [
+            'Trans No.', 'OR Number', 'Date', 'Payor Name', 'Address ID', 
+            'Amount', 'Remarks', 'Account Type', 'Account Name', 'Account Description'
+        ];
+        
+        $csv = implode(',', $headers) . "\n";
+        
+        foreach ($receivables as $receivable) {
+            $row = [
+                $receivable->ar_transno,
+                '"' . str_replace('"', '""', $receivable->or_number) . '"',
+                $receivable->ar_date,
+                '"' . str_replace('"', '""', $receivable->payor_name) . '"',
+                '"' . str_replace('"', '""', $receivable->mem_add_id) . '"',
+                $receivable->ar_amount,
+                '"' . str_replace('"', '""', $receivable->ar_remarks) . '"',
+                '"' . str_replace('"', '""', $receivable->acct_type) . '"',
+                '"' . str_replace('"', '""', $receivable->acct_name) . '"',
+                '"' . str_replace('"', '""', $receivable->acct_description) . '"'
+            ];
+            
+            $csv .= implode(',', $row) . "\n";
+        }
+        
+        // Generate filename with date range
+        $filename = 'account_receivable_' . $startDate . '_to_' . $endDate . '.csv';
+        
+        // Create download response
+        return Response::make($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
 }

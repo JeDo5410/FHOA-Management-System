@@ -85,6 +85,10 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
             ->name('reports.get-payable-data');
         Route::get('/download/payable-data', [ReportExtractionController::class, 'downloadPayableData'])
             ->name('reports.download.payable-data');
+        Route::get('/get-receivable-data', [ReportExtractionController::class, 'getReceivableData'])
+            ->name('reports.get-receivable-data');
+        Route::get('/download/receivable-data', [ReportExtractionController::class, 'downloadReceivableData'])
+            ->name('reports.download.receivable-data');
     });
 
 });

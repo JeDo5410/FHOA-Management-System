@@ -260,10 +260,72 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                     </div>
 
                     <!-- Account Receivable Tab -->
-                    <div class="tab-pane fade" id="receivable" role="tabpanel" 
-                         aria-labelledby="receivable-tab">
+                    <div class="tab-pane fade" id="receivable" role="tabpanel" aria-labelledby="receivable-tab">
                         <h5 class="mb-4">Account Receivable Extraction</h5>
-                        <!-- Content will be added for receivable tab -->
+                        
+                        <!-- Filters and Actions Container -->
+                        <div class="filter-card">
+                            <div class="filter-container">
+                                <!-- Date Range Column -->
+                                <div class="filter-column">
+                                    <div class="column-title">Date Range</div>
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label for="receivableStartDate" class="form-label">Start Date</label>
+                                            <input type="date" class="form-control" id="receivableStartDate">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="receivableEndDate" class="form-label">End Date</label>
+                                            <input type="date" class="form-control" id="receivableEndDate">
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-primary" id="applyReceivableFilterBtn">
+                                        <i class="bi bi-funnel me-1"></i> Apply Filter
+                                    </button>
+                                </div>
+                                
+                                <!-- Actions Column -->
+                                <div class="filter-column">
+                                    <div class="column-title">Actions</div>
+                                    <div class="action-buttons">
+                                        <button type="button" class="btn btn-success" id="downloadReceivableBtn">
+                                            <i class="bi bi-download me-1"></i> Download CSV
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Table Container -->
+                        <div class="table-container">
+                            <!-- Receivable Data Table -->
+                            <div id="receivableTableContainer" class="table-responsive">
+                                <table class="table table-bordered table-striped" id="receivableDataTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Trans No.</th>
+                                            <th>OR Number</th>
+                                            <th>Date</th>
+                                            <th>Payor Name</th>
+                                            <th>Address ID</th>
+                                            <th>Amount</th>
+                                            <th>Remarks</th>
+                                            <th>Account Type</th>
+                                            <th>Account Name</th>
+                                            <th>Account Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Data will be loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Sticky Scrollbar for Receivable Table -->
+                            <div class="sticky-scrollbar-container" id="receivableStickyScrollbar">
+                                <div class="scrollbar-content" id="receivableScrollbarContent"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -307,6 +369,7 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
 </div>
 <script src="{{ asset('assets/js/report-members.js') }}"></script>
 <script src="{{ asset('assets/js/report-payable.js') }}"></script>
+<script src="{{ asset('assets/js/report-receivable.js') }}"></script>
 <script>
     // Toast Notification Handler
     function showToast(type, message) {
