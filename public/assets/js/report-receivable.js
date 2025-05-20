@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Show loading indicator
         const tbody = document.querySelector('#receivableDataTable tbody');
-        tbody.innerHTML = '<tr><td colspan="10" class="text-center">Loading data...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="14" class="text-center">Loading data...</td></tr>';
         
         // Fetch data from server
         fetch(`/reports/get-receivable-data?start_date=${startDate}&end_date=${endDate}`)
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 tbody.innerHTML = '';
                 
                 if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="10" class="text-center">No data found</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="14" class="text-center">No data found</td></tr>';
                     showToast('info', 'No account receivable records found for the selected date range');
                     return;
                 }
@@ -87,30 +87,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 
                 // Add rows
-                data.forEach(receivable => {
+                    data.forEach(receivable => {
                     const row = document.createElement('tr');
-                    
+
                     // Format date
                     const arDate = receivable.ar_date ? new Date(receivable.ar_date).toLocaleDateString() : 'N/A';
-                    
+
+                    // Format timestamp
+                    const timestamp = receivable.timestamp ? new Date(receivable.timestamp).toLocaleString() : 'N/A';
+
                     // Format currency fields
                     const amount = receivable.ar_amount ? formatter.format(receivable.ar_amount) : '₱0.00';
-                    
+                    const arrearBal = receivable.arrear_bal ? formatter.format(receivable.arrear_bal) : '₱0.00';
+
                     row.innerHTML = `
                         <td>${receivable.ar_transno || ''}</td>
                         <td>${receivable.or_number || ''}</td>
                         <td>${arDate}</td>
-                        <td>${receivable.payor_name || ''}</td>
-                        <td>${receivable.mem_add_id || ''}</td>
                         <td>${amount}</td>
-                        <td>${receivable.ar_remarks || ''}</td>
-                        <td>${receivable.acct_type || ''}</td>
-                        <td>${receivable.acct_name || ''}</td>
+                        <td>${arrearBal}</td>
                         <td>${receivable.acct_description || ''}</td>
+                        <td>${receivable.payor_name || ''}</td>
+                        <td>${receivable.payor_address || ''}</td>
+                        <td>${receivable.payment_type || ''}</td>
+                        <td>${receivable.payment_Ref || ''}</td>
+                        <td>${receivable.receive_by || ''}</td>
+                        <td>${receivable.ar_remarks || ''}</td>
+                        <td>${receivable.user_fullname || ''}</td>
+                        <td>${timestamp}</td>
                     `;
-                    
+
                     tbody.appendChild(row);
-                });
+                    });
                 
                 // Update scrollbar width
                 updateReceivableScrollbarWidth();
@@ -118,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Error loading receivable data:', error);
                 showToast('error', 'Failed to load account receivable data. Please try again.');
-                tbody.innerHTML = '<tr><td colspan="10" class="text-center text-danger">Error loading data</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="14" class="text-center text-danger">Error loading data</td></tr>';
             });
     }
     

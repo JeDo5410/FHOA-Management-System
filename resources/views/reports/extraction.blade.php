@@ -244,6 +244,8 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                             <th>Account Type</th>
                                             <th>Account Name</th>
                                             <th>Remarks</th>
+                                            <th>User</th>
+                                            <th>Timestamp</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -306,13 +308,17 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                             <th>Trans No.</th>
                                             <th>OR Number</th>
                                             <th>Date</th>
-                                            <th>Payor Name</th>
-                                            <th>Address ID</th>
                                             <th>Amount</th>
-                                            <th>Remarks</th>
-                                            <th>Account Type</th>
-                                            <th>Account Name</th>
+                                            <th>Arrear Balance</th>
                                             <th>Account Description</th>
+                                            <th>Payor Name</th>
+                                            <th>Payor Address</th>
+                                            <th>Payment Type</th>
+                                            <th>Payment Reference</th>
+                                            <th>Received By</th>
+                                            <th>Remarks</th>
+                                            <th>User</th>
+                                            <th>Timestamp</th>
                                         </tr>
                                     </thead>
                                     <tbody>

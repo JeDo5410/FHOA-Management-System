@@ -232,7 +232,7 @@ class ReportExtractionController extends Controller
         $headers = [
             'Trans No.', 'Voucher No.', 'Date', 'Payee', 'Pay Type', 
             'Reference', 'Total', 'Particular', 'Amount', 
-            'Account Type', 'Account Name', 'Remarks'
+            'Account Type', 'Account Name', 'Remarks', 'User', 'Timestamp'
         ];
         
         $csv = implode(',', $headers) . "\n";
@@ -250,7 +250,9 @@ class ReportExtractionController extends Controller
                 $payable->ap_amount,
                 '"' . str_replace('"', '""', $payable->acct_type) . '"',
                 '"' . str_replace('"', '""', $payable->acct_name) . '"',
-                '"' . str_replace('"', '""', $payable->remarks) . '"'
+                '"' . str_replace('"', '""', $payable->remarks) . '"',
+                '"' . str_replace('"', '""', $payable->user_fullname) . '"',
+                '"' . str_replace('"', '""', $payable->timestamp) . '"'
             ];
             
             $csv .= implode(',', $row) . "\n";
@@ -305,8 +307,9 @@ class ReportExtractionController extends Controller
         
         // Create CSV content
         $headers = [
-            'Trans No.', 'OR Number', 'Date', 'Payor Name', 'Address ID', 
-            'Amount', 'Remarks', 'Account Type', 'Account Name', 'Account Description'
+            'Trans No.', 'OR Number', 'Date', 'Amount', 'Arrear Balance',
+            'Account Description', 'Payor Name', 'Payor Address', 'Payment Type',
+            'Payment Reference', 'Received By', 'Remarks', 'User', 'Timestamp'
         ];
         
         $csv = implode(',', $headers) . "\n";
@@ -316,13 +319,17 @@ class ReportExtractionController extends Controller
                 $receivable->ar_transno,
                 '"' . str_replace('"', '""', $receivable->or_number) . '"',
                 $receivable->ar_date,
-                '"' . str_replace('"', '""', $receivable->payor_name) . '"',
-                '"' . str_replace('"', '""', $receivable->mem_add_id) . '"',
                 $receivable->ar_amount,
+                $receivable->arrear_bal,
+                '"' . str_replace('"', '""', $receivable->acct_description) . '"',
+                '"' . str_replace('"', '""', $receivable->payor_name) . '"',
+                '"' . str_replace('"', '""', $receivable->payor_address) . '"',
+                '"' . str_replace('"', '""', $receivable->payment_type) . '"',
+                '"' . str_replace('"', '""', $receivable->payment_Ref) . '"',
+                '"' . str_replace('"', '""', $receivable->receive_by) . '"',
                 '"' . str_replace('"', '""', $receivable->ar_remarks) . '"',
-                '"' . str_replace('"', '""', $receivable->acct_type) . '"',
-                '"' . str_replace('"', '""', $receivable->acct_name) . '"',
-                '"' . str_replace('"', '""', $receivable->acct_description) . '"'
+                '"' . str_replace('"', '""', $receivable->user_fullname) . '"',
+                '"' . str_replace('"', '""', $receivable->timestamp) . '"'
             ];
             
             $csv .= implode(',', $row) . "\n";
