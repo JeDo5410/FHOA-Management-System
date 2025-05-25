@@ -54,43 +54,84 @@
 </div>
 
 <script>
-// Check for timeout parameter in URL or session message
-document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('reason') === 'timeout') {
-        document.getElementById('timeoutMessage').style.display = 'block';
-    }
-    // Once the message is displayed, clear the URL parameter
-    if (urlParams.get('reason') === 'timeout') {
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
-    }
-});
-// JavaScript remains unchanged
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('username').addEventListener('blur', checkUsername);
-    document.getElementById('loginForm').addEventListener('submit', handleSubmit);
+// ===========================
+// Configuration & State
+// ===========================
+const state = {
+    user: {
+        exists: false,
+        hasPassword: false
+    },
+    isRedirecting: false
+};
 
-    // Check session status on page load
+// ===========================
+// Initialization
+// ===========================
+document.addEventListener('DOMContentLoaded', function() {
+    // Check for timeout parameter in URL
+    handleTimeoutParameter();
+    
+    // Set up event listeners
+    initializeEventListeners();
+    
+    // Check session status
     checkSessionStatus();
 });
 
-let userState = {
-    exists: false,
-    hasPassword: false
-};
+// ===========================
+// URL Parameter Handling
+// ===========================
+function handleTimeoutParameter() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('reason') === 'timeout') {
+        // Show timeout message
+        document.getElementById('timeoutMessage').style.display = 'block';
+        
+        // Clean up URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+    }
+}
 
+// ===========================
+// Event Listeners Setup
+// ===========================
+function initializeEventListeners() {
+    const usernameField = document.getElementById('username');
+    
+    // Username field blur event
+    usernameField.addEventListener('blur', checkUsername);
+    
+    // Username field input event with debounce
+    usernameField.addEventListener('input', debounce(checkUsername, 1500));
+    
+    // Username field enter key event
+    usernameField.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            checkUsername();
+        }
+    });
+    
+    // Form submit event
+    document.getElementById('loginForm').addEventListener('submit', handleSubmit);
+}
+
+// ===========================
+// Session Management
+// ===========================
 async function checkSessionStatus() {
-    if (window.isRedirecting) return;
+    if (state.isRedirecting) return;
+    
     try {
         const response = await fetch('/check-session', {
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                'X-CSRF-TOKEN': getCsrfToken()
             }
         });
         
         if (response.status === 419 || response.status === 401) {
-            // Session is invalid, try to refresh token
             const refreshed = await refreshCsrfToken();
             if (!refreshed) {
                 throw new Error('Session expired');
@@ -98,16 +139,7 @@ async function checkSessionStatus() {
         }
     } catch (error) {
         console.error('Session check failed:', error);
-        await Swal.fire({
-            title: 'Session Expired',
-            text: 'Your session has expired. Please refresh the page.',
-            icon: 'warning',
-            confirmButtonText: 'Refresh Page'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.reload();
-            }
-        });
+        showSessionExpiredAlert();
     }
 }
 
@@ -115,6 +147,7 @@ async function refreshCsrfToken() {
     try {
         const response = await fetch('/refresh-csrf');
         if (!response.ok) throw new Error('Failed to refresh CSRF token');
+        
         const data = await response.json();
         document.querySelector('input[name="_token"]').value = data.token;
         return true;
@@ -124,6 +157,9 @@ async function refreshCsrfToken() {
     }
 }
 
+// ===========================
+// API Request Handling
+// ===========================
 async function makeAuthenticatedRequest(url, options) {
     try {
         const response = await fetch(url, options);
@@ -131,19 +167,10 @@ async function makeAuthenticatedRequest(url, options) {
         if (response.status === 419 || response.status === 401) {
             const refreshed = await refreshCsrfToken();
             if (refreshed) {
-                options.headers['X-CSRF-TOKEN'] = document.querySelector('input[name="_token"]').value;
+                options.headers['X-CSRF-TOKEN'] = getCsrfToken();
                 return await fetch(url, options);
             } else {
-                await Swal.fire({
-                    title: 'Session Expired',
-                    text: 'Your session has expired. Please refresh the page.',
-                    icon: 'warning',
-                    confirmButtonText: 'Refresh Page'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.reload();
-                    }
-                });
+                showSessionExpiredAlert();
                 return null;
             }
         }
@@ -155,16 +182,34 @@ async function makeAuthenticatedRequest(url, options) {
     }
 }
 
+// ===========================
+// Username Validation
+// ===========================
 async function checkUsername() {
     const username = document.getElementById('username').value.trim();
-    if (!username) return;
+    
+    // Clear error state if username is empty
+    if (!username) {
+        const usernameInput = document.getElementById('username');
+        const usernameError = document.getElementById('usernameError');
+        usernameInput.classList.remove('is-invalid');
+        usernameError.textContent = '';
+        
+        // Reset form state
+        state.user = {
+            exists: false,
+            hasPassword: false
+        };
+        updateFormState();
+        return;
+    }
 
     try {
         const response = await makeAuthenticatedRequest('/check-username', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                'X-CSRF-TOKEN': getCsrfToken()
             },
             body: JSON.stringify({ username })
         });
@@ -174,238 +219,291 @@ async function checkUsername() {
         const data = await response.json();
         console.log('User state after check:', data);
         
-        userState = {
+        // Update state
+        state.user = {
             exists: data.exists,
             hasPassword: data.hasPassword
         };
 
-        const usernameInput = document.getElementById('username');
-        const usernameError = document.getElementById('usernameError');
-        
-        if (!data.exists) {
-            usernameInput.classList.add('is-invalid');
-            usernameError.textContent = data.message || 'User not found';
-        } else {
-            usernameInput.classList.remove('is-invalid');
-            usernameError.textContent = '';
-        }
-
+        // Update UI
+        updateUsernameFieldUI(data);
         updateFormState();
+        
     } catch (error) {
         console.error('Error:', error);
-        await Swal.fire({
-            title: 'Session Error',
-            text: 'Please refresh the page and try again.',
-            icon: 'warning',
-            confirmButtonText: 'Refresh Page'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.reload();
-            }
-        });
+        showSessionErrorAlert();
     }
 }
 
+function updateUsernameFieldUI(data) {
+    const usernameInput = document.getElementById('username');
+    const usernameError = document.getElementById('usernameError');
+    
+    if (!data.exists) {
+        usernameInput.classList.add('is-invalid');
+        usernameError.textContent = data.message || 'User not found';
+    } else {
+        usernameInput.classList.remove('is-invalid');
+        usernameError.textContent = '';
+    }
+}
+
+// ===========================
+// Form State Management
+// ===========================
 function updateFormState() {
     const passwordGroup = document.getElementById('passwordGroup');
     const newPasswordGroup = document.getElementById('newPasswordGroup');
     const submitBtn = document.getElementById('submitBtn');
 
-    if (!userState.exists) {
+    if (!state.user.exists) {
+        // Hide all password fields and disable submit
         passwordGroup.classList.add('d-none');
         newPasswordGroup.classList.add('d-none');
         submitBtn.disabled = true;
         return;
     }
 
+    // Enable submit button
     submitBtn.disabled = false;
 
-    if (userState.hasPassword) {
+    if (state.user.hasPassword) {
+        // Show regular password field
         passwordGroup.classList.remove('d-none');
         newPasswordGroup.classList.add('d-none');
     } else {
+        // Show new password field
         passwordGroup.classList.add('d-none');
         newPasswordGroup.classList.remove('d-none');
     }
 }
 
+// ===========================
+// Form Submission
+// ===========================
 async function handleSubmit(e) {
     e.preventDefault();
     
+    // Validate username
     const username = document.getElementById('username').value.trim();
     if (!username) {
-        await Swal.fire({
-            title: 'Error',
-            text: 'Please enter a username',
-            icon: 'error'
-        });
+        showErrorAlert('Please enter a username');
         return;
     }
 
-    // Always check username before proceeding with form submission
+    // Recheck username before submission
     await checkUsername();
-    console.log('Current user state after validation:', userState);
     
-    // Add a small delay to ensure username check completed
+    // Small delay to ensure state is updated
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    if (!userState.exists) {
-        await Swal.fire({
-            title: 'Error',
-            text: 'Please enter a valid username',
-            icon: 'error'
-        });
+    if (!state.user.exists) {
+        showErrorAlert('Please enter a valid username');
         return;
     }
 
-    const submitBtn = document.getElementById('submitBtn');
-
-    if (!userState.hasPassword) {
-        const newPassword = document.getElementById('new_password').value.trim();
-        
-        if (!newPassword) {
-            await Swal.fire({
-                title: 'Error',
-                text: 'Please enter a new password',
-                icon: 'error'
-            });
-            return;
-        }
-
-        // Add password strength validation
-        if (newPassword.length < 5) {
-            await Swal.fire({
-                title: 'Error',
-                text: 'Password must be at least 5 characters long',
-                icon: 'error'
-            });
-            return;
-        }
-        
-        try {
-            // Show confirmation dialog before setting password
-            const result = await Swal.fire({
-                title: 'Confirm New Password',
-                text: 'Would you like to save this password?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, save it',
-                cancelButtonText: 'No, cancel'
-            });
-
-            if (result.isConfirmed) {
-                submitBtn.disabled = true;
-                
-                const response = await makeAuthenticatedRequest('/set-initial-password', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
-                    },
-                    body: JSON.stringify({ 
-                        username: username, 
-                        new_password: newPassword 
-                    })
-                });
-
-                if (!response) {
-                    submitBtn.disabled = false;
-                    return;
-                }
-                
-                const data = await response.json();
-
-                if (data.success) {
-                    await Swal.fire({
-                        title: 'Success',
-                        text: data.message,
-                        icon: 'success',
-                        timer: 7500,  
-                        timerProgressBar: true  
-                    });
-                    document.getElementById('new_password').value = '';
-                    document.getElementById('password').value = '';
-                    userState.hasPassword = true;
-                    updateFormState();
-                } else {
-                    const newPasswordInput = document.getElementById('new_password');
-                    const newPasswordError = document.getElementById('newPasswordError');
-                    newPasswordInput.classList.add('is-invalid');
-                    newPasswordError.textContent = data.message || 'Failed to set password. Please try again.';
-                }
-                submitBtn.disabled = false;
-            }
-        } catch (error) {
-            console.error('Error setting password:', error);
-            submitBtn.disabled = false;
-            await Swal.fire({
-                title: 'Session Expired',
-                text: 'Your session has expired. Please refresh and try again.',
-                icon: 'warning',
-                confirmButtonText: 'Refresh Page'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.reload();
-                }
-            });
-        }
+    // Handle based on user state
+    if (!state.user.hasPassword) {
+        await handleNewPasswordSubmission(username);
     } else {
-        const password = document.getElementById('password').value.trim();
-        
-        if (!password) {
-            await Swal.fire({
-                title: 'Error',
-                text: 'Please enter your password',
-                icon: 'error'
-            });
+        await handleLoginSubmission(username);
+    }
+}
+
+// ===========================
+// New Password Handling
+// ===========================
+async function handleNewPasswordSubmission(username) {
+    const newPassword = document.getElementById('new_password').value.trim();
+    
+    // Validate new password
+    if (!newPassword) {
+        showErrorAlert('Please enter a new password');
+        return;
+    }
+
+    if (newPassword.length < 5) {
+        showErrorAlert('Password must be at least 5 characters long');
+        return;
+    }
+    
+    // Confirm password
+    const result = await Swal.fire({
+        title: 'Confirm New Password',
+        text: 'Would you like to save this password?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, save it',
+        cancelButtonText: 'No, cancel'
+    });
+
+    if (!result.isConfirmed) return;
+
+    // Submit new password
+    await submitNewPassword(username, newPassword);
+}
+
+async function submitNewPassword(username, newPassword) {
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    
+    try {
+        const response = await makeAuthenticatedRequest('/set-initial-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken()
+            },
+            body: JSON.stringify({ username, new_password: newPassword })
+        });
+
+        if (!response) {
+            submitBtn.disabled = false;
             return;
         }
+        
+        const data = await response.json();
 
-        try {
-            submitBtn.disabled = true;
-
-            const response = await makeAuthenticatedRequest('/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
-                },
-                body: JSON.stringify({ username, password })
-            });
-
-            if (!response) {
-                submitBtn.disabled = false;
-                return;
-            }
-            
-            const data = await response.json();
-            if (data.success) {
-                window.isRedirecting = true;
-                window.location.href = data.redirect;
-            } else {
-                const passwordInput = document.getElementById('password');
-                const passwordError = document.getElementById('passwordError');
-                passwordInput.classList.add('is-invalid');
-                passwordError.textContent = data.message;
-                submitBtn.disabled = false;
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            submitBtn.disabled = false;
+        if (data.success) {
             await Swal.fire({
-                title: 'Session Expired',
-                text: 'Your session has expired. Please refresh and try again.',
-                icon: 'warning',
-                confirmButtonText: 'Refresh Page'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.reload();
-                }
+                title: 'Success',
+                text: data.message,
+                icon: 'success',
+                timer: 7500,
+                timerProgressBar: true
             });
+            
+            // Clear password fields
+            document.getElementById('new_password').value = '';
+            document.getElementById('password').value = '';
+            
+            // Update state
+            state.user.hasPassword = true;
+            updateFormState();
+        } else {
+            showFieldError('new_password', data.message || 'Failed to set password. Please try again.');
         }
+    } catch (error) {
+        console.error('Error setting password:', error);
+        showSessionExpiredAlert();
+    } finally {
+        submitBtn.disabled = false;
     }
+}
+
+// ===========================
+// Login Handling
+// ===========================
+async function handleLoginSubmission(username) {
+    const password = document.getElementById('password').value.trim();
+    
+    if (!password) {
+        showErrorAlert('Please enter your password');
+        return;
+    }
+
+    await submitLogin(username, password);
+}
+
+async function submitLogin(username, password) {
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+
+    try {
+        const response = await makeAuthenticatedRequest('/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken()
+            },
+            body: JSON.stringify({ username, password })
+        });
+
+        if (!response) {
+            submitBtn.disabled = false;
+            return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            state.isRedirecting = true;
+            window.location.href = data.redirect;
+        } else {
+            showFieldError('password', data.message);
+            submitBtn.disabled = false;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showSessionExpiredAlert();
+        submitBtn.disabled = false;
+    }
+}
+
+// ===========================
+// Helper Functions
+// ===========================
+function getCsrfToken() {
+    return document.querySelector('input[name="_token"]').value;
+}
+
+function showFieldError(fieldId, message) {
+    const input = document.getElementById(fieldId);
+    const error = document.getElementById(fieldId + 'Error');
+    input.classList.add('is-invalid');
+    error.textContent = message;
+}
+
+// Debounce function to limit how often a function can run
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// ===========================
+// Alert Functions
+// ===========================
+async function showErrorAlert(message) {
+    await Swal.fire({
+        title: 'Error',
+        text: message,
+        icon: 'error'
+    });
+}
+
+async function showSessionExpiredAlert() {
+    await Swal.fire({
+        title: 'Session Expired',
+        text: 'Your session has expired. Please refresh the page.',
+        icon: 'warning',
+        confirmButtonText: 'Refresh Page'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.reload();
+        }
+    });
+}
+
+async function showSessionErrorAlert() {
+    await Swal.fire({
+        title: 'Session Error',
+        text: 'Please refresh the page and try again.',
+        icon: 'warning',
+        confirmButtonText: 'Refresh Page'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.reload();
+        }
+    });
 }
 </script>
 @endsection
