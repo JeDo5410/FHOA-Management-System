@@ -35,20 +35,38 @@ class AccountReceivableController extends Controller
      */
     public function store(Request $request)
     {
-        // Check if this is a reversal (based on remarks containing "CANCELLED OR")
+        // Check what type of operation this is
         $isReversal = false;
+        $isEdit = false;
         
-        if ($request->has('remarks')) {
-            $remarks = trim($request->input('remarks'));
-            if (stripos($remarks, 'CANCELLED SIN') === 0) {
-                $isReversal = true;
-            }
+        // Check for edit flag
+        if ($request->has('sin_edit')) {
+            $isEdit = true;
         }
         
-        if ($request->has('arrears_remarks')) {
-            $remarks = trim($request->input('arrears_remarks'));
-            if (stripos($remarks, 'CANCELLED SIN') === 0) {
-                $isReversal = true;
+        // Check for cancellation flag
+        if ($request->has('sin_cancellation')) {
+            $isReversal = true;
+        }
+        
+        // Check remarks for operation type (fallback)
+        if (!$isEdit && !$isReversal) {
+            if ($request->has('remarks')) {
+                $remarks = trim($request->input('remarks'));
+                if (stripos($remarks, 'CANCELLED SIN') === 0) {
+                    $isReversal = true;
+                } elseif (stripos($remarks, 'EDITED FROM SIN') === 0) {
+                    $isEdit = true;
+                }
+            }
+            
+            if ($request->has('arrears_remarks')) {
+                $remarks = trim($request->input('arrears_remarks'));
+                if (stripos($remarks, 'CANCELLED SIN') === 0) {
+                    $isReversal = true;
+                } elseif (stripos($remarks, 'EDITED FROM SIN') === 0) {
+                    $isEdit = true;
+                }
             }
         }
 
@@ -56,35 +74,22 @@ class AccountReceivableController extends Controller
         $formType = $request->input('form_type');
         
         if ($formType === 'account_receivable') {
-            return $isReversal 
-                ? $this->storeAccountReceivableReversal($request)
-                : $this->storeAccountReceivable($request);
+            // if ($isEdit) {
+            //     return $this->storeAccountReceivableEdit($request);
+            // } elseif ($isReversal) {
+            //     return $this->storeAccountReceivableReversal($request);
+            // } else {
+            //     return $this->storeAccountReceivable($request);
+            // }
         } elseif ($formType === 'arrears_receivable') {
-            return $isReversal
-                ? $this->storeArrearsReceivableReversal($request)
-                : $this->storeArrearsReceivable($request);
+            if ($isEdit) {
+                return $this->storeArrearsReceivableEdit($request);
+            } elseif ($isReversal) {
+                return $this->storeArrearsReceivableReversal($request);
+            } else {
+                return $this->storeArrearsReceivable($request);
+            }
         }
-        
-        // Invalid form type
-        return back()->with('error', 'Invalid form type');
-
-
-        // At the top of your store method
-        Log::debug('Store method called', [
-            'form_type' => $request->input('form_type'),
-            'has_remarks' => $request->has('remarks'),
-            'remarks' => $request->input('remarks'),
-            'has_arrears_remarks' => $request->has('arrears_remarks'),
-            'arrears_remarks' => $request->input('arrears_remarks'),
-            'detected_as_reversal' => $isReversal
-        ]);
-
-        // Then in each method add:
-        // In storeAccountReceivableReversal
-        Log::debug('Account Receivable Reversal method called');
-
-        // In storeArrearsReceivableReversal
-        Log::debug('Arrears Receivable Reversal method called');
         
         // Invalid form type
         return back()->with('error', 'Invalid form type');
@@ -257,7 +262,7 @@ class AccountReceivableController extends Controller
                 ->join('charts_of_account', 'acct_receivable.acct_type_id', '=', 'charts_of_account.acct_type_id')
                 ->where('charts_of_account.acct_type', 'Association Receipts')
                 ->where('charts_of_account.acct_name', 'Association Dues')
-                ->orderBy('acct_receivable.ar_date', 'desc')
+                ->orderBy('acct_receivable.ar_transno', 'desc')
                 ->select(
                     'acct_receivable.ar_transno',
                     'acct_receivable.ar_date',
@@ -266,6 +271,7 @@ class AccountReceivableController extends Controller
                     'acct_receivable.arrear_bal',
                     'acct_receivable.ar_remarks',
                     'acct_receivable.payor_name',
+                    'acct_receivable.timestamp',
                     'charts_of_account.acct_description'
                 )
                 ->get();
@@ -291,42 +297,38 @@ class AccountReceivableController extends Controller
     public function checkInvoice($invoiceNumber)
     {
         try {
-            // Find the transaction by invoice number (or_number)
-            $transaction = AcctReceivable::where('or_number', $invoiceNumber)->first();
+            // Find the most recent transaction by invoice number
+            $transaction = AcctReceivable::where('or_number', $invoiceNumber)
+                ->orderBy('ar_transno', 'desc')  // ✅ Use ar_transno instead of created_at
+                ->first();
             
             if (!$transaction) {
                 return response()->json([
                     'exists' => false,
-                    'message' => 'Invoice not found'
+                    'message' => 'SIN not found'
                 ]);
             }
             
-            // For account receivable transactions, we need to get all line items
-            $lineItems = null;
+            // Check if this is the most recent non-cancelled transaction
+            if (str_contains($transaction->ar_remarks ?? '', 'SYSTEM CANCELLATION FOR EDIT')) {
+                // Find the actual edited transaction (should be the next one created)
+                $actualTransaction = AcctReceivable::where('or_number', $invoiceNumber)
+                    ->where('ar_amount', '>', 0) // Positive amount = actual transaction
+                    ->orderBy('ar_transno', 'desc')  // ✅ Use ar_transno here too
+                    ->first();
+                    
+                if ($actualTransaction) {
+                    $transaction = $actualTransaction;
+                }
+            }
             
-            // Determine transaction type based on mem_id (most reliable indicator)
+            $lineItems = null;
             $isArrears = !empty($transaction->mem_id);
             
-            // Double-check with account type for extra validation
-            $accountTypeMatch = ChartOfAccount::where('acct_type_id', $transaction->acct_type_id)
-                ->where('acct_type', 'Association Receipts')
-                ->where('acct_name', 'Association Dues')
-                ->exists();
-            
-            // If there's a discrepancy, log it for investigation
-            if ($isArrears !== $accountTypeMatch) {
-                Log::warning('Transaction type mismatch detected', [
-                    'or_number' => $invoiceNumber,
-                    'mem_id_exists' => !empty($transaction->mem_id),
-                    'account_type_match' => $accountTypeMatch
-                ]);
-            }
-            
-            // For regular account receivables, get all line items with account type info
+            // For regular account receivables, get all line items
             if (!$isArrears) {
-                // Get all line items for this invoice number (for account receivable)
-                // Join with charts_of_account to get descriptions
                 $lineItems = AcctReceivable::where('acct_receivable.or_number', $invoiceNumber)
+                    ->where('acct_receivable.ar_amount', '>', 0) // Only positive amounts (actual transactions)
                     ->join('charts_of_account', 'acct_receivable.acct_type_id', '=', 'charts_of_account.acct_type_id')
                     ->select(
                         'acct_receivable.*',
@@ -337,31 +339,23 @@ class AccountReceivableController extends Controller
                     ->get()
                     ->toArray();
             }
-
-            // Add debug logging
-            Log::debug('Invoice lookup details', [
-                'or_number' => $invoiceNumber,
-                'transaction_found' => isset($transaction),
-                'is_arrears' => $isArrears,
-                'line_items_count' => $lineItems ? count($lineItems) : 0,
-                'first_line_item' => $lineItems && count($lineItems) > 0 ? array_keys($lineItems[0]) : []
-            ]);
             
-            // Return the transaction details
             return response()->json([
                 'exists' => true,
                 'transaction' => $transaction,
                 'line_items' => $lineItems,
                 'is_arrears' => $isArrears,
                 'tab_type' => $isArrears ? 'arrears' : 'account',
+                'can_edit' => true,
                 'message' => 'Transaction found'
             ]);
+            
         } catch (\Exception $e) {
             Log::error('Error checking invoice: ' . $e->getMessage());
             
             return response()->json([
                 'exists' => false,
-                'message' => 'Error checking invoice: ' . $e->getMessage()
+                'message' => 'Error checking SIN: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -525,4 +519,211 @@ class AccountReceivableController extends Controller
         }
     }
     
+    /**
+     * Store an edit transaction for arrears receivable
+     */
+private function storeArrearsReceivableEdit(Request $request)
+{
+    // Add this logging at the very beginning of the method, right after the opening brace
+    Log::info('=== ARREARS RECEIVABLE EDIT STARTED ===', [
+        'user_id' => Auth::id(),
+        'user_name' => Auth::user()->fullname ?? Auth::user()->name,
+        'request_data' => $request->all(),
+        'timestamp' => now()
+    ]);
+
+    try {
+        // Validate the HOA Monthly Dues form
+        $validated = $request->validate([
+            'arrears_address_id' => 'required|string|max:5',
+            'arrears_received_from' => 'nullable|string|max:45',
+            'arrears_service_invoice_no' => 'required|integer',
+            'arrears_date' => 'required|date',
+            'arrears_items' => 'required|array',
+            'arrears_items.0.coa' => 'required|integer|exists:charts_of_account,acct_type_id',
+            'arrears_items.0.amount' => 'required|numeric|min:0.01',
+            'arrears_received_by' => 'required|string|max:45',
+            'arrears_payment_mode' => 'required|in:CASH,GCASH,CHECK,BANK_TRANSFER',
+            'arrears_reference_no' => 'nullable|string|max:45',
+            'arrears_remarks' => 'required|string|max:150' // Increased for edit remarks
+        ]);
+
+        // Add this logging right after validation
+        Log::info('Validation passed for arrears edit', [
+            'validated_data' => $validated,
+            'sin_number' => $validated['arrears_service_invoice_no']
+        ]);
+
+        // Begin transaction for data integrity
+        DB::beginTransaction();
+        
+        // Find the member record using the address ID
+        $memberSum = MemberSum::where('mem_add_id', $validated['arrears_address_id'])->first();
+        
+        if (!$memberSum) {
+            // Add this logging when member is not found
+            Log::error('Member not found during arrears edit', [
+                'address_id' => $validated['arrears_address_id'],
+                'sin_number' => $validated['arrears_service_invoice_no']
+            ]);
+            throw new \Exception('Member not found with the provided Address ID');
+        }
+
+        // Add this logging after finding member
+        Log::info('Member found for arrears edit', [
+            'member_id' => $memberSum->mem_id,
+            'member_name' => $memberSum->mem_fname . ' ' . $memberSum->mem_lname,
+            'address_id' => $validated['arrears_address_id'],
+            'current_arrear_balance' => $memberSum->arrear
+        ]);
+        
+        // Get the original transaction that we're editing
+        $originalSinNumber = $validated['arrears_service_invoice_no'];
+        $originalTransaction = AcctReceivable::where('or_number', $originalSinNumber)
+            ->where('mem_id', $memberSum->mem_id)
+            ->first();
+            
+        if (!$originalTransaction) {
+            // Add this logging when original transaction is not found
+            Log::error('Original transaction not found during arrears edit', [
+                'sin_number' => $originalSinNumber,
+                'member_id' => $memberSum->mem_id
+            ]);
+            throw new \Exception('Original transaction not found');
+        }
+
+        // Add this logging after finding original transaction
+        Log::info('Original transaction found for editing', [
+            'original_transaction_id' => $originalTransaction->ar_transno,
+            'original_amount' => $originalTransaction->ar_amount,
+            'original_date' => $originalTransaction->ar_date,
+            'original_remarks' => $originalTransaction->ar_remarks,
+            'sin_number' => $originalSinNumber
+        ]);
+        
+        // STEP 1: Create cancellation entry for original transaction
+        $cancellationTransaction = new AcctReceivable();
+        $cancellationTransaction->mem_id = $memberSum->mem_id;
+        $cancellationTransaction->or_number = $originalSinNumber;
+        $cancellationTransaction->ar_date = now()->format('Y-m-d');
+        $cancellationTransaction->ar_amount = -abs($originalTransaction->ar_amount); // Negative amount
+        $cancellationTransaction->arrear_bal = $memberSum->arrear + abs($originalTransaction->ar_amount); // Restore original balance
+        $cancellationTransaction->acct_type_id = $originalTransaction->acct_type_id;
+        $cancellationTransaction->payor_name = $originalTransaction->payor_name;
+        $cancellationTransaction->payor_address = $validated['arrears_address_id'];
+        $cancellationTransaction->payment_type = $originalTransaction->payment_type;
+        $cancellationTransaction->payment_Ref = $originalTransaction->payment_Ref;
+        $cancellationTransaction->receive_by = Auth::user()->fullname ?? Auth::user()->name;
+        $cancellationTransaction->ar_remarks = "SYSTEM CANCELLATION FOR EDIT - Original SIN: {$originalSinNumber}";
+        $cancellationTransaction->user_id = Auth::id();
+        $cancellationTransaction->save();
+
+        // Add this logging after creating cancellation transaction
+        Log::info('Cancellation transaction created', [
+            'cancellation_transaction_id' => $cancellationTransaction->ar_transno,
+            'cancellation_amount' => $cancellationTransaction->ar_amount,
+            'restored_balance' => $cancellationTransaction->arrear_bal,
+            'sin_number' => $originalSinNumber
+        ]);
+        
+        // STEP 2: Create new transaction with updated details
+        $newPaymentAmount = $validated['arrears_items'][0]['amount'];
+        $currentArrear = $memberSum->arrear + abs($originalTransaction->ar_amount); // Balance after cancellation
+        $newArrearBalance = $currentArrear - $newPaymentAmount;
+
+        // Add this logging before creating new transaction
+        Log::info('Creating new edited transaction', [
+            'new_amount' => $newPaymentAmount,
+            'balance_after_cancellation' => $currentArrear,
+            'new_balance_after_payment' => $newArrearBalance,
+            'sin_number' => $originalSinNumber
+        ]);
+        
+        $editedTransaction = new AcctReceivable();
+        $editedTransaction->mem_id = $memberSum->mem_id;
+        $editedTransaction->or_number = $originalSinNumber; // Keep same SIN number
+        $editedTransaction->ar_date = now()->format('Y-m-d');;
+        $editedTransaction->ar_amount = $newPaymentAmount;
+        $editedTransaction->arrear_bal = $newArrearBalance;
+        $editedTransaction->acct_type_id = $validated['arrears_items'][0]['coa'];
+        $editedTransaction->payor_name = strtoupper($validated['arrears_received_from']);
+        $editedTransaction->payor_address = $validated['arrears_address_id'];
+        $editedTransaction->payment_type = $validated['arrears_payment_mode'];
+        $editedTransaction->payment_Ref = $validated['arrears_reference_no'] ?? null;
+        $editedTransaction->receive_by = $validated['arrears_received_by'];
+        $editedTransaction->ar_remarks = $validated['arrears_remarks'];
+        $editedTransaction->user_id = Auth::id();
+        $editedTransaction->save();
+
+        // Add this logging after creating edited transaction
+        Log::info('New edited transaction created', [
+            'edited_transaction_id' => $editedTransaction->ar_transno,
+            'edited_amount' => $editedTransaction->ar_amount,
+            'edited_date' => $editedTransaction->ar_date,
+            'edited_remarks' => $editedTransaction->ar_remarks,
+            'final_arrear_balance' => $editedTransaction->arrear_bal,
+            'sin_number' => $originalSinNumber
+        ]);
+        
+        // STEP 3: Update member_sum with new payment information
+        $memberSum->last_or = $originalSinNumber;
+        $memberSum->last_paydate = $validated['arrears_date'];
+        $memberSum->last_payamount = $newPaymentAmount;
+        $memberSum->arrear = $newArrearBalance;
+        $memberSum->user_id = Auth::id();
+        $memberSum->save();
+
+        // Add this logging after updating member summary
+        Log::info('Member summary updated', [
+            'member_id' => $memberSum->mem_id,
+            'updated_last_or' => $memberSum->last_or,
+            'updated_last_paydate' => $memberSum->last_paydate,
+            'updated_last_payamount' => $memberSum->last_payamount,
+            'updated_arrear_balance' => $memberSum->arrear,
+            'sin_number' => $originalSinNumber
+        ]);
+        
+        // Commit the transaction
+        DB::commit();
+
+        // Add this logging after successful commit
+        Log::info('=== ARREARS RECEIVABLE EDIT COMPLETED SUCCESSFULLY ===', [
+            'sin_number' => $originalSinNumber,
+            'member_id' => $memberSum->mem_id,
+            'original_amount' => $originalTransaction->ar_amount,
+            'new_amount' => $newPaymentAmount,
+            'user_id' => Auth::id(),
+            'timestamp' => now()
+        ]);
+        
+        // Return success response
+        return redirect()->route('accounts.receivables', ['tab' => $request->input('active_tab', 'arrears')])
+            ->with('success', "SIN #{$originalSinNumber} has been successfully updated");
+                        
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        // Add this logging for validation errors
+        Log::error('Validation failed during arrears edit', [
+            'errors' => $e->errors(),
+            'input_data' => $request->all(),
+            'user_id' => Auth::id()
+        ]);
+        return back()->withErrors($e->errors())->withInput();
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        // Add this logging for general errors - place it right after DB::rollBack()
+        Log::error('=== ARREARS RECEIVABLE EDIT FAILED ===', [
+            'error_message' => $e->getMessage(),
+            'error_trace' => $e->getTraceAsString(),
+            'sin_number' => $request->input('arrears_service_invoice_no'),
+            'user_id' => Auth::id(),
+            'request_data' => $request->all(),
+            'timestamp' => now()
+        ]);
+
+        Log::error('Error editing HOA monthly dues: ' . $e->getMessage());
+        return back()->with('error', 'Error editing HOA monthly dues: ' . $e->getMessage())
+            ->withInput();
+    }
+}
 }

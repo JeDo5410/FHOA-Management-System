@@ -192,8 +192,7 @@
                                                 class="form-control form-control-sm"
                                                 id="arrears_receivedFrom" 
                                                 name="arrears_received_from"
-                                                autocomplete="off"
-                                                required>
+                                                autocomplete="off">
                                         </div>
                                     </div>
                                     
@@ -673,6 +672,65 @@
             </div>
         </div>
     </div>
+
+    <!-- Transaction Choice Modal -->
+    <div class="modal fade" id="transactionChoiceModal" tabindex="-1" aria-labelledby="transactionChoiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="transactionChoiceModalLabel">
+                        <i class="bi bi-search me-2"></i>Existing SIN Found
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>SIN already exists!</strong> You can either edit the existing transaction or cancel it.
+                    </div>
+                    
+                    <!-- Transaction Details -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title">Transaction Details</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>SIN:</strong> <span id="modalSinNumber">-</span></p>
+                                    <p class="mb-1"><strong>Date:</strong> <span id="modalTransactionDate">-</span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Amount:</strong> <span id="modalTransactionAmount" class="text-success">-</span></p>
+                                    <p class="mb-0"><strong>Payor:</strong> <span id="modalPayorName">-</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p class="mb-3">What would you like to do with this transaction?</p>
+                    
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-primary w-100" id="editTransactionBtn">
+                                <i class="bi bi-pencil me-2"></i>Edit SIN
+                            </button>
+                            <small class="text-muted d-block mt-1">Modify transaction details</small>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-danger w-100" id="cancelTransactionBtn">
+                                <i class="bi bi-x-circle me-2"></i>Cancel SIN
+                            </button>
+                            <small class="text-muted d-block mt-1">Reverse this transaction</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-door-open me-2"></i>Exit
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -1077,6 +1135,41 @@
     input[type="number"]::-webkit-outer-spin-button {
         -webkit-appearance: none;
         margin: 0;
+    }
+    
+    /* Payment History Modal - Smaller Text Styles */
+    #paymentHistoryModal .modal-body {
+    font-size: 14px;
+    }
+
+    #paymentHistoryModal .table {
+    font-size: 14px;
+    }
+
+    #paymentHistoryModal .table th {
+    font-size: 14px;
+    font-weight: 500;
+    }
+
+    #paymentHistoryModal .table td {
+    font-size: 14px;
+    }
+
+    #paymentHistoryModal .modal-title {
+    font-size: 16px; /* Slightly larger for the title */
+    }
+
+    #paymentHistoryModal .bg-light p {
+    font-size: 14px;
+    margin-bottom: 0.5rem;
+    }
+
+    #paymentHistoryModal .alert {
+    font-size: 14px;
+    }
+
+    #paymentHistoryModal .spinner-border + p {
+    font-size: 14px;
     }
 </style>
 

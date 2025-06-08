@@ -8,38 +8,53 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function setupTabChangeListeners() {
-    // Get references to the tab buttons
     const arrearsTab = document.getElementById('arrears-tab');
     const accountTab = document.getElementById('account-tab');
     
     if (arrearsTab && accountTab) {
-        // Listen for when the user tries to switch to the "HOA Monthly Dues" tab
         arrearsTab.addEventListener('show.bs.tab', function(event) {
-            // If we're switching from Account tab and it has data, show confirmation
+            // Your existing confirmation logic...
             if (document.querySelector('.tab-pane.active').id === 'account' && hasFormData('accountReceivableForm')) {
                 if (!confirm("You have unsaved data in the Account Receivable form. Switching tabs will clear this data. Continue?")) {
-                    // Prevent the tab switch if user cancels
                     event.preventDefault();
                     return;
                 }
             }
             
-            // If confirmed or no data to clear, proceed with clearing the other form
+            // ADD THESE LINES HERE:
+            // Reset edit mode when switching tabs
+            if (typeof resetEditMode === 'function') {
+                resetEditMode();
+            }
+            
+            // Reset reversal mode when switching tabs  
+            if (typeof resetReversalMode === 'function') {
+                resetReversalMode();
+            }
+            
             clearAccountFormFields();
         });
         
-        // Listen for when the user tries to switch to the "Account Receivable" tab
         accountTab.addEventListener('show.bs.tab', function(event) {
-            // If we're switching from Arrears tab and it has data, show confirmation
+            // Your existing confirmation logic...
             if (document.querySelector('.tab-pane.active').id === 'arrears' && hasFormData('arrearsReceivableForm')) {
                 if (!confirm("You have unsaved data in the HOA Monthly Dues form. Switching tabs will clear this data. Continue?")) {
-                    // Prevent the tab switch if user cancels
                     event.preventDefault();
                     return;
                 }
             }
             
-            // If confirmed or no data to clear, proceed with clearing the other form
+            // ADD THESE LINES HERE TOO:
+            // Reset edit mode when switching tabs
+            if (typeof resetEditMode === 'function') {
+                resetEditMode();
+            }
+            
+            // Reset reversal mode when switching tabs  
+            if (typeof resetReversalMode === 'function') {
+                resetReversalMode();
+            }
+            
             clearArrearsFormFields();
         });
     }
@@ -279,6 +294,12 @@ function clearArrearsFormFields() {
     if (typeof resetReversalMode === 'function') {
         resetReversalMode();
     }
+
+    // Reset any edit mode
+    if (typeof resetEditMode === 'function') {
+        resetEditMode();
+    }
+
 }
 
 function clearAccountFormFields() {
@@ -385,4 +406,10 @@ function clearAccountFormFields() {
     if (typeof resetReversalMode === 'function') {
         resetReversalMode();
     }
+
+    // Reset any edit mode
+    if (typeof resetEditMode === 'function') {
+        resetEditMode();
+    }
 }
+
