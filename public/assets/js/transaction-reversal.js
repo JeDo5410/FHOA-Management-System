@@ -74,12 +74,9 @@ function lookupTransaction(invoiceNumber, formType) {
             
             // Show choice modal instead of going directly to reversal
             showTransactionChoiceModal(data.transaction, formType, data.line_items);
-        } else {
-            console.log('SIN not found, proceeding as new transaction');
         }
     })
     .catch(error => {
-        console.error('Error checking SIN:', error);
         showToast('error', 'Error checking SIN: ' + error.message);
     });
 }
@@ -218,7 +215,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (transactionChoiceModal) {
         // Handle modal close events (X button, Exit button, clicking outside)
         transactionChoiceModal.addEventListener('hidden.bs.modal', function() {
-            console.log('Transaction Choice Modal closed - resetting form');
             
             // Determine which tab is currently active
             const activeTab = document.querySelector('.tab-pane.active');
@@ -255,11 +251,10 @@ document.addEventListener('DOMContentLoaded', function() {
             showToast('info', 'Form has been reset');
         });
         
-        // Also handle the Exit button specifically (optional - for immediate feedback)
+        // Handle the Exit button
         const exitButton = transactionChoiceModal.querySelector('button.btn-secondary');
         if (exitButton) {
             exitButton.addEventListener('click', function() {
-                console.log('Exit button clicked in Transaction Choice Modal');
                 // The modal will close and trigger the hidden.bs.modal event above
             });
         }
@@ -724,6 +719,12 @@ function setupArrearsReversal(transaction) {
     const originalAddress = transaction.payor_address;
     const memberId = transaction.mem_id;
     
+    // CRITICAL: Set the SIN number field FIRST before anything else
+    const orNumberField = document.getElementById('arrears_serviceInvoiceNo');
+    if (orNumberField) {
+        orNumberField.value = transaction.or_number;
+    }
+    
     // Populate form fields with transaction data
     document.getElementById('arrears_receivedFrom').value = originalPayorName;
     const originalDate = new Date(transaction.ar_date);
@@ -1166,6 +1167,32 @@ function showReversalConfirmation() {
                 form.querySelectorAll('input, select, textarea, button').forEach(field => {
                     field.disabled = false;
                 });
+                
+                // CRITICAL: Ensure the SIN number field has the correct value and is enabled
+                if (activeTab.id === 'arrears') {
+                    const sinField = document.getElementById('arrears_serviceInvoiceNo');
+                    if (sinField && window.currentTransactionData && window.currentTransactionData.transaction) {
+                        sinField.value = window.currentTransactionData.transaction.or_number;
+                        sinField.disabled = false;
+                        console.log('Set SIN field value to:', sinField.value);
+                        console.log('SIN field name attribute:', sinField.name);
+                        console.log('SIN field form will submit:', sinField.name + '=' + sinField.value);
+                    } else {
+                        console.error('SIN field or transaction data not found:', {
+                            sinField: !!sinField,
+                            currentTransactionData: !!window.currentTransactionData,
+                            transaction: window.currentTransactionData?.transaction
+                        });
+                    }
+                }
+                
+                // Debug: Log all form data that will be submitted
+                console.log('=== FORM DATA DEBUG ===');
+                const formData = new FormData(form);
+                for (let [key, value] of formData.entries()) {
+                    console.log(key + ':', value);
+                }
+                console.log('=== END FORM DATA DEBUG ===');
                 
                 // This is the critical part - bypass any event listeners by directly submitting
                 // a copy of the form with all values

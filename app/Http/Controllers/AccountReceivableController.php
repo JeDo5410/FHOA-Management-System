@@ -224,8 +224,38 @@ class AccountReceivableController extends Controller
             $memberSum->last_paydate = $validated['arrears_date'];
             $memberSum->last_payamount = $paymentAmount;
             $memberSum->arrear = $newArrearBalance; // Update with new arrear balance (can be negative)
+            
+            // Log before arrear_total calculation
+            Log::info('STORE ARREARS - Before arrear_total calculation', [
+                'member_id' => $memberSum->mem_id,
+                'current_arrear' => $memberSum->arrear,
+                'current_arrear_interest' => $memberSum->arrear_interest,
+                'new_arrear_balance' => $newArrearBalance,
+                'payment_amount' => $paymentAmount
+            ]);
+            
+            // Calculate and update arrear_total (arrear + arrear_interest)
+            $arrearInterest = $memberSum->arrear_interest ?? 0;
+            $calculatedArrearTotal = $newArrearBalance + $arrearInterest;
+            $memberSum->arrear_total = $calculatedArrearTotal;
+            
+            // Log after arrear_total calculation
+            Log::info('STORE ARREARS - After arrear_total calculation', [
+                'member_id' => $memberSum->mem_id,
+                'arrear_interest' => $arrearInterest,
+                'calculated_arrear_total' => $calculatedArrearTotal,
+                'assigned_arrear_total' => $memberSum->arrear_total
+            ]);
+            
             $memberSum->user_id = Auth::id();
             $memberSum->save();
+            
+            // Log after saving
+            Log::info('STORE ARREARS - After saving to database', [
+                'member_id' => $memberSum->mem_id,
+                'saved_arrear' => $memberSum->arrear,
+                'saved_arrear_total' => $memberSum->arrear_total
+            ]);
             
             // Commit the transaction
             DB::commit();
@@ -434,9 +464,6 @@ class AccountReceivableController extends Controller
      */
     private function storeArrearsReceivableReversal(Request $request)
     {
-
-        Log::debug('Arrears Receivable Reversal method called');
-
         try {
             // Validate the HOA Monthly Dues form
             $validated = $request->validate([
@@ -492,6 +519,10 @@ class AccountReceivableController extends Controller
             
             // Update member_sum record with the new arrear balance
             $memberSum->arrear = $newArrearBalance;
+            
+            // Calculate and update arrear_total (arrear + arrear_interest)
+            $arrearInterest = $memberSum->arrear_interest ?? 0;
+            $memberSum->arrear_total = $newArrearBalance + $arrearInterest;
             $memberSum->user_id = Auth::id();
             $memberSum->save();
             
@@ -670,8 +701,39 @@ private function storeArrearsReceivableEdit(Request $request)
         $memberSum->last_paydate = $validated['arrears_date'];
         $memberSum->last_payamount = $newPaymentAmount;
         $memberSum->arrear = $newArrearBalance;
+        
+        // Log before arrear_total calculation
+        Log::info('EDIT ARREARS - Before arrear_total calculation', [
+            'member_id' => $memberSum->mem_id,
+            'current_arrear' => $memberSum->arrear,
+            'current_arrear_interest' => $memberSum->arrear_interest,
+            'new_arrear_balance' => $newArrearBalance,
+            'new_payment_amount' => $newPaymentAmount,
+            'original_sin' => $originalSinNumber
+        ]);
+        
+        // Calculate and update arrear_total (arrear + arrear_interest)
+        $arrearInterest = $memberSum->arrear_interest ?? 0;
+        $calculatedArrearTotal = $newArrearBalance + $arrearInterest;
+        $memberSum->arrear_total = $calculatedArrearTotal;
+        
+        // Log after arrear_total calculation
+        Log::info('EDIT ARREARS - After arrear_total calculation', [
+            'member_id' => $memberSum->mem_id,
+            'arrear_interest' => $arrearInterest,
+            'calculated_arrear_total' => $calculatedArrearTotal,
+            'assigned_arrear_total' => $memberSum->arrear_total
+        ]);
+        
         $memberSum->user_id = Auth::id();
         $memberSum->save();
+        
+        // Log after saving
+        Log::info('EDIT ARREARS - After saving to database', [
+            'member_id' => $memberSum->mem_id,
+            'saved_arrear' => $memberSum->arrear,
+            'saved_arrear_total' => $memberSum->arrear_total
+        ]);
 
         // Add this logging after updating member summary
         Log::info('Member summary updated', [

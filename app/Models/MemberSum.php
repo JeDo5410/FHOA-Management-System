@@ -15,7 +15,7 @@ class MemberSum extends Model
         'arrear_month',
         'arrear',
         'arrear_count',
-        'arrears_interest',
+        'arrear_interest',
         'arrear_total',
         'last_or',
         'last_paydate',
