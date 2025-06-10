@@ -8,6 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AccountReceivableController;
 use App\Http\Controllers\ReportExtractionController;
 use App\Http\Controllers\StatementOfAccountController;
+use App\Http\Controllers\ArrearController;
 use Illuminate\Support\Facades\Auth;
 
 // Root URL will redirect to dashboard
@@ -89,6 +90,13 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
             ->name('reports.get-receivable-data');
         Route::get('/download/receivable-data', [ReportExtractionController::class, 'downloadReceivableData'])
             ->name('reports.download.receivable-data');
+    });
+
+    // Arrear management routes
+    Route::prefix('arrears')->group(function () {
+        Route::get('/', [ArrearController::class, 'index'])->name('arrears.index');
+        Route::get('/{id}/edit', [ArrearController::class, 'edit'])->name('arrears.edit');
+        Route::put('/{id}', [ArrearController::class, 'update'])->name('arrears.update');
     });
 
 });
