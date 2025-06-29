@@ -186,7 +186,13 @@ function removeAllBackdrops() {
     const modals = document.querySelectorAll('.modal');
     modals.forEach(modal => {
         modal.style.removeProperty('display');
+        modal.classList.remove('show');
     });
+    
+    // Reset body classes and styles
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
 }
 
 // Add this cleanup function to be called when needed
@@ -215,10 +221,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (transactionChoiceModal) {
         // Handle modal close events (X button, Exit button, clicking outside)
         transactionChoiceModal.addEventListener('hidden.bs.modal', function() {
+            // Ensure complete modal cleanup
+            removeAllBackdrops();
             
             // Determine which tab is currently active
             const activeTab = document.querySelector('.tab-pane.active');
-            const activeTabId = activeTab.getAttribute('id');
+            const activeTabId = activeTab ? activeTab.getAttribute('id') : null;
             
             // Reset the appropriate form based on active tab
             if (activeTabId === 'arrears') {
@@ -251,14 +259,32 @@ document.addEventListener('DOMContentLoaded', function() {
             showToast('info', 'Form has been reset');
         });
         
-        // Handle the Exit button
-        const exitButton = transactionChoiceModal.querySelector('button.btn-secondary');
-        if (exitButton) {
-            exitButton.addEventListener('click', function() {
-                // The modal will close and trigger the hidden.bs.modal event above
+        // Additional cleanup for all modal close triggers
+        transactionChoiceModal.addEventListener('hide.bs.modal', function() {
+            // This fires before the modal starts hiding
+            removeAllBackdrops();
+        });
+        
+        // Handle manual close events (X button, Exit button)
+        const closeButtons = transactionChoiceModal.querySelectorAll('[data-bs-dismiss="modal"], .btn-close');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Force cleanup when manually closing
+                setTimeout(() => {
+                    removeAllBackdrops();
+                }, 150); // Small delay to ensure modal animation completes
             });
-        }
-        removeAllBackdrops();
+        });
+        
+        // Handle clicking outside the modal (backdrop click)
+        transactionChoiceModal.addEventListener('click', function(e) {
+            if (e.target === transactionChoiceModal) {
+                // Force cleanup for backdrop clicks
+                setTimeout(() => {
+                    removeAllBackdrops();
+                }, 150);
+            }
+        });
     }
 });
 

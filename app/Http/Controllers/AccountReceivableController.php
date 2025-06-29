@@ -76,11 +76,12 @@ class AccountReceivableController extends Controller
         if ($formType === 'account_receivable') {
             // if ($isEdit) {
             //     return $this->storeAccountReceivableEdit($request);
-            // } elseif ($isReversal) {
-            //     return $this->storeAccountReceivableReversal($request);
-            // } else {
-            //     return $this->storeAccountReceivable($request);
             // }
+             if ($isReversal) {
+                return $this->storeAccountReceivableReversal($request);
+            } else {
+                return $this->storeAccountReceivable($request);
+            }
         } elseif ($formType === 'arrears_receivable') {
             if ($isEdit) {
                 return $this->storeArrearsReceivableEdit($request);
@@ -142,8 +143,8 @@ class AccountReceivableController extends Controller
             
             // Return success response with toast notification
             return redirect()->route('accounts.receivables', ['tab' => $request->input('active_tab', 'account')])
-                ->with('success', 'Account receivable created successfully');
-                        
+                ->with('success', 'Account receivable created successfully')
+                ->with('double_redirect', true);                        
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Validation error, no need to rollback as no DB operations were performed
             return back()->withErrors($e->errors())->withInput();
@@ -385,7 +386,7 @@ class AccountReceivableController extends Controller
             
             return response()->json([
                 'exists' => false,
-                'message' => 'Error checking SIN: ' . $e->getMessage()
+                'message' => 'Error checking SIN: ' . $e->getMessage() . '. At line No. ' . $e->getLine()
             ], 500);
         }
     }

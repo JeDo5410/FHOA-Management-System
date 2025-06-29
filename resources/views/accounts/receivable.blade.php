@@ -192,7 +192,8 @@
                                                 class="form-control form-control-sm"
                                                 id="arrears_receivedFrom" 
                                                 name="arrears_received_from"
-                                                autocomplete="off">
+                                                autocomplete="off"
+                                                required>
                                         </div>
                                     </div>
                                     
@@ -605,6 +606,54 @@
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
+    <!-- Transaction Choice Modal -->
+    <div class="modal fade" id="transactionChoiceModal" tabindex="-1" aria-labelledby="transactionChoiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="transactionChoiceModalLabel">SIN Found - Choose Action</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Existing SIN Found:</strong> This SIN already exists in the system.
+                    </div>
+                    
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <h6 class="fw-bold mb-2">Transaction Details:</h6>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <p class="mb-1"><strong>SIN Number:</strong> <span id="modalSinNumber">-</span></p>
+                                <p class="mb-1"><strong>Date:</strong> <span id="modalTransactionDate">-</span></p>
+                            </div>
+                            <div class="col-sm-6">
+                                <p class="mb-1"><strong>Amount:</strong> <span id="modalTransactionAmount">-</span></p>
+                                <p class="mb-0"><strong>Payor:</strong> <span id="modalPayorName">-</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p class="mb-3">What would you like to do with this SIN?</p>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-info btn-lg" id="editTransactionBtn">
+                            <i class="bi bi-pencil-square me-2"></i>Edit Transaction
+                            <small class="d-block text-white-50">Modify the details of this SIN</small>
+                        </button>
+                        <button type="button" class="btn btn-danger btn-lg" id="cancelTransactionBtn">
+                            <i class="bi bi-x-circle me-2"></i>Cancel Transaction
+                            <small class="d-block text-white-50">Reverse/cancel this SIN</small>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Exit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Payment History Modal -->
     <div class="modal fade" id="paymentHistoryModal" tabindex="-1" aria-labelledby="paymentHistoryModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl">
@@ -668,65 +717,6 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Transaction Choice Modal -->
-    <div class="modal fade" id="transactionChoiceModal" tabindex="-1" aria-labelledby="transactionChoiceModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title" id="transactionChoiceModalLabel">
-                        <i class="bi bi-search me-2"></i>Existing SIN Found
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        <strong>SIN already exists!</strong> You can either edit the existing transaction or cancel it.
-                    </div>
-                    
-                    <!-- Transaction Details -->
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <h6 class="card-title">Transaction Details</h6>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p class="mb-1"><strong>SIN:</strong> <span id="modalSinNumber">-</span></p>
-                                    <p class="mb-1"><strong>Date:</strong> <span id="modalTransactionDate">-</span></p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p class="mb-1"><strong>Amount:</strong> <span id="modalTransactionAmount" class="text-success">-</span></p>
-                                    <p class="mb-0"><strong>Payor:</strong> <span id="modalPayorName">-</span></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <p class="mb-3">What would you like to do with this transaction?</p>
-                    
-                    <div class="row g-2">
-                        <div class="col-md-6">
-                            <button type="button" class="btn btn-primary w-100" id="editTransactionBtn">
-                                <i class="bi bi-pencil me-2"></i>Edit SIN
-                            </button>
-                            <small class="text-muted d-block mt-1">Modify transaction details</small>
-                        </div>
-                        <div class="col-md-6">
-                            <button type="button" class="btn btn-danger w-100" id="cancelTransactionBtn">
-                                <i class="bi bi-x-circle me-2"></i>Cancel SIN
-                            </button>
-                            <small class="text-muted d-block mt-1">Reverse this transaction</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-door-open me-2"></i>Exit
-                    </button>
                 </div>
             </div>
         </div>
@@ -1858,4 +1848,29 @@ $jsVersion = '1.2.0';
 <script src="{{ asset('assets/js/receivable-address-lookup.js') }}?v={{ $jsVersion }}"></script>
 <script src="{{ asset('assets/js/transaction-reversal.js') }}?v={{ $jsVersion }}"></script>
 <script src="{{ asset('assets/js/form-reset.js') }}?v={{ $jsVersion }}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if we need to do a double redirect
+    @if(session('double_redirect'))
+        // First redirect is already done by Laravel, now do the second one
+        setTimeout(function() {
+            window.location.href = "{{ route('accounts.receivables', ['tab' => request()->get('tab', 'account')]) }}";
+        }, 1000); // Wait 1 second before second redirect
+    @endif
+    
+    // Your existing code for flash messages...
+    @if(session('success'))
+        showToast('success', "{{ session('success') }}");
+    @endif
+    
+    @if(session('error'))
+        showToast('error', "{{ session('error') }}");
+    @endif
+    
+    @if(session('info'))
+        showToast('info', "{{ session('info') }}");
+    @endif
+});
+</script>
 @endsection
