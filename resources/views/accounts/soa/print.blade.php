@@ -479,7 +479,9 @@
                 <div style="width: 45%;  margin-top: 0;">
                     <p>Prepared by:</p>
                     <div style="margin-top: 20px; border-top: 1px solid black; margin-right: 16px;">
-                        <p style="text-align: center; margin-bottom: 0;">CHARLES B. ICAMINA</p>
+                        <p style="text-align: center; margin-bottom: 0;">
+                            <!--    CHARLES B. ICAMINA  -->
+                        </p>
                         <p style="text-align: center; margin-top: 0;">Admin Assistant</p>
                     </div>
                 </div>
