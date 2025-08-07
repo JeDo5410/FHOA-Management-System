@@ -500,8 +500,8 @@
                     <tr>
                         <td style="border: 1px solid black; padding: 8px; width: 70%; vertical-align: top;">
                             <p style="margin-top: 0; margin-bottom: 6px; font-weight: bold;">PAYMENT OPTIONS:</p>
-                            <p style="margin-top: 0; margin-bottom: 4px;"><strong>1) ADMIN OFFICE c/o Admin Asst. at 8AM - 5PM on Tuesday - Sunday</strong></p>
-                            <p style="margin: 0 0 0 16px;">Contact Details: <span style="color: blue;">Globe CP# 0906 916 - 4942</span></p>
+                            <p style="margin-top: 0; margin-bottom: 4px;"><strong>1) ADMIN OFFICE c/o Admin Asst. at 8AM - 5PM on Monday - Saturday</strong></p>
+                            <p style="margin: 0 0 0 16px;">Contact Details: <span style="color: blue;">Globe CP# 0917 105 7841</span></p>
                             <p style="margin: 0 0 6px 16px;">Email Address: <span style="color: blue;">fortezzahomeowners2020@gmail.com</span></p>
                             
                             <p style="margin-top: 0; margin-bottom: 4px;"><strong>2) Bank Deposit Over the Counter or via Online Banking:</strong></p>
