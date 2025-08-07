@@ -475,13 +475,10 @@ function setupAccountEditMode(transaction, lineItems) {
         }
     }
     
-    // Set remarks
+    // Set remarks (no "EDITED FROM SIN" prefix for account receivables)
     const remarksField = document.getElementById('remarks');
     if (remarksField) {
-        remarksField.value = `EDITED FROM SIN: ${transaction.or_number}`;
-        if (transaction.ar_remarks && !transaction.ar_remarks.includes('CANCELLED SIN')) {
-            remarksField.value += ` - ${transaction.ar_remarks}`;
-        }
+        remarksField.value = transaction.ar_remarks || '';
     }
 }
 
@@ -526,8 +523,14 @@ function handleEditSubmission() {
         if (validateArrearsEditForm(form)) {
             showEditConfirmation();
         }
+    } else if (activeTabId === 'account') {
+        const form = document.getElementById('accountReceivableForm');
+        if (validateAccountEditForm(form)) {
+            // Direct submission for account receivables (no confirmation modal needed)
+            prepareFormForSubmission(form);
+            form.submit();
+        }
     }
-    // Account tab to be implemented later
 }
 
 function validateArrearsEditForm(form) {
@@ -554,6 +557,70 @@ function validateArrearsEditForm(form) {
     if (paymentMode && paymentMode !== 'CASH' && !referenceNo) {
         showToast('error', 'Reference number is required for ' + paymentMode + ' payments');
         form.querySelector('#arrears_reference').focus();
+        return false;
+    }
+    
+    return true;
+}
+
+function validateAccountEditForm(form) {
+    // Basic HTML5 validation
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return false;
+    }
+    
+    // Validate line items using correct class name
+    const lineItemRows = form.querySelectorAll('.line-item');
+    if (lineItemRows.length === 0) {
+        showToast('error', 'Please add at least one line item');
+        return false;
+    }
+    
+    let hasValidItem = false;
+    for (let row of lineItemRows) {
+        const coaSelect = row.querySelector('select'); // Just 'select', no specific class
+        const amountInput = row.querySelector('.amount-input');
+        
+        if (coaSelect && amountInput) {
+            const coaValue = coaSelect.value;
+            const amountValue = parseFloat(amountInput.value);
+            
+            if (coaValue && amountValue && amountValue > 0) {
+                hasValidItem = true;
+                break;
+            }
+        }
+    }
+    
+    if (!hasValidItem) {
+        showToast('error', 'Please add at least one valid line item with chart of account and amount');
+        return false;
+    }
+    
+    // Validate each line item amount
+    for (let row of lineItemRows) {
+        const amountInput = row.querySelector('.amount-input');
+        if (amountInput && amountInput.value) {
+            const value = parseFloat(amountInput.value);
+            if (!value || value <= 0) {
+                showToast('error', 'All amounts must be greater than zero');
+                amountInput.focus();
+                return false;
+            }
+        }
+    }
+    
+    // Check payment mode and reference number
+    const paymentMode = form.querySelector('input[name="payment_mode"]:checked')?.value;
+    const referenceNo = form.querySelector('#referenceNo')?.value;
+    
+    if (paymentMode && paymentMode !== 'CASH' && !referenceNo) {
+        showToast('error', 'Reference number is required for ' + paymentMode + ' payments');
+        const refField = form.querySelector('#referenceNo');
+        if (refField) {
+            refField.focus();
+        }
         return false;
     }
     

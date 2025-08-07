@@ -74,10 +74,9 @@ class AccountReceivableController extends Controller
         $formType = $request->input('form_type');
         
         if ($formType === 'account_receivable') {
-            // if ($isEdit) {
-            //     return $this->storeAccountReceivableEdit($request);
-            // }
-             if ($isReversal) {
+            if ($isEdit) {
+                return $this->storeAccountReceivableEdit($request);
+            } elseif ($isReversal) {
                 return $this->storeAccountReceivableReversal($request);
             } else {
                 return $this->storeAccountReceivable($request);
@@ -161,6 +160,72 @@ class AccountReceivableController extends Controller
                 ->withInput();
         }
     }    
+    
+    /**
+     * Store an account receivable edit record (first tab)
+     */
+    private function storeAccountReceivableEdit(Request $request)
+    {
+        try {
+            // Validate the Account Receivable form
+            $validated = $request->validate([
+                'address' => 'required|string|max:100',
+                'received_from' => 'required|string|max:45',
+                'service_invoice_no' => 'required|integer',
+                'date' => 'required|date',
+                'items' => 'required|array',
+                'items.*.coa' => 'required|integer|exists:charts_of_account,acct_type_id',
+                'items.*.amount' => 'required|numeric|min:0',
+                'total_amount' => 'required|numeric|min:0',
+                'received_by' => 'required|string|max:45',
+                'payment_mode' => 'required|in:CASH,GCASH,CHECK,BANK_TRANSFER',
+                'reference_no' => 'nullable|string|max:45',
+                'remarks' => 'nullable|string|max:45'
+            ]);
+    
+            // Begin transaction for data integrity
+            DB::beginTransaction();
+            
+            // Create a separate transaction record for each line item
+            foreach ($validated['items'] as $item) {
+                $accountReceivable = new AcctReceivable();
+                $accountReceivable->or_number = $validated['service_invoice_no'];
+                $accountReceivable->ar_date = $validated['date'];
+                $accountReceivable->ar_amount = $item['amount'];
+                $accountReceivable->acct_type_id = $item['coa'];
+                $accountReceivable->payor_name = strtoupper($validated['received_from']);
+                $accountReceivable->payor_address = $validated['address'];
+                $accountReceivable->payment_type = $validated['payment_mode'];
+                $accountReceivable->payment_Ref = $validated['reference_no'] ?? null;
+                $accountReceivable->receive_by = $validated['received_by'];
+                $accountReceivable->ar_remarks = $validated['remarks'] ?? null;
+                $accountReceivable->user_id = Auth::id();
+                $accountReceivable->save();
+            }
+            
+            // Commit the transaction
+            DB::commit();
+            
+            // Return success response with toast notification
+            return redirect()->route('accounts.receivables', ['tab' => $request->input('active_tab', 'account')])
+                ->with('success', 'Account receivable updated successfully');
+                        
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Validation error, no need to rollback as no DB operations were performed
+            return back()->withErrors($e->errors())->withInput();
+            
+        } catch (\Exception $e) {
+            // Something went wrong, rollback the transaction
+            DB::rollBack();
+            
+            // Log the error
+            Log::error('Error updating account receivable: ' . $e->getMessage());
+            
+            // Return error response with toast notification
+            return back()->with('error', 'Error updating account receivable: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
     
     /**
      * Store an arrears receivable record (HOA Monthly Dues tab)
@@ -362,10 +427,19 @@ class AccountReceivableController extends Controller
             $lineItems = null;
             $isArrears = !empty($transaction->mem_id);
             
-            // For regular account receivables, get all line items
+            // For regular account receivables, get only the most recent line items
             if (!$isArrears) {
+                // Get the timestamp of the most recent transaction to group related line items
+                $recentTimestamp = $transaction->timestamp;
+                
+                // Fetch line items created within 3 seconds of the most recent transaction
+                // This groups transactions from the same form submission while handling millisecond differences
                 $lineItems = AcctReceivable::where('acct_receivable.or_number', $invoiceNumber)
                     ->where('acct_receivable.ar_amount', '>', 0) // Only positive amounts (actual transactions)
+                    ->whereBetween('acct_receivable.timestamp', [
+                        date('Y-m-d H:i:s', strtotime($recentTimestamp . ' -3 seconds')),
+                        date('Y-m-d H:i:s', strtotime($recentTimestamp . ' +3 seconds'))
+                    ])
                     ->join('charts_of_account', 'acct_receivable.acct_type_id', '=', 'charts_of_account.acct_type_id')
                     ->select(
                         'acct_receivable.*',
