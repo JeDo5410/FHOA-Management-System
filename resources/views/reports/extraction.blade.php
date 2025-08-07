@@ -66,23 +66,29 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                     
                                     <!-- Member Status Filter - Only visible for Member's Data -->
                                     <div id="memberStatusFilter">
-                                        <div class="column-title">Member Status</div>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <div class="column-title">Member Status</div>
+                                            <span class="badge bg-primary" id="currentRecordCount">0</span>
+                                        </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="radio" name="memberStatus" id="statusAll" value="all" checked onclick="loadMemberData('all')">
-                                            <label class="form-check-label" for="statusAll">
-                                                All Members
+                                            <label class="form-check-label d-flex justify-content-between w-100" for="statusAll">
+                                                <span>All Members</span>
+                                                <small class="text-muted" id="allMembersCount">Loading...</small>
                                             </label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="radio" name="memberStatus" id="statusActive" value="active" onclick="loadMemberData('active')">
-                                            <label class="form-check-label" for="statusActive">
-                                                Active Members
+                                            <label class="form-check-label d-flex justify-content-between w-100" for="statusActive">
+                                                <span>Active Members</span>
+                                                <small class="text-muted" id="activeMembersCount">Loading...</small>
                                             </label>
                                         </div>
                                         <div class="form-check">
                                             <input class="form-check-input" type="radio" name="memberStatus" id="statusDelinquent" value="delinquent" onclick="loadMemberData('delinquent')">
-                                            <label class="form-check-label" for="statusDelinquent">
-                                                Delinquent Members
+                                            <label class="form-check-label d-flex justify-content-between w-100" for="statusDelinquent">
+                                                <span>Delinquent Members</span>
+                                                <small class="text-muted" id="delinquentMembersCount">Loading...</small>
                                             </label>
                                         </div>
                                     </div>

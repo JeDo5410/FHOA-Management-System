@@ -19,6 +19,9 @@ document.addEventListener('DOMContentLoaded', function() {
     updateScrollbarWidth();
     window.addEventListener('resize', updateScrollbarWidth);
     
+    // Load member counts for all filter types
+    loadMemberCounts();
+    
             // Set up scroll sync for BOTH tables
     function setupScrollSync() {
         const visibleTableContainer = document.querySelector('.table-responsive:not([style*="display: none"])');
@@ -135,6 +138,40 @@ function switchDataView(view) {
     }, 100);
 }
 
+// Function to load member counts for all filter types
+function loadMemberCounts() {
+    const countElements = {
+        all: document.getElementById('allMembersCount'),
+        active: document.getElementById('activeMembersCount'),
+        delinquent: document.getElementById('delinquentMembersCount')
+    };
+    
+    // Set loading state
+    Object.values(countElements).forEach(el => {
+        if (el) el.textContent = 'Loading...';
+    });
+    
+    // Fetch counts for all filter types
+    ['all', 'active', 'delinquent'].forEach(status => {
+        fetch(`/reports/get-members-data?status=${status}&count_only=1`)
+            .then(response => response.json())
+            .then(data => {
+                const count = Array.isArray(data) ? data.length : (data.count || 0);
+                const element = countElements[status];
+                if (element) {
+                    element.textContent = `(${count})`;
+                }
+            })
+            .catch(error => {
+                console.error(`Error loading ${status} member count:`, error);
+                const element = countElements[status];
+                if (element) {
+                    element.textContent = '(Error)';
+                }
+            });
+    });
+}
+
 // Function to load member data with filter
 function loadMemberData(status) {
     // Show loading indicator
@@ -156,12 +193,24 @@ function loadMemberData(status) {
             if (data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="39" class="text-center">No data found</td></tr>';
                 showToast('info', 'No records found');
+                
+                // Update current record count badge to 0
+                const currentCountElement = document.getElementById('currentRecordCount');
+                if (currentCountElement) {
+                    currentCountElement.textContent = '0';
+                }
                 return;
             }
             
             // Show count notification
             const statusText = status === 'all' ? 'total' : status;
             showToast('success', `Found ${data.length} ${statusText} member records`);
+            
+            // Update current record count badge
+            const currentCountElement = document.getElementById('currentRecordCount');
+            if (currentCountElement) {
+                currentCountElement.textContent = data.length;
+            }
             
             // Add rows
             data.forEach(member => {
@@ -236,6 +285,12 @@ function loadMemberData(status) {
         console.error('Error loading member data:', error);
         showToast('error', 'Failed to load member data. Please try again.');
         tbody.innerHTML = '<tr><td colspan="39" class="text-center text-danger">Error loading data</td></tr>';
+        
+        // Update current record count badge to 0 on error
+        const currentCountElement = document.getElementById('currentRecordCount');
+        if (currentCountElement) {
+            currentCountElement.textContent = '0';
+        }
     });
 }
 
