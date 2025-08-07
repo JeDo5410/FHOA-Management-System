@@ -640,7 +640,7 @@
                     @endphp
                 who have not yet paid your monthly maintenance dues amounting to  ({{ strtoupper(numberToWords($member->arrear)) }} PESOS) ₱{{ number_format($member->arrear, 2) }}. 
                 Thus, your payables as of {{ date('M.j, Y') }} amount to total of ({{ strtoupper(numberToWords($member->arrear_total)) }} PESOS) ₱{{ number_format($member->arrear_total, 2) }}. 
-                Including the 30% per annum or penalty charges for your {{ $member->current_arrear_count }} months of arrears as per attached Statement of Account (SOA) in Annex A.</p>
+                Including the 30% per annum penalty charges for your {{ $member->current_arrear_count }} months of arrears as per attached Statement of Account (SOA) in Annex A.</p>
             </div>
             
             <!-- Main Content -->
