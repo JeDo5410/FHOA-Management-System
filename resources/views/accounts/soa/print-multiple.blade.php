@@ -396,7 +396,7 @@
                     <td><span class="fixed-width-field"><strong>MR./MS.</strong> {{ $member->mem_name }}</span></td>
                     <td class="right-align"><strong>BILL MONTH :</strong></td>
                     <td style="text-align: right;" class="value-field">
-                        {{ date('M Y', strtotime($member->arrear_month)) }} - {{ date('M Y', strtotime($member->current_month)) }}
+                        {{ date('M Y') }}
                     </td>
                 </tr>
                 <tr>
@@ -435,7 +435,7 @@
             <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
                 <tr>
                     <td style="border: 1px solid black; padding: 5px;">PREVIOUS MONTH UNPAID MAINTENANCE DUES</td>
-                    <td style="border: 1px solid black; padding: 5px; text-align: right; width: 120px;">{{ number_format($member->arrear, 2) }}</td>
+                    <td style="border: 1px solid black; padding: 5px; text-align: right; width: 120px;">{{ number_format($member->arrear - $member->mem_monthlydues, 2) }}</td>
                 </tr>
                 <tr>
                     <td style="border: 1px solid black; padding: 4.5px;">CURRENT MONTH MAINTENANCE DUES</td>
@@ -443,7 +443,7 @@
                 </tr>
                 <tr>
                     <td style="border: 1px solid black; padding: 4.5px;">TOTAL AMOUNT OF UNPAID MONTHLY MAINTENANCE DUES</td>
-                    <td style="border: 1px solid black; padding: 5px; text-align: right;">{{ number_format($member->arrear + $member->mem_monthlydues, 2) }}</td>
+                    <td style="border: 1px solid black; padding: 5px; text-align: right;">{{ number_format($member->arrear, 2) }}</td>
                 </tr>
                 <tr>
                     <td style="border: 1px solid black; padding: 5px; font-style: italic;">INTEREST (@30% per Annum; based on FHOAI By-Laws in Page 4, Article V, Section 2.b )</td>
@@ -502,8 +502,8 @@
                 <tr>
                     <td style="border: 1px solid black; padding: 8px; width: 70%; vertical-align: top;">
                         <p style="margin-top: 0; margin-bottom: 6px; font-weight: bold;">PAYMENT OPTIONS:</p>
-                        <p style="margin-top: 0; margin-bottom: 4px;"><strong>1) ADMIN OFFICE c/o Admin Asst. at 8AM - 5PM on Tuesday - Sunday</strong></p>
-                        <p style="margin: 0 0 0 16px;">Contact Details: <span style="color: blue;">Globe CP# 0906 916 - 4942</span></p>
+                        <p style="margin-top: 0; margin-bottom: 4px;"><strong>1) ADMIN OFFICE c/o Admin Asst. at 8AM - 5PM on Monday - Saturday</strong></p>
+                        <p style="margin: 0 0 0 16px;">Contact Details: <span style="color: blue;">Globe CP# 0917 105 7841</span></p>
                         <p style="margin: 0 0 6px 16px;">Email Address: <span style="color: blue;">fortezzahomeowners2020@gmail.com</span></p>
                         
                         <p style="margin-top: 0; margin-bottom: 4px;"><strong>2) Bank Deposit Over the Counter or via Online Banking:</strong></p>
@@ -639,11 +639,9 @@
                     echo $addressId;
                 }
                 @endphp
-            who have not yet paid your monthly maintenance dues from {{ date('M Y', strtotime($member->arrear_month)) }} - {{ date('M Y', strtotime($member->current_month)) }}
-            equivalent to {{ $member->current_arrear_count }} month(s) of arrears
-            amounting to  ({{ strtoupper(numberToWords($member->arrear)) }} PESOS) ₱{{ number_format($member->arrear, 2) }}. 
+            who have not yet paid your monthly maintenance dues amounting to  ({{ strtoupper(numberToWords($member->arrear)) }} PESOS) ₱{{ number_format($member->arrear, 2) }}. 
             Thus, your payables as of {{ date('M.j, Y') }} amount to total of ({{ strtoupper(numberToWords($member->arrear_total)) }} PESOS) ₱{{ number_format($member->arrear_total, 2) }}. 
-            Including the 30% per annum penalty charges for your {{ $member->current_arrear_count }} months of arrears as per attached Statement of Account (SOA) in Annex A.</p>
+            Including the 30% per annum or penalty charges for your {{ $member->current_arrear_count }} months of arrears as per attached Statement of Account (SOA) in Annex A.</p>
         </div>
         
         <!-- Main Content -->
@@ -764,12 +762,6 @@
         
         <!-- Financial Details Table -->
         <table class="financial-table">
-            <tr>
-                <td style="border: 1px solid black; padding: 5px;"><strong>PERIOD OF ARREARS :</strong></td>
-                <td style="border: 1px solid black; padding: 5px; text-align: right;">
-                    {{ date('M Y', strtotime($member->arrear_month)) }} - {{ date('M Y', strtotime($member->current_month)) }}
-                </td>
-            </tr>
             <tr>
                 <td style="border: 1px solid black; padding: 5px;"><strong># UNPAID MONTHS</strong></td>
                 <td style="border: 1px solid black; padding: 5px; text-align: right;">

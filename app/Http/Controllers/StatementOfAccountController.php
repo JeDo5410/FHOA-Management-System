@@ -71,7 +71,7 @@ class StatementOfAccountController extends Controller
     public function printStatement(Request $request, $id)
     {
         // Get member details from vw_arrear_staging
-        $member = DB::table('vw_arrear_staging')
+        $member = DB::table('vw_member_data')
             ->where('mem_id', $id)
             ->first();
         
@@ -120,7 +120,7 @@ class StatementOfAccountController extends Controller
         }
         
         // Get members details from vw_arrear_staging
-        $members = DB::table('vw_arrear_staging')
+        $members = DB::table('vw_member_data')
             ->whereIn('mem_id', $memberIds)
             ->orderBy('mem_id', 'asc')
             ->get()
