@@ -288,11 +288,17 @@ class AccountReceivableController extends Controller
     public function getPaymentHistory($memberId)
     {
         try {
-            // Get all payments for this member with account type "Association Receipts" and account name "Association Dues"
+            // Get only the most recent transaction for each unique OR number
             $payments = AcctReceivable::where('acct_receivable.mem_id', $memberId)
                 ->join('charts_of_account', 'acct_receivable.acct_type_id', '=', 'charts_of_account.acct_type_id')
                 ->where('charts_of_account.acct_type', 'Association Receipts')
                 ->where('charts_of_account.acct_name', 'Association Dues')
+                ->whereIn('acct_receivable.ar_transno', function($query) use ($memberId) {
+                    $query->select(DB::raw('MAX(ar_transno)'))
+                          ->from('acct_receivable')
+                          ->where('mem_id', $memberId)
+                          ->groupBy('or_number');
+                })
                 ->orderBy('acct_receivable.ar_transno', 'desc')
                 ->select(
                     'acct_receivable.ar_transno',
