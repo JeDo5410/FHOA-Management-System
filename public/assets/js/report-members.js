@@ -139,7 +139,7 @@ function switchDataView(view) {
 function loadMemberData(status) {
     // Show loading indicator
     const tbody = document.querySelector('#memberDataTable tbody');
-    tbody.innerHTML = '<tr><td colspan="38" class="text-center">Loading data...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="39" class="text-center">Loading data...</td></tr>';
     
     // Fetch data from server
     fetch(`/reports/get-members-data?status=${status}`)
@@ -154,7 +154,7 @@ function loadMemberData(status) {
             tbody.innerHTML = '';
             
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="38" class="text-center">No data found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="39" class="text-center">No data found</td></tr>';
                 showToast('info', 'No records found');
                 return;
             }
@@ -192,6 +192,7 @@ function loadMemberData(status) {
                     <td>${member.mem_SPA_Tenant || ''}</td>
                     <td>${member.mem_type || ''}</td>
                     <td>${monthlydues}</td>
+                    <td>${member.hoa_status || ''}</td>
                     <td>${arrearMonth}</td>
                     <td>${arrear}</td>
                     <td>${member.arrear_count || '0'}</td>
@@ -234,7 +235,7 @@ function loadMemberData(status) {
     .catch(error => {
         console.error('Error loading member data:', error);
         showToast('error', 'Failed to load member data. Please try again.');
-        tbody.innerHTML = '<tr><td colspan="38" class="text-center text-danger">Error loading data</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="39" class="text-center text-danger">Error loading data</td></tr>';
     });
 }
 

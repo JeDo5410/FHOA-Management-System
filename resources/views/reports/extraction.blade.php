@@ -114,6 +114,7 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                             <th>SPA/Tenant</th>
                                             <th>Type</th>
                                             <th>Monthly Dues</th>
+                                            <th>HOA Status</th>
                                             <th>Arrear Month</th>
                                             <th>Arrear</th>
                                             <th>Arrear Count</th>

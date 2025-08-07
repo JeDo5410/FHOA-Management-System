@@ -36,9 +36,9 @@ class ReportExtractionController extends Controller
         
         // Apply filters based on status
         if ($status == 'active') {
-            $query->where('arrear_count', '<=', 2);
+            $query->where('hoa_status', '=', 'ACTIVE');
         } else if ($status == 'delinquent') {
-            $query->where('arrear_count', '>', 2);
+            $query->where('hoa_status', '=', 'DELINQUENT');
         }
         
         $members = $query->get();
