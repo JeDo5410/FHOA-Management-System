@@ -394,10 +394,10 @@ function setupAccountEditMode(transaction, lineItems) {
     const orNumberField = document.getElementById('serviceInvoiceNo');
     if (orNumberField) {
         orNumberField.setAttribute('disabled', 'disabled');
-        orNumberField.classList.add('bg-light'); // Visual indication it's disabled
     }
     
     // Populate the main form fields
+    document.getElementById('serviceInvoiceNo').value = transaction.or_number;
     document.getElementById('address').value = transaction.payor_address;
     document.getElementById('receivedFrom').value = transaction.payor_name;
     document.getElementById('date').value = transaction.ar_date.split('T')[0];
@@ -871,7 +871,13 @@ function prepareFormForSubmission(form) {
 }
 
 function setupAccountReversal(transaction, lineItems) {
+    // Prevents SINLookup loop
+    const orNumberField = document.getElementById('serviceInvoiceNo');
+    if (orNumberField) {
+        orNumberField.setAttribute('disabled', 'disabled');
+    }
     // Populate the main form fields
+    document.getElementById('serviceInvoiceNo').value = transaction.or_number;
     document.getElementById('address').value = transaction.payor_address;
     document.getElementById('receivedFrom').value = transaction.payor_name;
     document.getElementById('date').value = transaction.ar_date.split('T')[0]; // Format date
