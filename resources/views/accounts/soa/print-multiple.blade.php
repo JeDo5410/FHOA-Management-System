@@ -683,9 +683,31 @@
             </div>
         </div>
         
-        <!-- Acknowledgment Section -->
-        <div style="margin-top: 40px; padding-top: 10px;">
-            <p>CC: 201 File</p>
+        <!-- Received By Section -->
+        <div style="margin-top: 16px;">
+            <table style="width: 100%;">
+                <tr>
+                    <td style="width: 50%; vertical-align: top;">
+                        <p>Received by:</p>
+                        <div style="width: 90%; border-bottom: 1px solid black; margin-top: 24px;"></div>
+                        <p style="text-align: center; font-size: 8px; margin-top: 4px;">(Signature Over Printed Name)</p>
+                    </td>
+                    <td style="width: 50%; vertical-align: top;">
+                        <table style="width: 100%;">
+                            <tr>
+                                <td style="width: 64px; padding-top: 12px;">Date:</td>
+                                <td style="border-bottom: 1px solid black;"></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 64px; padding-top: 12px;">Time:</td>
+                                <td style="border-bottom: 1px solid black;"></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            
+            <p style="margin-top: 16px;">CC: 201 File</p>
         </div>
     </div>
     @endif
@@ -869,9 +891,31 @@
             </div>
         </div>
         
-        <!-- Acknowledgment Section -->
-        <div style="margin-top: 40px; padding-top: 10px;">
-            <p>CC: 201 File</p>
+        <!-- Received By Section -->
+        <div style="margin-top: 16px;">
+            <table style="width: 100%;">
+                <tr>
+                    <td style="width: 50%; vertical-align: top;">
+                        <p>Received by:</p>
+                        <div style="width: 90%; border-bottom: 1px solid black; margin-top: 24px;"></div>
+                        <p style="text-align: center; font-size: 8px; margin-top: 4px;">(Signature Over Printed Name)</p>
+                    </td>
+                    <td style="width: 50%; vertical-align: top;">
+                        <table style="width: 100%;">
+                            <tr>
+                                <td style="width: 64px; padding-top: 12px;">Date:</td>
+                                <td style="border-bottom: 1px solid black;"></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 64px; padding-top: 12px;">Time:</td>
+                                <td style="border-bottom: 1px solid black;"></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            
+            <p style="margin-top: 16px;">CC: 201 File</p>
         </div>
     </div>
     @endif
