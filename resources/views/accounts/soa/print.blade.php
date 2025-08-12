@@ -449,7 +449,7 @@
                     </tr>
                     <tr>
                         <td style="border: 1px solid black; padding: 5px; font-style: italic;">INTEREST (@30% per Annum; based on FHOAI By-Laws in Page 4, Article V, Section 2.b )</td>
-                        <td style="border: 1px solid black; padding: 5px; text-align: right; color: blue;">{{ number_format($member->arrear_interest, 2) }}</td>
+                        <td style="border: 1px solid black; padding: 5px; text-align: right;">{{ number_format($member->arrear_interest, 2) }}</td>
                     </tr>
                     <tr>
                         <td style="border: 1px solid black; padding: 5px; font-weight: bold; font-style: italic;">GRAND TOTAL AMOUNT OF PAYABLES (As of Date of creation of SOA)</td>
@@ -464,7 +464,7 @@
                 <p style="margin-bottom: 6px;"><strong>** REMINDERs:</strong></p>
                 
                 <div style="margin-left: 16px; margin-right: 16px; text-align: justify;">
-                    <p style="margin-bottom: 4px;">No n-payment of arrears shall have the Board of Directors (BOD) declare you as DELINQUENT MEMBER or MEMBER NOT IN GOOD STANDING as provided in the Department of Human Settlements & Urban D evelopment (DHSUD)'s Revised Implementing Rules & Regulations (RIRR) of RA 9904 - Magna Carta for Homeowners & Homeowners Associations' Rule III-Membership in the Association, Pages 10-11:</p>
+                    <p style="margin-bottom: 4px;">Non-payment of arrears shall have the Board of Directors (BOD) declare you as DELINQUENT MEMBER or MEMBER NOT IN GOOD STANDING as provided in the Department of Human Settlements & Urban Development (DHSUD)'s Revised Implementing Rules & Regulations (RIRR) of RA 9904 - Magna Carta for Homeowners & Homeowners Associations' Rule III-Membership in the Association, Pages 10-11:</p>
                     
                     <p style="margin-bottom: 4px;"><strong>- Section 16. Deliquent Member or Member Not in Good Standing.</strong></p>
                     <p style="margin-bottom: 4px; margin-left: 8px;">Unless otherwise provided in the ByLaws, a Member may be declared DELINQUENT or NOT IN GOOD STANDING by the Board of Directors on any of the following grounds:</p>
@@ -489,7 +489,7 @@
                         <p style="text-align: center; margin-top: 0;">Admin Assistant</p>
                     </div>
                 </div>
-                <div style="width: 45%; text-align: right; margin-top: 0;">
+                <div style="width: 45%; text-align: left; margin-top: 0;">
                     <p>Noted by:</p>
                     <div style="margin-top: 20px; border-top: 1px solid black; margin-left: 16px;">
                         <p style="text-align: center; margin-bottom: 0;">GEORGINA M. SCHRIER / ARIEL M. AREGLO</p>
@@ -800,7 +800,7 @@
                 </tr>
                 <tr>
                     <td style="border: 1px solid black; padding: 5px;"><strong>INTEREST (@30% per Annum; based on FHOAI By-Laws in Page 4, Article V, Section 2.b)</strong></td>
-                    <td style="border: 1px solid black; padding: 5px; text-align: right; color: blue;">
+                    <td style="border: 1px solid black; padding: 5px; text-align: right;">
                         {{ number_format($member->arrear_interest, 2) }}
                     </td>
                 </tr>
