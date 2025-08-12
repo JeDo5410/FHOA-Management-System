@@ -783,7 +783,7 @@
                 <tr>
                     <td style="border: 1px solid black; padding: 5px;"><strong>PREVIOUS MONTH UNPAID MAINTENANCE DUES</strong></td>
                     <td style="border: 1px solid black; padding: 5px; text-align: right;">
-                        {{ number_format($member->arrear, 2) }}
+                        {{ number_format($member->arrear - $member->mem_monthlydues, 2) }}
                     </td>
                 </tr>
                 <tr>
@@ -795,7 +795,7 @@
                 <tr>
                     <td style="border: 1px solid black; padding: 5px;"><strong>TOTAL AMOUNT OF UNPAID MONTHLY MAINTENANCE DUES</strong></td>
                     <td style="border: 1px solid black; padding: 5px; text-align: right;">
-                        {{ number_format($member->arrear + $member->mem_monthlydues, 2) }}
+                        {{ number_format($member->arrear, 2) }}
                     </td>
                 </tr>
                 <tr>
