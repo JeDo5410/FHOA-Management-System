@@ -246,6 +246,17 @@
             line-height: 1.4;
         }
         
+        /* Increase font size for NNCV only */
+        .nncv-section p {
+            font-size: 12px;
+        }
+        
+        /* Keep SOA and Demand Letter sections at original size */
+        .soa-section p,
+        .demand-section p {
+            font-size: 11px;
+        }
+        
         .signature-block {
             margin-top: 20px;
         }
@@ -362,7 +373,7 @@
         <!-- STATEMENT OF ACCOUNT (SOA) - HOMEOWNERS/TENANTS BILLING DOCUMENT       -->
         <!-- ====================================================================== -->
 
-        <div class="document-container" style="margin-top: 0; padding-top: 0;">
+        <div class="document-container soa-section" style="margin-top: 0; padding-top: 0;">
             <!-- Header Table with Logo, Title and Form Info -->
 
             <table class="header-table">
@@ -568,7 +579,7 @@
         <!-- NOTICE OF NON-COMPLIANCE/VIOLATION (NNCV1) - FIRST WARNING NOTICE      -->
         <!-- ====================================================================== -->
 
-        <div class="document-container" style="margin-top: 25px; padding-top: 25px;">
+        <div class="document-container nncv-section" style="margin-top: 25px; padding-top: 25px;">
             <!-- Header Table with Logo, Title and Form Info -->
             <table class="header-table">
                 <tr>
@@ -725,7 +736,7 @@
         <!-- DEMAND LETTER - FINAL NOTICE FOR DELINQUENT MEMBERS                    -->
         <!-- ====================================================================== -->
 
-        <div class="document-container" style="margin-top: 25px; padding-top: 25px;">
+        <div class="document-container demand-section" style="margin-top: 25px; padding-top: 25px;">
             <!-- Header Table with Logo, Title and Form Info -->
             <table class="header-table">
                 <tr>
