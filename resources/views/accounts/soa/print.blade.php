@@ -350,7 +350,11 @@
     </div>
     @foreach($documentTypes as $documentType)
         @if($documentType === 'soa')
-        <!-- STATEMENT OF ACCOUNT -->
+
+        <!-- ====================================================================== -->
+        <!-- STATEMENT OF ACCOUNT (SOA) - HOMEOWNERS/TENANTS BILLING DOCUMENT       -->
+        <!-- ====================================================================== -->
+
         <div class="document-container" style="margin-top: 0; padding-top: 0;">
             <!-- Header Table with Logo, Title and Form Info -->
 
@@ -394,7 +398,7 @@
                         <td><span class="fixed-width-field"><strong>MR./MS.</strong> {{ $member->mem_name }}</span></td>
                         <td class="right-align"><strong>BILL MONTH :</strong></td>
                         <td style="text-align: right;" class="value-field">
-                            {{ date('M Y') }}
+                            {{ date('F Y') }}
                         </td>
                     </tr>
                     <tr>
@@ -552,7 +556,11 @@
         <!-- No divider between documents -->
 
         @if($documentType === 'nncv1')
-        <!-- NOTICE OF NON-COMPLIANCE VIOLATION -->
+
+        <!-- ====================================================================== -->
+        <!-- NOTICE OF NON-COMPLIANCE/VIOLATION (NNCV1) - FIRST WARNING NOTICE      -->
+        <!-- ====================================================================== -->
+
         <div class="document-container" style="margin-top: 25px; padding-top: 25px;">
             <!-- Header Table with Logo, Title and Form Info -->
             <table class="header-table">
@@ -683,7 +691,11 @@
         @endif
 
         @if($documentType === 'demand')
-        <!-- DEMAND LETTER -->
+
+        <!-- ====================================================================== -->
+        <!-- DEMAND LETTER - FINAL NOTICE FOR DELINQUENT MEMBERS                    -->
+        <!-- ====================================================================== -->
+
         <div class="document-container" style="margin-top: 25px; padding-top: 25px;">
             <!-- Header Table with Logo, Title and Form Info -->
             <table class="header-table">
