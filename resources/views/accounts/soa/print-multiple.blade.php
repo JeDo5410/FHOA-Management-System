@@ -38,10 +38,17 @@
         
         $result = '';
         
+        // Handle millions
+        if ($whole >= 1000000) {
+            $millions = (int)($whole / 1000000);
+            $result .= numberToWords($millions) . ' million ';
+            $whole %= 1000000;
+        }
+        
         // Handle thousands
         if ($whole >= 1000) {
             $thousands = (int)($whole / 1000);
-            $result .= (($thousands > 99) ? numberToWords($thousands) . ' ' : '') . 'thousand ';
+            $result .= numberToWords($thousands) . ' thousand ';
             $whole %= 1000;
         }
         
