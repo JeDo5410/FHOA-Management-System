@@ -29,7 +29,7 @@ class StatementOfAccountController extends Controller
         
         // Filter for delinquent accounts using hoa_status column
         if ($delinquent) {
-            $query->where('hoa_status', 'DELIQUENT');
+            $query->where('hoa_status', 'DELINQUENT');
         }
         
         // Execute query and modify the result set to ensure consistent property naming
