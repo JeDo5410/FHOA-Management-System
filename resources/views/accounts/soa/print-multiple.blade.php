@@ -504,7 +504,9 @@
                 <p>Prepared by:</p>
                 <div style="margin-top: 20px; border-top: 1px solid black; margin-right: 16px;">
                     <p style="text-align: center; margin-bottom: 0;">
-                    <!--    CHARLES B. ICAMINA  -->
+                        @if(isset($designationUsers['admin_assistant']))
+                            {{ strtoupper($designationUsers['admin_assistant']->fullname) }}
+                        @endif
                     </p>
                     <p style="text-align: center; margin-top: 0;">Admin Assistant</p>
                 </div>
@@ -512,7 +514,17 @@
             <div style="width: 45%; text-align: left; margin-top: 0;">
                 <p>Noted by:</p>
                 <div style="margin-top: 20px; border-top: 1px solid black; margin-left: 16px;">
-                    <p style="text-align: center; margin-bottom: 0;">GEORGINA M. SCHRIER / ARIEL M. AREGLO</p>
+                    <p style="text-align: center; margin-bottom: 0;">
+                        @if(isset($designationUsers['treasurer']) && isset($designationUsers['president']))
+                            {{ strtoupper($designationUsers['treasurer']->fullname) }} / {{ strtoupper($designationUsers['president']->fullname) }}
+                        @elseif(isset($designationUsers['treasurer']))
+                            {{ strtoupper($designationUsers['treasurer']->fullname) }}
+                        @elseif(isset($designationUsers['president']))
+                            {{ strtoupper($designationUsers['president']->fullname) }}
+                        @else
+                            GEORGINA M. SCHRIER / ARIEL M. AREGLO
+                        @endif
+                    </p>
                     <p style="text-align: center; margin-top: 0;">FHOAI - BOD Treasurer / President</p>
                 </div>
             </div>
@@ -690,12 +702,24 @@
             <div style="display: flex; justify-content: space-between; margin-top: 15px;">
                 <div style="width: 45%;">
                     <div class="signature-line" style="margin-left: auto; margin-right: auto;"></div>
-                    <p style="margin-top: 5px; margin-bottom: 5px; text-align: center;"><strong>GEORGINA M. SCHRIER</strong><br>
+                    <p style="margin-top: 5px; margin-bottom: 5px; text-align: center;"><strong>
+                        @if(isset($designationUsers['treasurer']))
+                            {{ strtoupper($designationUsers['treasurer']->fullname) }}
+                        @else
+                            GEORGINA M. SCHRIER
+                        @endif
+                    </strong><br>
                     FHOAI-BOD Treasurer</p>
                 </div>
                 <div style="width: 45%;">
                     <div class="signature-line" style="margin-left: auto; margin-right: auto;"></div>
-                    <p style="margin-top: 5px; margin-bottom: 5px;  text-align: center;"><strong>ARIEL M. AREGLO</strong><br>
+                    <p style="margin-top: 5px; margin-bottom: 5px;  text-align: center;"><strong>
+                        @if(isset($designationUsers['president']))
+                            {{ strtoupper($designationUsers['president']->fullname) }}
+                        @else
+                            ARIEL M. AREGLO
+                        @endif
+                    </strong><br>
                     FHOAI – BOD President</p>
                 </div>
             </div>
@@ -879,12 +903,24 @@
             <div style="display: flex; justify-content: space-between; margin-top: 15px;">
                 <div style="width: 45%;">
                     <div class="signature-line"></div>
-                    <p style="margin-top: 5px; margin-bottom: 5px;"><strong>GEORGINA M. SCHRIER</strong><br>
+                    <p style="margin-top: 5px; margin-bottom: 5px;"><strong>
+                        @if(isset($designationUsers['treasurer']))
+                            {{ strtoupper($designationUsers['treasurer']->fullname) }}
+                        @else
+                            GEORGINA M. SCHRIER
+                        @endif
+                    </strong><br>
                     FHOAI-BOD Treasurer</p>
                 </div>
                 <div style="width: 45%;">
                     <div class="signature-line" style="margin-left: auto;"></div>
-                    <p style="margin-top: 5px; margin-bottom: 5px; text-align: right;"><strong>BALTAZAR P. DEJORAS</strong><br>
+                    <p style="margin-top: 5px; margin-bottom: 5px; text-align: right;"><strong>
+                        @if(isset($designationUsers['auditor']))
+                            {{ strtoupper($designationUsers['auditor']->fullname) }}
+                        @else
+                            BALTAZAR P. DEJORAS
+                        @endif
+                    </strong><br>
                     FHOAI – BOD Auditor</p>
                 </div>
             </div>
@@ -892,19 +928,37 @@
             <div style="display: flex; justify-content: space-between; margin-top: 15px;">
                 <div style="width: 45%;">
                     <div class="signature-line"></div>
-                    <p style="margin-top: 5px; margin-bottom: 5px;"><strong>JOHN PAUL A. LAGUILLES</strong><br>
+                    <p style="margin-top: 5px; margin-bottom: 5px;"><strong>
+                        @if(isset($designationUsers['secretary']))
+                            {{ strtoupper($designationUsers['secretary']->fullname) }}
+                        @else
+                            JOHN PAUL A. LAGUILLES
+                        @endif
+                    </strong><br>
                     FHOAI – BOD Secretary</p>
                 </div>
                 <div style="width: 45%;">
                     <div class="signature-line" style="margin-left: auto;"></div>
-                    <p style="margin-top: 5px; margin-bottom: 5px; text-align: right;"><strong>JESSAMINE D. LAYGO</strong><br>
+                    <p style="margin-top: 5px; margin-bottom: 5px; text-align: right;"><strong>
+                        @if(isset($designationUsers['vice_president']))
+                            {{ strtoupper($designationUsers['vice_president']->fullname) }}
+                        @else
+                            JESSAMINE D. LAYGO
+                        @endif
+                    </strong><br>
                     FHOAI – BOD Vice President</p>
                 </div>
             </div>
             
             <div style="margin-top: 15px; text-align: center;">
                 <div class="signature-line" style="margin: 0 auto;"></div>
-                <p style="margin-top: 5px; margin-bottom: 5px;"><strong>ARIEL M. AREGLO</strong><br>
+                <p style="margin-top: 5px; margin-bottom: 5px;"><strong>
+                    @if(isset($designationUsers['president']))
+                        {{ strtoupper($designationUsers['president']->fullname) }}
+                    @else
+                        ARIEL M. AREGLO
+                    @endif
+                </strong><br>
                 FHOAI – BOD President</p>
             </div>
         </div>

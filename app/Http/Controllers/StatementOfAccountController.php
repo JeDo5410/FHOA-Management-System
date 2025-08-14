@@ -2,11 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class StatementOfAccountController extends Controller
 {
+    /**
+     * Get users by designation (case-insensitive, latest created_at)
+     */
+    private function getUsersByDesignations()
+    {
+        $designations = ['Admin Assistant', 'Treasurer', 'Auditor', 'Secretary', 'Vice President', 'President'];
+        $users = [];
+        
+        foreach ($designations as $designation) {
+            $user = User::whereRaw('LOWER(designation) = ?', [strtolower($designation)])
+                       ->orderBy('created_at', 'desc')
+                       ->first();
+            
+            if ($user) {
+                $users[strtolower(str_replace(' ', '_', $designation))] = $user;
+            }
+        }
+        
+        return $users;
+    }
     /**
      * Display the Statement of Account for members
      *
@@ -87,6 +108,9 @@ class StatementOfAccountController extends Controller
         $documentTypes = $request->input('document_types', 'soa');
         $documentTypes = explode(',', $documentTypes);
         
+        // Get users by designations for dynamic signatures
+        $designationUsers = $this->getUsersByDesignations();
+        
         // Flash success message for confirmation
         if (count($documentTypes) > 1) {
             session()->flash('success', "Multiple documents generated for {$member->mem_name}");
@@ -102,7 +126,7 @@ class StatementOfAccountController extends Controller
             session()->flash('success', "{$docTypeName} generated for {$member->mem_name}");
         }
         
-        return view('accounts.soa.print', compact('member', 'documentTypes'));
+        return view('accounts.soa.print', compact('member', 'documentTypes', 'designationUsers'));
     }
 
     /**
@@ -139,6 +163,9 @@ class StatementOfAccountController extends Controller
         $documentTypes = $request->input('document_types', 'soa');
         $documentTypes = explode(',', $documentTypes);
         
+        // Get users by designations for dynamic signatures
+        $designationUsers = $this->getUsersByDesignations();
+        
         // Flash success message with count
         $count = $members->count();
         if (count($documentTypes) > 1) {
@@ -155,6 +182,6 @@ class StatementOfAccountController extends Controller
             session()->flash('success', "Generated {$count} {$docTypeName}");
         }
         
-        return view('accounts.soa.print-multiple', compact('members', 'documentTypes'));
+        return view('accounts.soa.print-multiple', compact('members', 'documentTypes', 'designationUsers'));
     }
 }
