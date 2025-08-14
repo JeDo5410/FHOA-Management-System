@@ -156,7 +156,10 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Designation</label>
-                        <input type="text" class="form-control" name="designation">
+                        <input type="text" class="form-control" name="designation" placeholder="e.g., Admin Assistant, Treasurer, Secretary">
+                        <div class="form-text">
+                            <small class="text-muted">Enter the user's role: Admin Assistant, Treasurer, Secretary, Auditor, Vice President, or President. This will be used for document signatures.</small>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Role</label>
@@ -204,7 +207,10 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Designation</label>
-                        <input type="text" class="form-control" name="designation">
+                        <input type="text" class="form-control" name="designation" placeholder="e.g., Admin Assistant, Treasurer, Secretary">
+                        <div class="form-text">
+                            <small class="text-muted">Enter the user's role: Admin Assistant, Treasurer, Secretary, Auditor, Vice President, or President. This will be used for document signatures.</small>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Role</label>
