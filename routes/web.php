@@ -30,6 +30,14 @@ Route::middleware(['auth', 'role:1'])->group(function () {
     Route::get('/users', [UserController::class, 'users'])->name('users.users_management');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+
+    // Arrear management routes
+    Route::prefix('arrears')->group(function () {
+        Route::get('/', [ArrearController::class, 'index'])->name('arrears.index');
+        Route::get('/{id}/edit', [ArrearController::class, 'edit'])->name('arrears.edit');
+        Route::put('/{id}', [ArrearController::class, 'update'])->name('arrears.update');
+    });
+
 });
 
 // Routes accessible by all authenticated users (Admin, Editor, Viewer)
@@ -90,13 +98,6 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
             ->name('reports.get-receivable-data');
         Route::get('/download/receivable-data', [ReportExtractionController::class, 'downloadReceivableData'])
             ->name('reports.download.receivable-data');
-    });
-
-    // Arrear management routes
-    Route::prefix('arrears')->group(function () {
-        Route::get('/', [ArrearController::class, 'index'])->name('arrears.index');
-        Route::get('/{id}/edit', [ArrearController::class, 'edit'])->name('arrears.edit');
-        Route::put('/{id}', [ArrearController::class, 'update'])->name('arrears.update');
     });
 
 });
