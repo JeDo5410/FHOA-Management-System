@@ -73,6 +73,8 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
         
         Route::get('/soa', [StatementOfAccountController::class, 'index'])
             ->name('accounts.soa.index');
+        Route::get('/soa/member-counts', [StatementOfAccountController::class, 'getMemberCounts'])
+            ->name('accounts.soa.member-counts');
         Route::get('/soa/print/{id}', [StatementOfAccountController::class, 'printStatement'])
             ->name('accounts.soa.print');
         Route::get('/soa/print-multiple', [StatementOfAccountController::class, 'printMultiple'])
