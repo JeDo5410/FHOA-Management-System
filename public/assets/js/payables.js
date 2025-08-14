@@ -488,7 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     */
     
-    new PayableForm();
+    window.payableFormInstance = new PayableForm();
 
     // Set focus to Voucher No. field automatically
     document.querySelector('#voucherNo').focus();
@@ -552,3 +552,16 @@ function showToast(type, message) {
 
 // Make showToast function available globally
 window.showToast = showToast;
+
+// Global reference to PayableForm instance for external use
+window.payableFormInstance = null;
+
+// Global function to attach remove line listeners (for use by transaction management)
+function attachRemoveLineListeners() {
+    if (window.payableFormInstance) {
+        window.payableFormInstance.updateFormState();
+    }
+}
+
+// Make attachRemoveLineListeners available globally
+window.attachRemoveLineListeners = attachRemoveLineListeners;

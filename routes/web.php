@@ -62,6 +62,8 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
         // Payables routes
         Route::get('/payables', [AccountPayableController::class, 'index'])->name('accounts.payables');
         Route::post('/payables/store', [AccountPayableController::class, 'store'])->name('accounts.payables.store');
+        Route::get('/payables/check-voucher/{voucherNumber}', [AccountPayableController::class, 'checkVoucher'])
+            ->name('accounts.payables.check-voucher');
         
         // Receivables routes
         Route::get('/receivables', [AccountReceivableController::class, 'index'])->name('accounts.receivables');
