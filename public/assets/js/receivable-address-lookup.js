@@ -732,9 +732,16 @@ class ArrearsAddressLookup {
         
         // redirect focus after address lookup
         setTimeout(() => {
-            // Focus on amount field
-            document.getElementById('arrears_serviceInvoiceNo').focus();
-        }, 50);
+            // Focus on SIN field and handle masked input properly
+            const sinField = document.getElementById('arrears_serviceInvoiceNo');
+            if (sinField) {
+                sinField.focus();
+                // If it's a masked input, select all for easy replacement
+                if (sinField.classList.contains('sin-masked-input')) {
+                    sinField.select();
+                }
+            }
+        }, 100);
     }
     
     showToastNotification(type, message) {

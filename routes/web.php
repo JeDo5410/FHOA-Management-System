@@ -68,6 +68,8 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
         // Receivables routes
         Route::get('/receivables', [AccountReceivableController::class, 'index'])->name('accounts.receivables');
         Route::post('/receivables/store', [AccountReceivableController::class, 'store'])->name('accounts.receivables.store');
+        Route::get('/receivables/next-sin', [AccountReceivableController::class, 'getNextSinNumber'])
+            ->name('accounts.receivables.next-sin');
         Route::get('/receivables/payment-history/{memberId}', [AccountReceivableController::class, 'getPaymentHistory'])
             ->name('accounts.receivables.payment-history');
         Route::get('/receivables/check-invoice/{invoiceNumber}', [AccountReceivableController::class, 'checkInvoice'])
