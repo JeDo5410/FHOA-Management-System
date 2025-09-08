@@ -30,6 +30,14 @@ Route::middleware(['auth', 'role:1'])->group(function () {
     Route::get('/users', [UserController::class, 'users'])->name('users.users_management');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+
+    // Arrear management routes
+    Route::prefix('arrears')->group(function () {
+        Route::get('/', [ArrearController::class, 'index'])->name('arrears.index');
+        Route::get('/{id}/edit', [ArrearController::class, 'edit'])->name('arrears.edit');
+        Route::put('/{id}', [ArrearController::class, 'update'])->name('arrears.update');
+    });
+
 });
 
 // Routes accessible by all authenticated users (Admin, Editor, Viewer)
@@ -54,10 +62,14 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
         // Payables routes
         Route::get('/payables', [AccountPayableController::class, 'index'])->name('accounts.payables');
         Route::post('/payables/store', [AccountPayableController::class, 'store'])->name('accounts.payables.store');
+        Route::get('/payables/check-voucher/{voucherNumber}', [AccountPayableController::class, 'checkVoucher'])
+            ->name('accounts.payables.check-voucher');
         
         // Receivables routes
         Route::get('/receivables', [AccountReceivableController::class, 'index'])->name('accounts.receivables');
         Route::post('/receivables/store', [AccountReceivableController::class, 'store'])->name('accounts.receivables.store');
+        Route::get('/receivables/next-sin', [AccountReceivableController::class, 'getNextSinNumber'])
+            ->name('accounts.receivables.next-sin');
         Route::get('/receivables/payment-history/{memberId}', [AccountReceivableController::class, 'getPaymentHistory'])
             ->name('accounts.receivables.payment-history');
         Route::get('/receivables/check-invoice/{invoiceNumber}', [AccountReceivableController::class, 'checkInvoice'])
@@ -65,6 +77,8 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
         
         Route::get('/soa', [StatementOfAccountController::class, 'index'])
             ->name('accounts.soa.index');
+        Route::get('/soa/member-counts', [StatementOfAccountController::class, 'getMemberCounts'])
+            ->name('accounts.soa.member-counts');
         Route::get('/soa/print/{id}', [StatementOfAccountController::class, 'printStatement'])
             ->name('accounts.soa.print');
         Route::get('/soa/print-multiple', [StatementOfAccountController::class, 'printMultiple'])
@@ -90,13 +104,6 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
             ->name('reports.get-receivable-data');
         Route::get('/download/receivable-data', [ReportExtractionController::class, 'downloadReceivableData'])
             ->name('reports.download.receivable-data');
-    });
-
-    // Arrear management routes
-    Route::prefix('arrears')->group(function () {
-        Route::get('/', [ArrearController::class, 'index'])->name('arrears.index');
-        Route::get('/{id}/edit', [ArrearController::class, 'edit'])->name('arrears.edit');
-        Route::put('/{id}', [ArrearController::class, 'update'])->name('arrears.update');
     });
 
 });

@@ -373,16 +373,44 @@
                                         <input type="text" class="form-control" id="address_id" name="address_id" 
                                             value="{{ request('address_id') }}" placeholder="Address ID">
                                     </div>
-                                    <div class="delinquent-option">
-                                        <input class="form-check-input" type="checkbox" id="delinquent" name="delinquent" 
-                                            {{ request()->has('delinquent') ? 'checked' : '' }}>
-                                        <label class="delinquent-label" for="delinquent">
-                                            Delinquent Members Only
-                                        </label>
+                                    <!-- Member Status Filter -->
+                                    <div id="memberStatusFilter">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <div class="column-title">Member Status</div>
+                                            <span class="badge bg-primary" id="currentRecordCount">0</span>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" name="memberStatus" id="statusAll" value="all" 
+                                                {{ request('member_status', 'all') === 'all' ? 'checked' : '' }} onclick="loadMemberData('all')">
+                                            <label class="form-check-label d-flex justify-content-between w-100" for="statusAll">
+                                                <span>All Members</span>
+                                                <small class="text-muted" id="allMembersCount">Loading...</small>
+                                            </label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" name="memberStatus" id="statusActive" value="active" 
+                                                {{ request('member_status') === 'active' ? 'checked' : '' }} onclick="loadMemberData('active')">
+                                            <label class="form-check-label d-flex justify-content-between w-100" for="statusActive">
+                                                <span>Active Members</span>
+                                                <small class="text-muted" id="activeMembersCount">Loading...</small>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="memberStatus" id="statusDelinquent" value="delinquent" 
+                                                {{ request('member_status') === 'delinquent' ? 'checked' : '' }} onclick="loadMemberData('delinquent')">
+                                            <label class="form-check-label d-flex justify-content-between w-100" for="statusDelinquent">
+                                                <span>Delinquent Members</span>
+                                                <small class="text-muted" id="delinquentMembersCount">Loading...</small>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <!-- Document Types Column -->
+                                <!-- Empty Column for spacing -->
+                                <div class="filter-column">
+                                </div>
+                                
+                                <!-- Document Types & Actions Column -->
                                 <div class="filter-column">
                                     <div class="column-title">Document Types</div>
                                     <div class="document-options">
@@ -408,16 +436,11 @@
                                             </label>
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <!-- Actions Column -->
-                                <div class="filter-column">
-                                    <div class="column-title">Actions</div>
+                                    
+                                    <div class="column-title mt-4">Actions</div>
                                     <div class="action-buttons">
-                                        <button type="submit" class="btn btn-apply">Apply Filter</button>
-                                        <a href="{{ route('accounts.soa.index') }}" class="btn btn-reset">Reset</a>
-                                        <button type="button" class="btn btn-print" onclick="printStatements()">
-                                            Print Selected
+                                        <button type="button" class="btn btn-success" onclick="printStatements()">
+                                            <i class="bi bi-printer me-1"></i> Print Selected
                                         </button>
                                     </div>
                                 </div>
@@ -518,11 +541,186 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Select all checkbox functionality
+        // Initialize checkbox handlers
+        initializeCheckboxHandlers();
+
+        // Initialize member counts
+        loadMemberCounts();
+        
+        // Clear address ID when delinquent status is selected
+        const statusDelinquentRadio = document.getElementById('statusDelinquent');
+        const addressIdInput = document.getElementById('address_id');
+
+        if(statusDelinquentRadio && addressIdInput) {
+            statusDelinquentRadio.addEventListener('change', function() {
+                if(this.checked) {
+                    addressIdInput.value = '';
+                }
+            });
+        }
+        
+        // Add event listener for Address ID input with debounce
+        if (addressIdInput) {
+            let debounceTimer;
+            addressIdInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    // Get current selected member status
+                    const selectedStatus = document.querySelector('input[name="memberStatus"]:checked');
+                    const status = selectedStatus ? selectedStatus.value : 'all';
+                    loadMemberData(status);
+                }, 500); // Wait 500ms after user stops typing
+            });
+        }
+    });
+    
+    // Function to load member counts
+    function loadMemberCounts() {
+        // Update current record count based on visible rows
+        const tableRows = document.querySelectorAll('#mainTable tbody tr');
+        const currentCount = tableRows.length;
+        
+        const currentRecordCount = document.getElementById('currentRecordCount');
+        if (currentRecordCount) {
+            currentRecordCount.textContent = currentCount;
+        }
+        
+        // Fetch actual member counts via AJAX
+        fetch('{{ route("accounts.soa.member-counts") }}')
+            .then(response => response.json())
+            .then(data => {
+                const allMembersCount = document.getElementById('allMembersCount');
+                const activeMembersCount = document.getElementById('activeMembersCount');
+                const delinquentMembersCount = document.getElementById('delinquentMembersCount');
+                
+                if (allMembersCount) allMembersCount.textContent = data.all;
+                if (activeMembersCount) activeMembersCount.textContent = data.active;
+                if (delinquentMembersCount) delinquentMembersCount.textContent = data.delinquent;
+            })
+            .catch(error => {
+                console.error('Error fetching member counts:', error);
+                // Set fallback values
+                const allMembersCount = document.getElementById('allMembersCount');
+                const activeMembersCount = document.getElementById('activeMembersCount');
+                const delinquentMembersCount = document.getElementById('delinquentMembersCount');
+                
+                if (allMembersCount) allMembersCount.textContent = 'Error';
+                if (activeMembersCount) activeMembersCount.textContent = 'Error';
+                if (delinquentMembersCount) delinquentMembersCount.textContent = 'Error';
+            });
+    }
+    
+    // Function to load member data based on status
+    function loadMemberData(status) {
+        console.log('Loading member data for status:', status);
+        
+        // Show loading state
+        const tbody = document.querySelector('#mainTable tbody');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="17" class="text-center">Loading...</td></tr>';
+        }
+        
+        // Get current address ID filter
+        const addressIdInput = document.getElementById('address_id');
+        const addressId = addressIdInput ? addressIdInput.value : '';
+        
+        // Build URL with parameters
+        const params = new URLSearchParams();
+        if (status !== 'all') {
+            params.append('member_status', status);
+        }
+        if (addressId) {
+            params.append('address_id', addressId);
+        }
+        
+        const url = '{{ route("accounts.soa.index") }}?' + params.toString();
+        
+        // Fetch data via AJAX
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data) {
+                // Build table rows from JSON data
+                let tableHtml = '';
+                data.data.forEach(arrear => {
+                    const lastPayment = arrear.last_paydate ? 
+                        `${new Date(arrear.last_paydate).toLocaleDateString('en-US', {month: 'short', day: '2-digit', year: 'numeric'})}<br>
+                         OR#: ${arrear.last_or}<br>
+                         Amount: ₱${parseFloat(arrear.last_payamount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}` : 
+                        'No recent payment';
+                    
+                    tableHtml += `
+                        <tr>
+                            <td><input type="checkbox" class="member-checkbox" value="${arrear.mem_id}"></td>
+                            <td>${arrear.mem_id}</td>
+                            <td>${arrear.mem_transno}</td>
+                            <td>${arrear.mem_add_id}</td>
+                            <td>${arrear.mem_name}</td>
+                            <td>${arrear.mem_SPA_Tenant || 'N/A'}</td>
+                            <td>${arrear.mem_type}</td>
+                            <td>₱${parseFloat(arrear.mem_monthlydues).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                            <td class="date-cell">${new Date(arrear.arrear_month).toLocaleDateString('en-US', {month: 'short', day: '2-digit', year: 'numeric'})}</td>
+                            <td class="date-cell">${new Date(arrear.current_month).toLocaleDateString('en-US', {month: 'short', day: '2-digit', year: 'numeric'})}</td>
+                            <td>${arrear.hoa_status}</td>
+                            <td>${arrear.arrear_count}</td>
+                            <td>₱${parseFloat(arrear.arrear).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                            <td>₱${parseFloat(arrear.arrear_interest).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                            <td>₱${parseFloat(arrear.arrear_total).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                            <td class="last-payment-cell">${lastPayment}</td>
+                            <td class="actions-cell text-center">
+                               <a href="#" 
+                                onclick="event.preventDefault(); 
+                                        const selectedDocTypes = [];
+                                        document.querySelectorAll('.document-type-checkbox:checked').forEach(checkbox => {
+                                            selectedDocTypes.push(checkbox.value);
+                                        });
+                                        if (selectedDocTypes.length === 0) {
+                                            alert('Please select at least one document type to print.');
+                                            return;
+                                        }
+                                        window.open('{{ url('accounts/soa/print') }}/${arrear.mem_id}?document_types=' + selectedDocTypes.join(','), '_blank');" 
+                                class="btn btn-sm btn-primary">
+                                    Print
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                tbody.innerHTML = tableHtml || '<tr><td colspan="17" class="text-center">No records found</td></tr>';
+            } else {
+                tbody.innerHTML = '<tr><td colspan="17" class="text-center">No records found</td></tr>';
+            }
+            
+            // Update current record count
+            const currentRecordCount = document.getElementById('currentRecordCount');
+            if (currentRecordCount) {
+                currentRecordCount.textContent = data.count || 0;
+            }
+            
+            // Re-initialize checkbox handlers
+            initializeCheckboxHandlers();
+        })
+        .catch(error => {
+            console.error('Error loading member data:', error);
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="17" class="text-center">Error loading data</td></tr>';
+            }
+        });
+    }
+    
+    // Function to initialize checkbox handlers
+    function initializeCheckboxHandlers() {
         const selectAllCheckbox = document.getElementById('select-all');
         const memberCheckboxes = document.querySelectorAll('.member-checkbox');
         
         if(selectAllCheckbox) {
+            selectAllCheckbox.checked = false;
             selectAllCheckbox.addEventListener('change', function() {
                 memberCheckboxes.forEach(checkbox => {
                     checkbox.checked = selectAllCheckbox.checked;
@@ -530,7 +728,6 @@
             });
         }
         
-        // Individual checkbox change affects select all
         memberCheckboxes.forEach(checkbox => {
             checkbox.addEventListener('change', function() {
                 const allChecked = [...memberCheckboxes].every(cb => cb.checked);
@@ -539,19 +736,7 @@
                 }
             });
         });
-
-        // Clear address ID when delinquent checkbox is checked
-        const delinquentCheckbox = document.getElementById('delinquent');
-        const addressIdInput = document.getElementById('address_id');
-
-        if(delinquentCheckbox && addressIdInput) {
-            delinquentCheckbox.addEventListener('change', function() {
-                if(this.checked) {
-                    addressIdInput.value = '';
-                }
-            });
-        }
-    });
+    }
     
     // Function to print selected statements
     function printStatements() {

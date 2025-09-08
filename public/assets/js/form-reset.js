@@ -59,7 +59,9 @@ function hasFormData(formId) {
         'date', 
         'receivedBy', 
         'arrears_date', 
-        'arrears_receivedBy'
+        'arrears_receivedBy',
+        'arrears_serviceInvoiceNo',
+        'serviceInvoiceNo'
     ];
     
     // Form-specific excluded fields
@@ -173,7 +175,7 @@ function clearArrearsFormFields() {
     const textInputs = form.querySelectorAll('input[type="text"], input[type="number"]');
     textInputs.forEach(input => {
         // Don't clear hidden fields or the arrears_received_by field which keeps the current user
-        if (input.type !== 'hidden' && input.id !== 'arrears_receivedBy') {
+        if (input.type !== 'hidden' && input.id !== 'arrears_receivedBy' && input.id !== 'arrears_serviceInvoiceNo') {
             input.value = '';
         }
     });
@@ -257,15 +259,15 @@ function clearArrearsFormFields() {
     }
     
     // Set today's date in the date field
-    const dateField = document.getElementById('arrears_date');
-    if (dateField) {
-        // Get current date in YYYY-MM-DD format
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        dateField.value = `${year}-${month}-${day}`;
-    }
+    // const dateField = document.getElementById('arrears_date');
+    // if (dateField) {
+    //     // Get current date in YYYY-MM-DD format
+    //     const now = new Date();
+    //     const year = now.getFullYear();
+    //     const month = String(now.getMonth() + 1).padStart(2, '0');
+    //     const day = String(now.getDate()).padStart(2, '0');
+    //     dateField.value = `${year}-${month}-${day}`;
+    // }
     
     // Focus on the address ID field
     const addressIdField = document.getElementById('arrears_addressId');
@@ -290,7 +292,7 @@ function clearAccountFormFields() {
     const textInputs = form.querySelectorAll('input[type="text"], input[type="number"]');
     textInputs.forEach(input => {
         // Don't clear hidden fields or the receivedBy field which keeps the current user
-        if (input.type !== 'hidden' && input.id !== 'receivedBy') {
+        if (input.type !== 'hidden' && input.id !== 'receivedBy' && input.id !== 'serviceInvoiceNo') {
             input.value = '';
         }
     });
@@ -363,15 +365,15 @@ function clearAccountFormFields() {
     }
     
     // Set today's date in the date field
-    const dateField = document.getElementById('date');
-    if (dateField) {
-        // Get current date in YYYY-MM-DD format
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        dateField.value = `${year}-${month}-${day}`;
-    }
+    // const dateField = document.getElementById('date');
+    // if (dateField) {
+    //     // Get current date in YYYY-MM-DD format
+    //     const now = new Date();
+    //     const year = now.getFullYear();
+    //     const month = String(now.getMonth() + 1).padStart(2, '0');
+    //     const day = String(now.getDate()).padStart(2, '0');
+    //     dateField.value = `${year}-${month}-${day}`;
+    // }
     
     // Focus on the service invoice number field
     const serviceInvoiceField = document.getElementById('serviceInvoiceNo');

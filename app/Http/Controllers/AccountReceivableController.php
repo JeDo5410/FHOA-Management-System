@@ -105,7 +105,7 @@ class AccountReceivableController extends Controller
             $validated = $request->validate([
                 'address' => 'required|string|max:100',
                 'received_from' => 'required|string|max:45',
-                'service_invoice_no' => 'required|integer',
+                'service_invoice_no' => 'required|string',
                 'date' => 'required|date',
                 'items' => 'required|array',
                 'items.*.coa' => 'required|integer|exists:charts_of_account,acct_type_id',
@@ -116,6 +116,9 @@ class AccountReceivableController extends Controller
                 'reference_no' => 'nullable|string|max:45',
                 'remarks' => 'nullable|string|max:45'
             ]);
+
+            // Trim leading zeros from SIN before saving
+            $sinNumber = (int) ltrim($validated['service_invoice_no'], '0');
     
             // Begin transaction for data integrity
             DB::beginTransaction();
@@ -123,7 +126,7 @@ class AccountReceivableController extends Controller
             // Create a separate transaction record for each line item
             foreach ($validated['items'] as $item) {
                 $accountReceivable = new AcctReceivable();
-                $accountReceivable->or_number = $validated['service_invoice_no'];
+                $accountReceivable->or_number = $sinNumber;
                 $accountReceivable->ar_date = $validated['date'];
                 $accountReceivable->ar_amount = $item['amount'];
                 $accountReceivable->acct_type_id = $item['coa'];
@@ -237,7 +240,7 @@ class AccountReceivableController extends Controller
             $validated = $request->validate([
                 'arrears_address_id' => 'required|string|max:5',
                 'arrears_received_from' => 'required|string|max:45',
-                'arrears_service_invoice_no' => 'required|integer',
+                'arrears_service_invoice_no' => 'required|string',
                 'arrears_date' => 'required|date',
                 'arrears_items' => 'required|array',
                 'arrears_items.0.coa' => 'required|integer|exists:charts_of_account,acct_type_id',
@@ -247,6 +250,12 @@ class AccountReceivableController extends Controller
                 'arrears_reference_no' => 'nullable|string|max:45',
                 'arrears_remarks' => 'nullable|string|max:45'
             ]);
+
+            // *** MODIFICATION: Convert Address ID to formatted string ***
+            $formattedAddress = $this->formatAddressId($validated['arrears_address_id']);
+
+            // Trim leading zeros from SIN before saving
+            $sinNumber = (int) ltrim($validated['arrears_service_invoice_no'], '0');
 
             // Begin transaction for data integrity
             DB::beginTransaction();
@@ -270,26 +279,26 @@ class AccountReceivableController extends Controller
             // Create a new acct_receivable record for this payment
             $accountReceivable = new AcctReceivable();
             $accountReceivable->mem_id = $memberSum->mem_id;
-            $accountReceivable->or_number = $validated['arrears_service_invoice_no'];
+            $accountReceivable->or_number = $sinNumber;
             $accountReceivable->ar_date = $validated['arrears_date'];
             $accountReceivable->ar_amount = $paymentAmount;
             $accountReceivable->arrear_bal = $newArrearBalance; // The running balance after this payment
             $accountReceivable->acct_type_id = $validated['arrears_items'][0]['coa'];
             $accountReceivable->payor_name = strtoupper($validated['arrears_received_from']);
-            $accountReceivable->payor_address = $validated['arrears_address_id']; // Use the address ID
+            $accountReceivable->payor_address = $formattedAddress;
             $accountReceivable->payment_type = $validated['arrears_payment_mode'];
-            $accountReceivable->payment_Ref = $validated['arrears_reference_no'] ?? null; // Note the exact casing from model
+            $accountReceivable->payment_Ref = $validated['arrears_reference_no'] ?? null;
             $accountReceivable->receive_by = $validated['arrears_received_by'];
             $accountReceivable->ar_remarks = $validated['arrears_remarks'] ?? null;
-            $accountReceivable->user_id = Auth::id(); // Get the currently logged-in user's ID
+            $accountReceivable->user_id = Auth::id();
             
             $accountReceivable->save();
             
             // Update member_sum record with the payment information
-            $memberSum->last_or = $validated['arrears_service_invoice_no'];
+            $memberSum->last_or = $sinNumber;
             $memberSum->last_paydate = $validated['arrears_date'];
             $memberSum->last_payamount = $paymentAmount;
-            $memberSum->arrear = $newArrearBalance; // Update with new arrear balance (can be negative)
+            $memberSum->arrear = $newArrearBalance;
             
             // Log before arrear_total calculation
             Log::info('STORE ARREARS - Before arrear_total calculation', [
@@ -326,22 +335,15 @@ class AccountReceivableController extends Controller
             // Commit the transaction
             DB::commit();
             
-            // Return success response with toast notification
             return redirect()->route('accounts.receivables', ['tab' => $request->input('active_tab', 'arrears')])
                 ->with('success', 'HOA Monthly Dues payment recorded successfully');
-                        
+
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // Validation error, no need to rollback as no DB operations were performed
             return back()->withErrors($e->errors())->withInput();
             
         } catch (\Exception $e) {
-            // Something went wrong, rollback the transaction
             DB::rollBack();
-            
-            // Log the error
             Log::error('Error creating HOA monthly dues record: ' . $e->getMessage());
-            
-            // Return error response with toast notification
             return back()->with('error', 'Error creating HOA monthly dues record: ' . $e->getMessage())
                 ->withInput();
         }
@@ -561,6 +563,8 @@ class AccountReceivableController extends Controller
                 'arrears_remarks' => 'required|string|max:100' // Increased max length to accommodate "CANCELLED OR: "
             ]);
 
+            $formattedAddress = $this->formatAddressId($validated['arrears_address_id']);
+
             // Begin transaction for data integrity
             DB::beginTransaction();
             
@@ -589,7 +593,7 @@ class AccountReceivableController extends Controller
             $accountReceivable->arrear_bal = $newArrearBalance; // The new running balance after reversal
             $accountReceivable->acct_type_id = $validated['arrears_items'][0]['coa'];
             $accountReceivable->payor_name = strtoupper($validated['arrears_received_from']);
-            $accountReceivable->payor_address = $validated['arrears_address_id'];
+            $accountReceivable->payor_address = $formattedAddress;
             $accountReceivable->payment_type = $validated['arrears_payment_mode'];
             $accountReceivable->payment_Ref = $validated['arrears_reference_no'] ?? null;
             $accountReceivable->receive_by = $validated['arrears_received_by'];
@@ -632,6 +636,60 @@ class AccountReceivableController extends Controller
     }
     
     /**
+     * Get the next Service Invoice Number (SIN) for auto-population
+     */
+    public function getNextSinNumber()
+    {
+        try {
+            // Use Laravel's Query Builder with proper method chaining
+            // This is more Laravel-idiomatic than raw SQL
+            // $maxOrNumber = AcctReceivable::where('ar_transno', '>', 3559)
+            $maxOrNumber = AcctReceivable::where('ar_transno', '>', 3554)
+                ->max('or_number');
+            
+            // Handle case where no records exist or result is null
+            $nextSin = ($maxOrNumber !== null) ? $maxOrNumber + 1 : 1;
+            
+            // Ensure we have a valid number (minimum 1)
+            $nextSin = max($nextSin, 1);
+
+            // Log using Laravel's Log facade with structured data
+            Log::info('Next SIN number retrieved successfully', [
+                'next_sin' => $nextSin,
+                'max_or_number_found' => $maxOrNumber,
+                'user_id' => Auth::id(),
+                'timestamp' => now()->toDateTimeString()
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'next_sin' => $nextSin,
+                'formatted_sin' => str_pad($nextSin, 5, '0', STR_PAD_LEFT),
+                'message' => 'Next SIN retrieved successfully'
+            ]);
+            
+        } catch (\Exception $e) {
+            // Enhanced error logging with more context
+            Log::error('Failed to retrieve next SIN number', [
+                'error_message' => $e->getMessage(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'user_id' => Auth::id(),
+                'timestamp' => now()->toDateTimeString()
+            ]);
+            
+            // Return a more informative error response
+            return response()->json([
+                'success' => false,
+                'next_sin' => 1,
+                'formatted_sin' => '00001',
+                'message' => 'Unable to retrieve next SIN number. Please try again.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+            ], 500);
+        }
+    }
+
+    /**
      * Store an edit transaction for arrears receivable
      */
 private function storeArrearsReceivableEdit(Request $request)
@@ -665,6 +723,8 @@ private function storeArrearsReceivableEdit(Request $request)
             'validated_data' => $validated,
             'sin_number' => $validated['arrears_service_invoice_no']
         ]);
+
+        $formattedAddress = $this->formatAddressId($validated['arrears_address_id']);
 
         // Begin transaction for data integrity
         DB::beginTransaction();
@@ -722,7 +782,7 @@ private function storeArrearsReceivableEdit(Request $request)
         $cancellationTransaction->arrear_bal = $memberSum->arrear + abs($originalTransaction->ar_amount); // Restore original balance
         $cancellationTransaction->acct_type_id = $originalTransaction->acct_type_id;
         $cancellationTransaction->payor_name = $originalTransaction->payor_name;
-        $cancellationTransaction->payor_address = $validated['arrears_address_id'];
+        $cancellationTransaction->payor_address = $formattedAddress;
         $cancellationTransaction->payment_type = $originalTransaction->payment_type;
         $cancellationTransaction->payment_Ref = $originalTransaction->payment_Ref;
         $cancellationTransaction->receive_by = Auth::user()->fullname ?? Auth::user()->name;
@@ -759,7 +819,7 @@ private function storeArrearsReceivableEdit(Request $request)
         $editedTransaction->arrear_bal = $newArrearBalance;
         $editedTransaction->acct_type_id = $validated['arrears_items'][0]['coa'];
         $editedTransaction->payor_name = strtoupper($validated['arrears_received_from']);
-        $editedTransaction->payor_address = $validated['arrears_address_id'];
+        $editedTransaction->payor_address = $formattedAddress;
         $editedTransaction->payment_type = $validated['arrears_payment_mode'];
         $editedTransaction->payment_Ref = $validated['arrears_reference_no'] ?? null;
         $editedTransaction->receive_by = $validated['arrears_received_by'];
@@ -867,6 +927,33 @@ private function storeArrearsReceivableEdit(Request $request)
         Log::error('Error editing HOA monthly dues: ' . $e->getMessage());
         return back()->with('error', 'Error editing HOA monthly dues: ' . $e->getMessage())
             ->withInput();
+    }
+}
+/**
+ * Converts a 5-digit address ID into a human-readable format.
+ * e.g., '10603' becomes 'Ph. 1 Blk. 06 Lot 03'
+ *
+ * @param string $addressId The 5-digit address ID.
+ * @return string The formatted address or the original ID on failure.
+ */
+private function formatAddressId(string $addressId): string
+{
+    try {
+        if (strlen($addressId) !== 5 || !ctype_digit($addressId)) {
+            // Return original ID if it's not a 5-digit string
+            return $addressId;
+        }
+
+        $phase = substr($addressId, 0, 1);
+        $block = substr($addressId, 1, 2);
+        $lot = substr($addressId, 3, 2);
+
+        return "Ph. {$phase} Blk. {$block} Lot {$lot}";
+
+    } catch (\Exception $e) {
+        // Log the error for debugging and return the original ID as a fallback
+        Log::error('Error formatting Address ID: ' . $e->getMessage(), ['addressId' => $addressId]);
+        return $addressId;
     }
 }
 }

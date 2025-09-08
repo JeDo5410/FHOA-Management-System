@@ -2,11 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class StatementOfAccountController extends Controller
 {
+    /**
+     * Get users by designation (case-insensitive, latest created_at)
+     */
+    private function getUsersByDesignations()
+    {
+        $designations = ['Admin Assistant', 'Treasurer', 'Auditor', 'Secretary', 'Vice President', 'President'];
+        $users = [];
+        
+        foreach ($designations as $designation) {
+            $user = User::whereRaw('LOWER(designation) = ?', [strtolower($designation)])
+                       ->orderBy('created_at', 'desc')
+                       ->first();
+            
+            if ($user) {
+                $users[strtolower(str_replace(' ', '_', $designation))] = $user;
+            }
+        }
+        
+        return $users;
+    }
     /**
      * Display the Statement of Account for members
      *
@@ -17,7 +38,7 @@ class StatementOfAccountController extends Controller
     {
         // Get query parameters for filtering
         $addressId = $request->input('address_id');
-        $delinquent = $request->has('delinquent');
+        $memberStatus = $request->input('member_status', 'all');
         
         // Build the query for vw_arrear_staging
         $query = DB::table('vw_arrear_staging')->orderBy('mem_id', 'asc');
@@ -27,9 +48,13 @@ class StatementOfAccountController extends Controller
             $query->where('mem_add_id', $addressId);
         }
         
-        // Filter for delinquent accounts using hoa_status column
-        if ($delinquent) {
-            $query->where('hoa_status', 'DELINQUENT');
+        // Filter by member status
+        if ($memberStatus !== 'all') {
+            if ($memberStatus === 'delinquent') {
+                $query->where('hoa_status', 'DELINQUENT');
+            } elseif ($memberStatus === 'active') {
+                $query->where('hoa_status', '!=', 'DELINQUENT');
+            }
         }
         
         // Execute query and modify the result set to ensure consistent property naming
@@ -43,23 +68,55 @@ class StatementOfAccountController extends Controller
         
         // Prepare success message with count information
         $count = $arrears->count();
-        $message = "{$count} record" . ($count != 1 ? "s" : "") . " found";
+        $statusText = $memberStatus === 'all' ? 'all members' : ($memberStatus === 'delinquent' ? 'delinquent members' : 'active members');
+        $message = "{$count} record" . ($count != 1 ? "s" : "") . " found for {$statusText}";
         
         // Add filter information to the message if filters were applied
-        if ($addressId || $delinquent) {
-            $message .= " with filters:";
-            if ($addressId) {
-                $message .= " Address ID: {$addressId}";
-            }
-            if ($delinquent) {
-                $message .= " Delinquent Only";
-            }
+        if ($addressId) {
+            $message .= " with Address ID: {$addressId}";
         }
         
         // Use session flash for toast notification
         session()->flash('success', $message);
         
+        // Check if this is an AJAX request
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'data' => $arrears->toArray(),
+                'count' => $count
+            ]);
+        }
+        
         return view('accounts.soa.index', compact('arrears'));
+    }
+
+    /**
+     * Get member counts by status
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getMemberCounts()
+    {
+        // Get all members count
+        $allCount = DB::table('vw_arrear_staging')->count();
+        
+        // Get active members count (not delinquent)
+        $activeCount = DB::table('vw_arrear_staging')
+            ->where('hoa_status', '!=', 'DELINQUENT')
+            ->count();
+        
+        // Get delinquent members count
+        $delinquentCount = DB::table('vw_arrear_staging')
+            ->where('hoa_status', 'DELINQUENT')
+            ->count();
+        
+        return response()->json([
+            'all' => $allCount,
+            'active' => $activeCount,
+            'delinquent' => $delinquentCount
+        ]);
     }
 
     /**
@@ -87,6 +144,9 @@ class StatementOfAccountController extends Controller
         $documentTypes = $request->input('document_types', 'soa');
         $documentTypes = explode(',', $documentTypes);
         
+        // Get users by designations for dynamic signatures
+        $designationUsers = $this->getUsersByDesignations();
+        
         // Flash success message for confirmation
         if (count($documentTypes) > 1) {
             session()->flash('success', "Multiple documents generated for {$member->mem_name}");
@@ -102,7 +162,7 @@ class StatementOfAccountController extends Controller
             session()->flash('success', "{$docTypeName} generated for {$member->mem_name}");
         }
         
-        return view('accounts.soa.print', compact('member', 'documentTypes'));
+        return view('accounts.soa.print', compact('member', 'documentTypes', 'designationUsers'));
     }
 
     /**
@@ -139,6 +199,9 @@ class StatementOfAccountController extends Controller
         $documentTypes = $request->input('document_types', 'soa');
         $documentTypes = explode(',', $documentTypes);
         
+        // Get users by designations for dynamic signatures
+        $designationUsers = $this->getUsersByDesignations();
+        
         // Flash success message with count
         $count = $members->count();
         if (count($documentTypes) > 1) {
@@ -155,6 +218,6 @@ class StatementOfAccountController extends Controller
             session()->flash('success', "Generated {$count} {$docTypeName}");
         }
         
-        return view('accounts.soa.print-multiple', compact('members', 'documentTypes'));
+        return view('accounts.soa.print-multiple', compact('members', 'documentTypes', 'designationUsers'));
     }
 }

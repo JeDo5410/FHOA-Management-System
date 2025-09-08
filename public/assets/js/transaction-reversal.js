@@ -9,18 +9,43 @@ function setupInvoiceLookup() {
     
     if (arrearsInvoiceField) {
         arrearsInvoiceField.addEventListener('blur', function() {
-            const invoiceNumber = this.value.trim();
-            if (invoiceNumber) {
-                lookupTransaction(invoiceNumber, 'arrears');
+            // Get the raw value and process it for SIN lookup
+            const rawValue = this.value.trim();
+            
+            // If this is a masked input, extract numeric value for lookup
+            if (this.classList.contains('sin-masked-input')) {
+                const numericValue = rawValue.replace(/\D/g, '');
+                if (numericValue && numericValue !== '0' && numericValue !== '00000') {
+                    // Convert to integer to remove leading zeros for lookup
+                    const invoiceNumber = parseInt(numericValue, 10);
+                    if (invoiceNumber > 0) {
+                        lookupTransaction(invoiceNumber.toString(), 'arrears');
+                    }
+                }
+            } else if (rawValue && rawValue !== '0') {
+                lookupTransaction(rawValue, 'arrears');
             }
         });
         
         arrearsInvoiceField.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                const invoiceNumber = this.value.trim();
-                if (invoiceNumber) {
-                    lookupTransaction(invoiceNumber, 'arrears');
+                
+                // Get the raw value and process it for SIN lookup
+                const rawValue = this.value.trim();
+                
+                // If this is a masked input, extract numeric value for lookup
+                if (this.classList.contains('sin-masked-input')) {
+                    const numericValue = rawValue.replace(/\D/g, '');
+                    if (numericValue && numericValue !== '0' && numericValue !== '00000') {
+                        // Convert to integer to remove leading zeros for lookup
+                        const invoiceNumber = parseInt(numericValue, 10);
+                        if (invoiceNumber > 0) {
+                            lookupTransaction(invoiceNumber.toString(), 'arrears');
+                        }
+                    }
+                } else if (rawValue && rawValue !== '0') {
+                    lookupTransaction(rawValue, 'arrears');
                 }
             }
         });
@@ -28,18 +53,43 @@ function setupInvoiceLookup() {
     
     if (accountInvoiceField) {
         accountInvoiceField.addEventListener('blur', function() {
-            const invoiceNumber = this.value.trim();
-            if (invoiceNumber) {
-                lookupTransaction(invoiceNumber, 'account');
+            // Get the raw value and process it for SIN lookup
+            const rawValue = this.value.trim();
+            
+            // If this is a masked input, extract numeric value for lookup
+            if (this.classList.contains('sin-masked-input')) {
+                const numericValue = rawValue.replace(/\D/g, '');
+                if (numericValue && numericValue !== '0' && numericValue !== '00000') {
+                    // Convert to integer to remove leading zeros for lookup
+                    const invoiceNumber = parseInt(numericValue, 10);
+                    if (invoiceNumber > 0) {
+                        lookupTransaction(invoiceNumber.toString(), 'account');
+                    }
+                }
+            } else if (rawValue && rawValue !== '0') {
+                lookupTransaction(rawValue, 'account');
             }
         });
         
         accountInvoiceField.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                const invoiceNumber = this.value.trim();
-                if (invoiceNumber) {
-                    lookupTransaction(invoiceNumber, 'account');
+                
+                // Get the raw value and process it for SIN lookup
+                const rawValue = this.value.trim();
+                
+                // If this is a masked input, extract numeric value for lookup
+                if (this.classList.contains('sin-masked-input')) {
+                    const numericValue = rawValue.replace(/\D/g, '');
+                    if (numericValue && numericValue !== '0' && numericValue !== '00000') {
+                        // Convert to integer to remove leading zeros for lookup
+                        const invoiceNumber = parseInt(numericValue, 10);
+                        if (invoiceNumber > 0) {
+                            lookupTransaction(invoiceNumber.toString(), 'account');
+                        }
+                    }
+                } else if (rawValue && rawValue !== '0') {
+                    lookupTransaction(rawValue, 'account');
                 }
             }
         });

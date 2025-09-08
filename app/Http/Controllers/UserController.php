@@ -28,6 +28,7 @@ class UserController extends Controller
                     }
                 }
             ],
+            'designation' => 'nullable|string|max:255',
             'role' => 'required|in:1,2,3',
             'is_active' => 'required|boolean'
         ]);
@@ -40,6 +41,7 @@ class UserController extends Controller
     {
         $rules = [
             'fullname' => 'required|string|max:255',
+            'designation' => 'nullable|string|max:255',
             'is_active' => 'required|boolean',
             'clear_password' => 'boolean',
             'role' => 'required|in:1,2,3'  
@@ -64,6 +66,7 @@ class UserController extends Controller
     
         $updateData = [
             'fullname' => $validated['fullname'],
+            'designation' => $validated['designation'],
             'is_active' => $validated['is_active'],
             'role' => $validated['role']
         ];

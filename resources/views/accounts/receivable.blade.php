@@ -162,11 +162,10 @@
                                     <div class="col-md-3">
                                         <div class="mb-2">
                                             <label for="arrears_serviceInvoiceNo" class="form-label">Service Invoice No.</label>
-                                            <input type="number" 
-                                                class="form-control form-control-sm" 
+                                            <input type="text" 
+                                                class="form-control form-control-sm sin-masked-input" 
                                                 id="arrears_serviceInvoiceNo" 
                                                 name="arrears_service_invoice_no"
-                                                min="1"
                                                 autocomplete="off"
                                                 required>
                                         </div>
@@ -362,11 +361,10 @@
                             <div class="col-md-3">
                                 <div class="mb-2">
                                     <label for="serviceInvoiceNo" class="form-label">Service Invoice No.</label>
-                                    <input type="number" 
-                                        class="form-control form-control-sm" 
+                                    <input type="text" 
+                                        class="form-control form-control-sm sin-masked-input" 
                                         id="serviceInvoiceNo" 
                                         name="service_invoice_no"
-                                        min="1"
                                         autocomplete="off"
                                         required>
                                 </div>
@@ -1164,11 +1162,145 @@
 </style>
 
 <script>
+// Initialize SIN Masked Input functionality
+function initializeSinMaskedInputs() {
+    const sinInputs = document.querySelectorAll('.sin-masked-input');
+
+    const setupMask = (inputElement) => {
+        // This variable holds the actual numbers the user has typed for this specific input.
+        let numberString = '';
+
+        // This function updates the input's display with correct padding.
+        const updateDisplay = () => {
+            const paddedString = numberString.padStart(5, '0');
+            inputElement.value = paddedString;
+        };
+
+        // On focus, sync the internal numberString with the input's current value.
+        // This is important for compatibility with fetchNextSinNumber().
+        inputElement.addEventListener('focus', () => {
+            const currentDigits = (inputElement.value || '').replace(/[^0-9]/g, '');
+            numberString = currentDigits.slice(-5);
+            updateDisplay();
+        });
+
+        // Listen for keyboard events on the element.
+        inputElement.addEventListener('keydown', (e) => {
+            // Prevent default typing action, except for Tab.
+            if (e.key !== 'Tab') {
+                e.preventDefault();
+            } else {
+                return; // Allow tabbing away
+            }
+
+            // Case 1: Key is a number (0-9).
+            if (e.key >= '0' && e.key <= '9') {
+                if (numberString.length < 5) {
+                    numberString += e.key;
+                    updateDisplay();
+                }
+            }
+            // Case 2: Key is Backspace.
+            else if (e.key === 'Backspace') {
+                numberString = numberString.slice(0, -1);
+                updateDisplay();
+            }
+        });
+
+        // Handle pasting.
+        inputElement.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+            const digits = pastedData.replace(/[^0-9]/g, '');
+            numberString = digits.slice(-5);
+            updateDisplay();
+        });
+
+        // Initial setup.
+        const initialDigits = (inputElement.value || '').replace(/[^0-9]/g, '');
+        numberString = initialDigits.slice(-5);
+        updateDisplay();
+    };
+
+    // Apply the setup function to each SIN input field.
+    sinInputs.forEach(setupMask);
+}
+
+
+// Fetch next SIN number from backend (This function is unchanged)
+function fetchNextSinNumber() {
+    fetch('/accounts/receivables/next-sin')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update all SIN input fields with the formatted SIN
+                const sinInputs = document.querySelectorAll('.sin-masked-input');
+                sinInputs.forEach(input => {
+                    input.value = data.formatted_sin;
+                    // Manually trigger focus and blur to sync the new value with our masking logic
+                    input.dispatchEvent(new Event('focus'));
+                    input.dispatchEvent(new Event('blur'));
+                });
+                console.log('Next SIN loaded:', data.formatted_sin);
+            } else {
+                console.error('Error fetching next SIN:', data.message);
+                // Set default value '00001' on error
+                setSinDefaultValue('00001');
+            }
+        })
+        .catch(error => {
+            console.error('Network error fetching next SIN:', error);
+            // Fallback to '00001' on network error
+            setSinDefaultValue('00001');
+        });
+}
+
+// Helper function to set default SIN value (This function is unchanged)
+function setSinDefaultValue(defaultValue) {
+    const sinInputs = document.querySelectorAll('.sin-masked-input');
+    sinInputs.forEach(input => {
+        if (!input.value || input.value === '00000') {
+            input.value = defaultValue;
+            // Manually trigger focus and blur to sync the new value
+            input.dispatchEvent(new Event('focus'));
+            input.dispatchEvent(new Event('blur'));
+        }
+    });
+}
+
+// Auto-initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeSinMaskedInputs();
+        fetchNextSinNumber();
+    });
+} else {
+    // DOM is already loaded
+    initializeSinMaskedInputs();
+    fetchNextSinNumber();
+}
+
+// Export functions for external use if needed
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        initializeSinMaskedInputs,
+        fetchNextSinNumber,
+        setSinDefaultValue
+    };
+}
 // Character count for remarks textarea
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize SIN masked inputs
+    initializeSinMaskedInputs();
+    
+    // Fetch next SIN number from backend
+    fetchNextSinNumber();
+    
     const urlParams = new URLSearchParams(window.location.search);
     const activeTab = urlParams.get('tab');
-    
+    const arrearsForm = document.getElementById('arrearsReceivableForm');
+    const accountForm = document.getElementById('accountReceivableForm');
+
     // If tab parameter exists in URL, activate that tab
     if (activeTab) {
         // First, find the corresponding tab button
@@ -1183,11 +1315,58 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update active_tab field whenever tabs change
     document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
         tab.addEventListener('shown.bs.tab', function(e) {
-            const tabId = e.target.getAttribute('id').replace('-tab', '');
+            console.log('Tab switched. Clearing forms and re-fetching SIN.');
+
+            // Step 1: Reset BOTH forms to ensure a clean state.
+            if (arrearsForm) arrearsForm.reset();
+            if (accountForm) accountForm.reset();
             
-            // Update both hidden fields to ensure the correct one is submitted
-            document.getElementById('arrears_active_tab').value = tabId;
-            document.getElementById('account_active_tab').value = tabId;
+            // Step 2: Manually reset UI elements not handled by form.reset()
+            // For Account Receivable tab
+            document.getElementById('totalAmount').value = '';
+            document.getElementById('charCount').textContent = '0/100';
+            const accountTbody = document.querySelector('#lineItemsTable tbody');
+            while (accountTbody.children.length > 1) {
+                accountTbody.removeChild(accountTbody.lastChild);
+            }
+            
+            // For HOA Monthly Dues tab
+            document.getElementById('arrearsCharCount').textContent = '0/100';
+            if (typeof arrearsAddressLookup !== 'undefined') {
+                arrearsAddressLookup.clearFormFields();
+            }
+
+            // Step 3: CRITICAL FIX - Fetch the next SIN number AFTER clearing.
+            // This ensures the active tab always has the correct, latest SIN.
+            fetchNextSinNumber();
+
+            const now = new Date();
+            const philippineTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
+            // Format as YYYY-MM-DD for date inputs
+            const formattedDate = philippineTime.toISOString().split('T')[0];
+
+            document.getElementById('arrears_date').value = formattedDate;
+            document.getElementById('date').value = formattedDate;
+
+            // Step 4: Set the correct focus and default states for the new active tab.
+            setTimeout(() => {
+                if (e.target.id === 'arrears-tab') {
+                    document.getElementById('arrears_addressId').focus();
+                    
+                    // Reset payment option to CASH
+                    const arrearsCashRadio = document.getElementById('arrears_cash');
+                    if (arrearsCashRadio) arrearsCashRadio.checked = true;
+                    document.querySelector('#arrears_reference').closest('.col-md-4').style.display = 'none';
+
+                } else if (e.target.id === 'account-tab') {
+                    document.getElementById('serviceInvoiceNo').focus();
+                    
+                    // Reset payment option to CASH
+                    const accountCashRadio = document.getElementById('cash');
+                    if (accountCashRadio) accountCashRadio.checked = true;
+                    document.querySelector('#reference').closest('.col-md-4').style.display = 'none';
+                }
+            }, 100);
         });
     });
 

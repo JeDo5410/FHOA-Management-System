@@ -23,6 +23,7 @@
                         <th>ID</th>
                         <th>Full Name</th>
                         <th>Username</th>
+                        <th>Designation</th>
                         <th>Role</th>
                         <th>Password Status</th>
                         <th>Status</th>
@@ -36,6 +37,7 @@
                             <td>{{ $user->id }}</td>
                             <td>{{ $user->fullname }}</td>
                             <td>{{ $user->username }}</td>
+                            <td>{{ $user->designation ?? 'N/A' }}</td>
                             <td>
                                 <span class="badge 
                                     @if($user->role === 1) bg-primary
@@ -85,6 +87,7 @@
                         <th>ID</th>
                         <th>Full Name</th>
                         <th>Username</th>
+                        <th>Designation</th>
                         <th>Role</th>
                         <th>Password Status</th>
                         <th>Status</th>
@@ -98,6 +101,7 @@
                             <td>{{ $user->id }}</td>
                             <td>{{ $user->fullname }}</td>
                             <td>{{ $user->username }}</td>
+                            <td>{{ $user->designation ?? 'N/A' }}</td>
                             <td>
                                 <span class="badge 
                                     @if($user->role === 1) bg-primary
@@ -151,6 +155,13 @@
                         <input type="text" class="form-control" name="username" required>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Designation</label>
+                        <input type="text" class="form-control" name="designation" placeholder="e.g., Admin Assistant, Treasurer, Secretary">
+                        <div class="form-text">
+                            <small class="text-muted">Enter the user's role: Admin Assistant, Treasurer, Secretary, Auditor, Vice President, or President. This will be used for document signatures.</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Role</label>
                         <select class="form-control" name="role" required>
                             <option value="3">Viewer</option>
@@ -193,6 +204,13 @@
                     <div class="mb-3">
                         <label class="form-label">Username</label>
                         <input type="text" class="form-control" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Designation</label>
+                        <input type="text" class="form-control" name="designation" placeholder="e.g., Admin Assistant, Treasurer, Secretary">
+                        <div class="form-text">
+                            <small class="text-muted">Enter the user's role: Admin Assistant, Treasurer, Secretary, Auditor, Vice President, or President. This will be used for document signatures.</small>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Role</label>
@@ -298,6 +316,7 @@ function openEditModal(userId) {
     form.elements['user_id'].value = user.id;
     form.elements['fullname'].value = user.fullname || '';
     form.elements['username'].value = user.username;
+    form.elements['designation'].value = user.designation || '';
     form.elements['role'].value = user.role;
     form.elements['is_active'].value = user.is_active ? '1' : '0';
     form.elements['clear_password'].checked = false;

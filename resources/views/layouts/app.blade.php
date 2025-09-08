@@ -216,7 +216,6 @@
             <span>Account Payable</span>
         </a>
 
-        {{-- Added Account Receivable Link --}}
         <a href="{{ route('accounts.receivables') }}" class="nav-link {{ request()->routeIs('accounts.receivables') ? 'active' : '' }}">
             <i class="bi bi-arrow-down-circle"></i>
             <span>Account Receivable</span>
@@ -225,10 +224,14 @@
             <i class="bi bi-file-text"></i>
             <span>Statement Of Account</span>
         </a>
+        {{-- Arrear Management - Admin Only --}}
+        @if ($userRole === 1)
         <a href="{{ route('arrears.index') }}" class="nav-link {{ request()->routeIs('arrears.*') ? 'active' : '' }}">
             <i class="bi bi-exclamation-triangle"></i>
             <span>Arrear Management</span>
         </a>
+        @endif
+        
         <a href="{{ route('reports.extraction') }}" class="nav-link {{ request()->routeIs('reports.extraction') ? 'active' : '' }}">
             <i class="bi bi-file-earmark-spreadsheet"></i>
             <span>Data Extraction</span>
