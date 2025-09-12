@@ -516,14 +516,16 @@ class ArrearsAddressLookup {
             if (!response.ok) throw new Error('Failed to fetch payment history');
             const result = await response.json();
             
-            // Sort the payment history by OR number in descending order
+            // Sort the payment history by date in descending order (newest first)
             if (result.data && Array.isArray(result.data)) {
                 result.data.sort((a, b) => {
-                    // Convert OR numbers to integers for proper numeric sorting
-                    const orA = parseInt(a.or_number) || 0;
-                    const orB = parseInt(b.or_number) || 0;
-                    // Sort in descending order (largest/newest first)
-                    return orB - orA;
+                    const dateA = new Date(a.ar_date);
+                    const dateB = new Date(b.ar_date);
+                    // If dates are equal, use transaction number as secondary sort
+                    if (dateB.getTime() === dateA.getTime()) {
+                        return parseInt(b.ar_transno) - parseInt(a.ar_transno);
+                    }
+                    return dateB.getTime() - dateA.getTime();
                 });
             }
             

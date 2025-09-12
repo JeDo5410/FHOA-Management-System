@@ -9,6 +9,7 @@ use App\Http\Controllers\AccountReceivableController;
 use App\Http\Controllers\ReportExtractionController;
 use App\Http\Controllers\StatementOfAccountController;
 use App\Http\Controllers\ArrearController;
+use App\Http\Controllers\ConstructionPermitController;
 use Illuminate\Support\Facades\Auth;
 
 // Root URL will redirect to dashboard
@@ -106,6 +107,9 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
             ->name('reports.download.receivable-data');
     });
 
+    Route::prefix('construction-permit')->group(function () {
+        Route::get('/', [ConstructionPermitController::class, 'index'])->name('construction-permit.index');
+    });
 });
 
 // Utility routes accessible to all authenticated users

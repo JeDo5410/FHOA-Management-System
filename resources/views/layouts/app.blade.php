@@ -220,6 +220,12 @@
             <i class="bi bi-arrow-down-circle"></i>
             <span>Account Receivable</span>
         </a>
+        
+        <a href="{{ route('construction-permit.index') }}" class="nav-link {{ request()->routeIs('construction-permit.*') ? 'active' : '' }}">
+            <i class="bi bi-hammer"></i>
+            <span>Construction Permit</span>
+        </a>
+        
         <a href="{{ route('accounts.soa.index') }}" class="nav-link {{ request()->routeIs('accounts.soa.index') ? 'active' : '' }}">
             <i class="bi bi-file-text"></i>
             <span>Statement Of Account</span>

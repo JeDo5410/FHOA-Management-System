@@ -16,7 +16,7 @@ class AccountReceivableController extends Controller
     public function index()
     {
         // For Account Receivable tab: All Association Receipts EXCEPT Association Dues
-        $accountTypes = ChartOfAccount::where('acct_type', 'LIKE', '%Receipts%')
+        $accountTypes = ChartOfAccount::where('acct_type', 'LIKE', '%Association Receipts%')
         ->where('acct_name', '!=', 'Association Dues')
         ->orderBy('acct_description')
         ->get();
@@ -366,6 +366,7 @@ class AccountReceivableController extends Controller
                           ->where('mem_id', $memberId)
                           ->groupBy('or_number');
                 })
+                ->orderBy('acct_receivable.ar_date', 'desc')
                 ->orderBy('acct_receivable.ar_transno', 'desc')
                 ->select(
                     'acct_receivable.ar_transno',
@@ -644,7 +645,7 @@ class AccountReceivableController extends Controller
             // Use Laravel's Query Builder with proper method chaining
             // This is more Laravel-idiomatic than raw SQL
             // $maxOrNumber = AcctReceivable::where('ar_transno', '>', 3559)
-            $maxOrNumber = AcctReceivable::where('ar_transno', '>', 3554)
+            $maxOrNumber = AcctReceivable::where('ar_transno', '>', 3636)
                 ->max('or_number');
             
             // Handle case where no records exist or result is null
