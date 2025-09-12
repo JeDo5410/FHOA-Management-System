@@ -144,7 +144,7 @@
                                 <div class="col-md-4">
                                     <label for="permitTypeId" class="form-label">Permit Type</label>
                                     <select class="form-select form-select-sm" id="permitTypeId" name="permit_type_id">
-                                        <option selected value=""></option>
+                                        <option selected value="">Select...</option>
                                         @foreach($permitTypes as $permitType)
                                             <option value="{{ $permitType->typecode }}">{{ $permitType->typedescription }}</option>
                                         @endforeach
@@ -190,7 +190,7 @@
                                 </div>
                             </div>
 
-                            <!-- Row 5: Permit Start Date, Permit End Date, Inspector -->
+                            <!-- Row 5: Permit Start Date, Permit End Date -->
                             <div class="row g-3 mb-3">
                                 <div class="col-md-4">
                                     <label for="permitStartDate" class="form-label">Permit Start Date</label>
@@ -200,18 +200,18 @@
                                     <label for="permitEndDate" class="form-label">Permit End Date</label>
                                     <input type="date" class="form-control form-control-sm" id="permitEndDate" name="permit_end_date">
                                 </div>
+                            </div>
+
+                            <!-- Row 6: Inspector, Inspector Note, Inspection Date (Hidden by default, shown when status is 3,4,5) -->
+                            <div class="row g-3 mb-3" id="inspectorSection" style="display: none;">
                                 <div class="col-md-4">
                                     <label for="inspector" class="form-label">Inspector</label>
                                     <input type="text" class="form-control form-control-sm" id="inspector" name="inspector">
                                 </div>
-                            </div>
-
-                            <!-- Row 6: Inspector Note, Inspection Date, Bond Receiver -->
-                            <div class="row g-3 mb-3">
                                 <div class="col-md-4">
                                     <label for="inspectorNote" class="form-label">Inspector Note</label>
                                     <select class="form-select form-select-sm" id="inspectorNote" name="inspector_note">
-                                        <option selected value="">Choose...</option>
+                                        <option selected value="">Select...</option>
                                         <option value="For Bond Release">For Bond Release</option>
                                         <option value="For Bond Forfeiture">For Bond Forfeiture</option>
                                     </select>
@@ -220,14 +220,15 @@
                                     <label for="inspectionDate" class="form-label">Inspection Date</label>
                                     <input type="date" class="form-control form-control-sm" id="inspectionDate" name="inspection_date">
                                 </div>
+                            </div>
+
+                            <!-- Row 7: Bond Receiver, Bond Release Date, Payment Type (Hidden by default, shown when status is 3,4,5) -->
+                            <div class="row g-3 mb-3" id="bondSection" style="display: none;">
                                 <div class="col-md-4">
                                     <label for="bondReceiver" class="form-label">Bond Receiver</label>
                                     <input type="text" class="form-control form-control-sm" id="bondReceiver" name="bond_receiver">
                                 </div>
-                            </div>
 
-                            <!-- Row 7: Bond Release Date, Payment Type -->
-                            <div class="row g-3 mb-3">
                                 <div class="col-md-4">
                                     <label for="bondReleaseDate" class="form-label">Bond Release Date</label>
                                     <input type="date" class="form-control form-control-sm" id="bondReleaseDate" name="bond_release_date">
@@ -235,7 +236,7 @@
                                 <div class="col-md-4">
                                     <label for="paymentType" class="form-label">Payment Type</label>
                                     <select class="form-select form-select-sm" id="paymentType" name="payment_type">
-                                        <option selected value="">Choose...</option>
+                                        <option selected value="">Select...</option>
                                         <option value="Cash">Cash</option>
                                         <option value="Check">Check</option>
                                         <option value="GCash">GCash</option>
@@ -280,6 +281,41 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container for Notifications -->
+<div class="toast-container position-fixed" style="top: 20px; right: 20px; z-index: 1060;">
+    <!-- Success Toast -->
+    <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-check-circle me-2"></i>
+                <span id="successMessage">Operation completed successfully</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+    <!-- Info Toast -->
+    <div id="infoToast" class="toast align-items-center text-white bg-info border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-info-circle me-2"></i>
+                <span id="infoMessage">Information message</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+    
+    <!-- Error Toast -->
+    <div id="errorToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <span id="errorMessage">An error occurred</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
 </div>
@@ -362,6 +398,113 @@ h4.text-success {
     pointer-events: none;
 }
 
+/* Address Dropdown Styles */
+.address-dropdown {
+    position: absolute;
+    width: 100%;
+    max-height: 280px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    display: none;
+    z-index: 1050;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    margin-top: 4px;
+    scrollbar-width: thin;
+    padding: 0;
+}
+
+.address-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.address-list li {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.875rem;
+    color: #1e293b;
+    width: 100%;
+}
+
+.address-list li:last-child {
+    border-bottom: none;
+}
+
+.address-list li:hover {
+    background-color: #f1f5f9;
+}
+
+.address-list li.active {
+    background-color: #f0f7ff;
+}
+
+.address-list li .d-flex {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 3px;
+    align-items: center;
+}
+
+.address-id {
+    font-weight: 500;
+    color: #1e293b;
+    font-size: 0.875rem;
+}
+
+.member-name {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-align: right;
+}
+
+.address-formatted {
+    font-size: 0.75rem;
+    color: #64748b;
+    display: block;
+    width: 100%;
+}
+
+.dropdown-loading,
+.dropdown-error {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dropdown-loading {
+    color: #475569;
+}
+
+.dropdown-error {
+    color: #dc2626;
+}
+
+.loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e2e8f0;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spinner 0.6s linear infinite;
+}
+
+@keyframes spinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .mb-3 {
@@ -409,6 +552,64 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Remove default date values - dates will be set manually or from database
+    
+    // Function to show/hide inspector and bond sections based on status
+    function toggleInspectorBondSections() {
+        const statusField = document.getElementById('status');
+        const inspectorSection = document.getElementById('inspectorSection');
+        const bondSection = document.getElementById('bondSection');
+        
+        if (statusField && inspectorSection && bondSection) {
+            const statusValue = statusField.value;
+            
+            // Show sections if status is 3, 4, 5 or contains specific text
+            const shouldShow = statusValue === '3' || statusValue === '4' || statusValue === '5' ||
+                             statusValue.includes('For Bond Release') ||
+                             statusValue.includes('Close (Forfeited Bond)') ||
+                             statusValue.includes('Close (Bond Released)');
+            
+            if (shouldShow) {
+                inspectorSection.style.display = 'block';
+                bondSection.style.display = 'block';
+            } else {
+                inspectorSection.style.display = 'none';
+                bondSection.style.display = 'none';
+            }
+        }
+    }
+    
+    // Add event listener to status field if it exists
+    const statusField = document.getElementById('status');
+    if (statusField) {
+        statusField.addEventListener('change', toggleInspectorBondSections);
+        // Also check on page load
+        toggleInspectorBondSections();
+    }
+    
+    // Toast Notification Handler
+    function showToast(type, message) {
+        const toastElement = document.getElementById(type + 'Toast');
+        const messageElement = document.getElementById(type + 'Message');
+        
+        if (toastElement && messageElement) {
+            messageElement.textContent = message;
+            
+            const bsToast = new bootstrap.Toast(toastElement, {
+                animation: true,
+                autohide: true,
+                delay: 4000
+            });
+            
+            bsToast.show();
+        }
+    }
 });
 </script>
+
+@php
+// Update this version when you change your JS files
+$jsVersion = '1.0.0';
+@endphp
+<script src="{{ asset('assets/js/construction-permit-address-lookup.js') }}?v={{ $jsVersion }}"></script>
+
 @endsection
