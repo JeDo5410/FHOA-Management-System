@@ -645,7 +645,7 @@ class AccountReceivableController extends Controller
             // Use Laravel's Query Builder with proper method chaining
             // This is more Laravel-idiomatic than raw SQL
             // $maxOrNumber = AcctReceivable::where('ar_transno', '>', 3559)
-            $maxOrNumber = AcctReceivable::where('ar_transno', '>', 3554)
+            $maxOrNumber = AcctReceivable::where('ar_transno', '>', 3636)
                 ->max('or_number');
             
             // Handle case where no records exist or result is null
