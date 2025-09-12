@@ -16,7 +16,7 @@ class AccountReceivableController extends Controller
     public function index()
     {
         // For Account Receivable tab: All Association Receipts EXCEPT Association Dues
-        $accountTypes = ChartOfAccount::where('acct_type', 'LIKE', '%Receipts%')
+        $accountTypes = ChartOfAccount::where('acct_type', 'LIKE', '%Association Receipts%')
         ->where('acct_name', '!=', 'Association Dues')
         ->orderBy('acct_description')
         ->get();
