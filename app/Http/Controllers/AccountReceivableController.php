@@ -366,6 +366,7 @@ class AccountReceivableController extends Controller
                           ->where('mem_id', $memberId)
                           ->groupBy('or_number');
                 })
+                ->orderBy('acct_receivable.ar_date', 'desc')
                 ->orderBy('acct_receivable.ar_transno', 'desc')
                 ->select(
                     'acct_receivable.ar_transno',
