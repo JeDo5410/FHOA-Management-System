@@ -212,12 +212,12 @@
         </a>
         
         <a href="{{ route('accounts.payables') }}" class="nav-link {{ request()->routeIs('accounts.payables') ? 'active' : '' }}">
-            <i class="bi bi-arrow-up-circle"></i>
+            <i class="bi bi-cash-stack"></i>
             <span>Account Payable</span>
         </a>
 
         <a href="{{ route('accounts.receivables') }}" class="nav-link {{ request()->routeIs('accounts.receivables') ? 'active' : '' }}">
-            <i class="bi bi-arrow-down-circle"></i>
+            <i class="bi bi-currency-dollar"></i>
             <span>Account Receivable</span>
         </a>
         
