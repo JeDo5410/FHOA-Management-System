@@ -161,7 +161,8 @@ class ResidentController extends Controller
                         });
                 })
                 ->select('member_sum.mem_id', 'member_sum.mem_add_id', 'member_data.mem_name')
-                ->limit(10)
+                ->orderBy('member_sum.mem_add_id', 'ASC')
+                ->limit(100)
                 ->get();
     
             return response()->json($addresses);
