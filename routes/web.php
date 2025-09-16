@@ -109,6 +109,9 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
 
     Route::prefix('construction-permit')->group(function () {
         Route::get('/', [ConstructionPermitController::class, 'index'])->name('construction-permit.index');
+        Route::post('/', [ConstructionPermitController::class, 'store'])->name('construction-permit.store');
+        Route::get('/check-sin/{sinNumber}', [AccountReceivableController::class, 'checkConstructionPermitInvoice'])
+            ->name('construction-permit.check-sin');
     });
 });
 

@@ -7,12 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class ConstructionPermit extends Model
 {
     protected $table = 'construction_permit';
-    protected $primaryKey = 'permit_no';
     public $timestamps = false;
     const CREATED_AT = 'timestamp';
     const UPDATED_AT = null;
 
     protected $fillable = [
+        'permit_no',
         'mem_id',
         'application_date',
         'applicant_name',

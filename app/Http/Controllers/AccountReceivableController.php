@@ -397,6 +397,67 @@ class AccountReceivableController extends Controller
     }
 
     /**
+     * Check if an invoice number exists for construction permit and return its details
+     */
+    public function checkConstructionPermitInvoice($invoiceNumber)
+    {
+        try {
+            // Find the most recent transaction by invoice number with acct_type_id = 108 (Construction fees)
+            $transaction = AcctReceivable::where('or_number', $invoiceNumber)
+                ->where('acct_type_id', 108)
+                ->orderBy('ar_transno', 'desc')
+                ->first();
+            
+            if (!$transaction) {
+                // Check if SIN exists but with different account type
+                $existingTransaction = AcctReceivable::where('or_number', $invoiceNumber)
+                    ->orderBy('ar_transno', 'desc')
+                    ->first();
+                
+                if ($existingTransaction) {
+                    return response()->json([
+                        'exists' => false,
+                        'message' => 'SIN is not a Construction fee type'
+                    ]);
+                } else {
+                    return response()->json([
+                        'exists' => false,
+                        'message' => 'Permit SIN entered doesn\'t exist'
+                    ]);
+                }
+            }
+            
+            // Check if this is a cancelled transaction
+            if (str_contains($transaction->ar_remarks ?? '', 'SYSTEM CANCELLATION FOR EDIT')) {
+                // Find the actual edited transaction (should be the next one created)
+                $actualTransaction = AcctReceivable::where('or_number', $invoiceNumber)
+                    ->where('acct_type_id', 108)
+                    ->where('ar_amount', '>', 0) // Positive amount = actual transaction
+                    ->orderBy('ar_transno', 'desc')
+                    ->first();
+                    
+                if ($actualTransaction) {
+                    $transaction = $actualTransaction;
+                }
+            }
+            
+            return response()->json([
+                'exists' => true,
+                'transaction' => $transaction,
+                'message' => 'Construction permit SIN found'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error checking construction permit invoice: ' . $e->getMessage());
+            
+            return response()->json([
+                'exists' => false,
+                'message' => 'Error checking SIN: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Check if an invoice number exists and return its details
      */
     public function checkInvoice($invoiceNumber)

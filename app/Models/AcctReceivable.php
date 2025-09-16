@@ -61,7 +61,7 @@ class AcctReceivable extends Model
      * @var array
      */
     protected $casts = [
-        'ar_date' => 'date',
+        'ar_date' => 'date:Y-m-d',
         'ar_amount' => 'decimal:2',
         'arrear_bal' => 'decimal:2',
         'timestamp' => 'datetime',

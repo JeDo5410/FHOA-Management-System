@@ -29,9 +29,9 @@
                         </li>
                     </ul>                    
                     <div>
-                        <button type="button" class="btn btn-primary btn-sm me-2">New</button>
-                        <button type="button" class="btn btn-secondary btn-sm me-2">Edit</button>
-                        <button type="submit" class="btn btn-success btn-sm" form="constructionPermitForm">Save</button>
+                        <button type="button" class="btn btn-primary btn-sm me-2" id="newBtn">New</button>
+                        <button type="button" class="btn btn-secondary btn-sm me-2" id="editBtn">Edit</button>
+                        <button type="submit" class="btn btn-success btn-sm" form="constructionPermitForm" id="saveBtn">Save</button>
                     </div>
                 </div>
                 <!-- Add a horizontal separator line -->
@@ -42,7 +42,7 @@
             <div class="tab-content" id="permitTabsContent">
                 <!-- Construction Permit Tab -->
                 <div class="tab-pane fade show active" id="construction-permit" role="tabpanel" aria-labelledby="construction-permit-tab">
-<form action="{{-- Add your form action route here --}}" method="POST" id="constructionPermitForm">
+<form action="{{ route('construction-permit.store') }}" method="POST" id="constructionPermitForm" style="display: none;">
             @csrf
 
                     <!-- First Row: Permit Number and Status -->
@@ -70,7 +70,8 @@
                                     <input type="text" 
                                         class="form-control form-control-sm" 
                                         id="addressId" 
-                                        name="address_id">
+                                        name="address_id"
+                                        placeholder="Enter PhaseLotBlock">
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -156,7 +157,7 @@
                             <div class="row g-3 mb-3">
                                 <div class="col-md-4">
                                     <label for="permitSin" class="form-label">Permit SIN</label>
-                                    <input type="text" class="form-control form-control-sm" id="permitSin" name="permit_sin">
+                                    <input type="text" class="form-control form-control-sm" id="permitSin" name="permit_sin" placeholder="Enter Existing Permit SIN">
                                 </div>
                                 <div class="col-md-4">
                                     <label for="amountPaid" class="form-label">Amount Paid</label>
@@ -505,6 +506,19 @@ h4.text-success {
     }
 }
 
+/* Form validation styles */
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.form-control.is-valid,
+.form-select.is-valid {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .mb-3 {
@@ -603,6 +617,195 @@ document.addEventListener('DOMContentLoaded', function() {
             bsToast.show();
         }
     }
+    
+    // Attach to window for global access
+    window.showToast = showToast;
+    
+    // Form state management
+    let formHasChanges = false;
+    let isFormVisible = false;
+    
+    // New button functionality
+    const newBtn = document.getElementById('newBtn');
+    const editBtn = document.getElementById('editBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const form = document.getElementById('constructionPermitForm');
+    const statusField2 = document.getElementById('status');
+    
+    if (newBtn && form) {
+        newBtn.addEventListener('click', function() {
+            // Show the form
+            form.style.display = 'block';
+            isFormVisible = true;
+            
+            // Clear all form fields
+            clearForm();
+            
+            // Set status to "New"
+            if (statusField2) {
+                statusField2.value = 'New';
+            }
+            
+            // Focus on first input
+            const firstInput = form.querySelector('input[type="text"]:not([disabled])');
+            if (firstInput) {
+                setTimeout(() => firstInput.focus(), 100);
+            }
+            
+            showToast('info', 'New construction permit form is ready');
+        });
+    }
+    
+    // Function to clear form
+    function clearForm() {
+        const form = document.getElementById('constructionPermitForm');
+        if (form) {
+            // Reset all form inputs
+            form.reset();
+            
+            // Clear specific fields that might not be reset properly
+            const fieldsToDisable = ['memberName', 'address', 'totalArrears', 'amountPaid', 'paidDate', 'status'];
+            fieldsToDisable.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field && fieldId !== 'status') {
+                    field.value = '';
+                    if (fieldId === 'amountPaid' || fieldId === 'paidDate') {
+                        field.disabled = true;
+                    }
+                }
+            });
+            
+            // Hide inspector and bond sections
+            const inspectorSection = document.getElementById('inspectorSection');
+            const bondSection = document.getElementById('bondSection');
+            if (inspectorSection) inspectorSection.style.display = 'none';
+            if (bondSection) bondSection.style.display = 'none';
+            
+            formHasChanges = false;
+        }
+    }
+    
+    // Track form changes
+    if (form) {
+        form.addEventListener('input', function() {
+            formHasChanges = true;
+        });
+        
+        form.addEventListener('change', function() {
+            formHasChanges = true;
+        });
+    }
+    
+    // Tab change prevention
+    const tabButtons = document.querySelectorAll('button[data-bs-toggle="tab"]');
+    tabButtons.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            if (formHasChanges && isFormVisible) {
+                const confirmed = confirm('You have unsaved changes. Are you sure you want to switch tabs? All changes will be lost.');
+                if (!confirmed) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                // If confirmed, reset form state
+                formHasChanges = false;
+                isFormVisible = false;
+                if (form) form.style.display = 'none';
+            };
+        });
+    });
+    
+    // Window beforeunload protection
+    window.addEventListener('beforeunload', function(e) {
+        if (formHasChanges && isFormVisible) {
+            e.preventDefault();
+            e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+            return 'You have unsaved changes. Are you sure you want to leave?';
+        }
+    });
+    
+    // Handle form submission with AJAX
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
+            // Get form data
+            const formData = new FormData(form);
+            
+            // Validate required fields
+            const requiredFields = [
+                'permitNumber', 'address_id', 'applicant_name', 'application_date', 'applicant_contact',
+                'contractor_name', 'contractor_contact', 'permit_type_id', 'permit_sin',
+                'amount_paid', 'paid_date', 'bond_arn', 'bond_paid', 'bond_paid_date',
+                'permit_start_date', 'permit_end_date'
+            ];
+            
+            let hasErrors = false;
+            let errorMessages = [];
+            
+            // Check required fields
+            requiredFields.forEach(fieldName => {
+                const field = form.querySelector(`[name="${fieldName}"]`);
+                if (field && (!field.value || field.value.trim() === '')) {
+                    hasErrors = true;
+                    field.classList.add('is-invalid');
+                    errorMessages.push(`${field.previousElementSibling.textContent} is required.`);
+                } else if (field) {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            // Show validation errors
+            if (hasErrors) {
+                showToast('error', 'Please fill in all required fields.');
+                return;
+            }
+            
+            // Show loading message
+            showToast('info', 'Saving construction permit...');
+            
+            // Submit form data via AJAX
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', data.message);
+                    formHasChanges = false;
+                    
+                    // Reset form and hide it
+                    clearForm();
+                    form.style.display = 'none';
+                    isFormVisible = false;
+                    
+                    // Optionally, you can redirect or update UI
+                    console.log('Permit created with ID:', data.permit_no);
+                } else {
+                    showToast('error', data.message || 'An error occurred while saving.');
+                    
+                    // Handle validation errors
+                    if (data.errors) {
+                        Object.keys(data.errors).forEach(fieldName => {
+                            const field = form.querySelector(`[name="${fieldName}"]`);
+                            if (field) {
+                                field.classList.add('is-invalid');
+                            }
+                        });
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error saving construction permit:', error);
+                showToast('error', 'An error occurred while saving the permit. Please try again.');
+            });
+        });
+    }
 });
 </script>
 
@@ -611,5 +814,6 @@ document.addEventListener('DOMContentLoaded', function() {
 $jsVersion = '1.0.0';
 @endphp
 <script src="{{ asset('assets/js/construction-permit-address-lookup.js') }}?v={{ $jsVersion }}"></script>
+<script src="{{ asset('assets/js/construction-permit-sin-lookup.js') }}?v={{ $jsVersion }}"></script>
 
 @endsection
