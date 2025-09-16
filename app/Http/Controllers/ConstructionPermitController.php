@@ -17,6 +17,20 @@ class ConstructionPermitController extends Controller
     {
         $permitTypes = PermitType::orderBy('typecode')->get();
 
+        try {
+            DB::statement('CALL sp_permit_status()');
+            LOG::info('Stored procedure sp_permit_status executed successfully', [
+                'user_id' => Auth::id(),
+                'timestamp' => now()
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error executing stored procedure sp_permit_status', [
+                'error' => $e->getMessage(),
+                'user_id' => Auth::id(),
+                'timestamp' => now()
+            ]);
+        }
+
         return view('construction-permit.construction-permit', compact('permitTypes'));
     }
 
