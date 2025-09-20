@@ -320,6 +320,37 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Permit Modal -->
+<div class="modal fade" id="editPermitModal" tabindex="-1" aria-labelledby="editPermitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPermitModalLabel">Edit Construction Permit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="editPermitNumber" class="form-label">Enter Permit Number</label>
+                    <input type="text" class="form-control" id="editPermitNumber" placeholder="Enter permit number to edit" autocomplete="off">
+                    <div class="invalid-feedback" id="editPermitNumberError"></div>
+                </div>
+                <div id="permitNotFoundAlert" class="alert alert-danger d-none">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Permit not found. Please check the permit number and try again.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="searchPermitBtn">
+                    <span class="spinner-border spinner-border-sm d-none me-2" id="searchSpinner"></span>
+                    Search
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 /* Base styling */
 .form-control, .form-select {
@@ -519,6 +550,12 @@ h4.text-success {
     box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
 }
 
+/* Readonly field styling */
+.form-control[readonly] {
+    background-color: #f8f9fa !important;
+    cursor: not-allowed;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .mb-3 {
@@ -537,6 +574,13 @@ h4.text-success {
 </style>
 
 <script>
+// Utility function to format dates for HTML date inputs
+function formatDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Character count for remarks textarea
     const remarksTextarea = document.getElementById('remarks');
@@ -565,41 +609,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Remove default date values - dates will be set manually or from database
-    
-    // Function to show/hide inspector and bond sections based on status
-    function toggleInspectorBondSections() {
-        const statusField = document.getElementById('status');
-        const inspectorSection = document.getElementById('inspectorSection');
-        const bondSection = document.getElementById('bondSection');
-        
-        if (statusField && inspectorSection && bondSection) {
-            const statusValue = statusField.value;
-            
-            // Show sections if status is 3, 4, 5 or contains specific text
-            const shouldShow = statusValue === '3' || statusValue === '4' || statusValue === '5' ||
-                             statusValue.includes('For Bond Release') ||
-                             statusValue.includes('Close (Forfeited Bond)') ||
-                             statusValue.includes('Close (Bond Released)');
-            
-            if (shouldShow) {
-                inspectorSection.style.display = 'block';
-                bondSection.style.display = 'block';
-            } else {
-                inspectorSection.style.display = 'none';
-                bondSection.style.display = 'none';
-            }
-        }
-    }
-    
-    // Add event listener to status field if it exists
-    const statusField = document.getElementById('status');
-    if (statusField) {
-        statusField.addEventListener('change', toggleInspectorBondSections);
-        // Also check on page load
-        toggleInspectorBondSections();
-    }
-    
+
     // Toast Notification Handler
     function showToast(type, message) {
         const toastElement = document.getElementById(type + 'Toast');
@@ -624,6 +634,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form state management
     let formHasChanges = false;
     let isFormVisible = false;
+    let originalEndDate = ''; // Store the original end date
     
     // New button functionality
     const newBtn = document.getElementById('newBtn');
@@ -656,6 +667,213 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Edit button functionality
+    if (editBtn) {
+        editBtn.addEventListener('click', function() {
+            // Show the edit modal
+            const editModal = new bootstrap.Modal(document.getElementById('editPermitModal'));
+            editModal.show();
+            
+            // Clear previous values and errors
+            document.getElementById('editPermitNumber').value = '';
+            document.getElementById('editPermitNumber').classList.remove('is-invalid');
+            document.getElementById('editPermitNumberError').textContent = '';
+            document.getElementById('permitNotFoundAlert').classList.add('d-none');
+            
+            // Focus on permit number input
+            setTimeout(() => {
+                document.getElementById('editPermitNumber').focus();
+            }, 500);
+        });
+    }
+    
+    // Search permit functionality
+    const searchPermitBtn = document.getElementById('searchPermitBtn');
+    const editPermitNumberInput = document.getElementById('editPermitNumber');
+    
+    if (searchPermitBtn && editPermitNumberInput) {
+        // Handle search button click
+        searchPermitBtn.addEventListener('click', function() {
+            const permitNumber = editPermitNumberInput.value.trim();
+            
+            if (!permitNumber) {
+                editPermitNumberInput.classList.add('is-invalid');
+                document.getElementById('editPermitNumberError').textContent = 'Please enter a permit number.';
+                return;
+            }
+            
+            searchPermit(permitNumber);
+        });
+        
+        // Handle Enter key press in input
+        editPermitNumberInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchPermitBtn.click();
+            }
+        });
+        
+        // Clear validation on input
+        editPermitNumberInput.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+            document.getElementById('editPermitNumberError').textContent = '';
+            document.getElementById('permitNotFoundAlert').classList.add('d-none');
+        });
+    }
+    
+    // Function to search for permit
+    function searchPermit(permitNumber) {
+        const searchBtn = document.getElementById('searchPermitBtn');
+        const spinner = document.getElementById('searchSpinner');
+        const errorAlert = document.getElementById('permitNotFoundAlert');
+        const input = document.getElementById('editPermitNumber');
+        
+        // Show loading state
+        searchBtn.disabled = true;
+        spinner.classList.remove('d-none');
+        errorAlert.classList.add('d-none');
+        input.classList.remove('is-invalid');
+        
+        // Make AJAX request to fetch permit
+        fetch(`/construction-permit/search/${permitNumber}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('editPermitModal')).hide();
+                
+                // Populate form with permit data
+                populateFormWithPermitData(data.permit);
+                // Show form
+                const form = document.getElementById('constructionPermitForm');
+                form.style.display = 'block';
+                isFormVisible = true;
+                
+                showToast('success', 'Permit loaded successfully for editing');
+            } else {
+                // Show error
+                errorAlert.classList.remove('d-none');
+                input.classList.add('is-invalid');
+            }
+        })
+        .catch(error => {
+            console.error('Error searching permit:', error);
+            errorAlert.classList.remove('d-none');
+            input.classList.add('is-invalid');
+        })
+        .finally(() => {
+            // Hide loading state
+            searchBtn.disabled = false;
+            spinner.classList.add('d-none');
+        });
+    }
+    
+    // Handle inspector note change to control permit end date field
+    const inspectorNoteSelect = document.getElementById('inspectorNote');
+    const permitEndDateField = document.getElementById('permitEndDate');
+    
+    if (inspectorNoteSelect && permitEndDateField) {
+        inspectorNoteSelect.addEventListener('change', function() {
+            const selectedValue = this.value;
+            
+            if (selectedValue === 'For Bond Release' || selectedValue === 'For Bond Forfeiture') {
+                // Store current value as original if not already stored
+                if (!originalEndDate) {
+                    originalEndDate = permitEndDateField.value;
+                }
+                
+                // Reset to original date and make readonly
+                permitEndDateField.value = originalEndDate;
+                permitEndDateField.readOnly = true;
+                permitEndDateField.classList.add('bg-light');
+                
+                // Show info message
+                showToast('info', 'Permit end date cannot be modified when inspector note is set to bond release or forfeiture.');
+            } else {
+                // Remove readonly and allow editing
+                permitEndDateField.readOnly = false;
+                permitEndDateField.classList.remove('bg-light');
+            }
+        });
+    }
+    
+    // Function to populate form with permit data
+    function populateFormWithPermitData(permit) {
+        // Update form action for editing
+        const form = document.getElementById('constructionPermitForm');
+        form.action = `/construction-permit/${permit.permit_no}`;
+        
+        // Add method spoofing for PUT request
+        let methodInput = form.querySelector('input[name="_method"]');
+        if (!methodInput) {
+            methodInput = document.createElement('input');
+            methodInput.type = 'hidden';
+            methodInput.name = '_method';
+            methodInput.value = 'PUT';
+            form.appendChild(methodInput);
+        }
+        
+        // Populate all form fields
+        document.getElementById('permitNumber').value = permit.permit_no || '';
+        document.getElementById('status').value = getStatusText(permit.status_type) || '';
+        document.getElementById('addressId').value = permit.address_id || '';
+        document.getElementById('memberName').value = permit.member_name || '';
+        document.getElementById('address').value = permit.address || '';
+        document.getElementById('totalArrears').value = permit.total_arrears || '';
+        document.getElementById('applicantName').value = permit.applicant_name || '';
+        document.getElementById('applicationDate').value = formatDate(permit.application_date);
+        document.getElementById('applicantContact').value = permit.applicant_contact || '';
+        document.getElementById('contractorName').value = permit.contractor_name || '';
+        document.getElementById('contractorContact').value = permit.contractor_contact || '';
+        document.getElementById('permitTypeId').value = permit.permit_type || '';
+        document.getElementById('permitSin').value = permit.permit_sin || '';
+        document.getElementById('amountPaid').value = permit.permit_fee || '';
+        document.getElementById('paidDate').value = formatDate(permit.permit_fee_date);
+        document.getElementById('bondArn').value = permit.permit_arn || '';
+        document.getElementById('bondPaid').value = permit.permit_bond || '';
+        document.getElementById('bondPaidDate').value = formatDate(permit.permit_bond_date);
+        document.getElementById('permitStartDate').value = formatDate(permit.permit_start_date);
+        document.getElementById('permitEndDate').value = formatDate(permit.permit_end_date);
+        // Store original end date for comparison
+        originalEndDate = permit.permit_end_date || '';
+        document.getElementById('inspector').value = permit.Inspector || '';
+        document.getElementById('inspectorNote').value = permit.inspector_note || '';
+        document.getElementById('inspectionDate').value = permit.inspection_date || '';
+        document.getElementById('bondReceiver').value = permit.bond_receiver || '';
+        document.getElementById('bondReleaseDate').value = permit.bond_release_date || '';
+        document.getElementById('paymentType').value = permit.bond_release_type || '';
+        document.getElementById('remarks').value = permit.remarks || '';
+        
+        // Show inspector and bond sections for editing
+        const inspectorSection = document.getElementById('inspectorSection');
+        const bondSection = document.getElementById('bondSection');
+        if (inspectorSection) inspectorSection.style.display = 'flex';
+        if (bondSection) bondSection.style.display = 'flex';
+        
+        // Enable amount paid and paid date fields for editing
+        document.getElementById('amountPaid').disabled = false;
+        document.getElementById('paidDate').disabled = false;
+        
+        formHasChanges = false;
+    }
+    
+    // Function to get status text from status type
+    function getStatusText(statusType) {
+        const statusMap = {
+            1: 'On-Going',
+            2: 'Denied',
+            3: 'For Bond Release',
+            4: 'Close (Forfeited Bond)',
+            5: 'Close (Bond Released)'
+        };
+        return statusMap[statusType] || 'Unknown';
+    }
+    
     // Function to clear form
     function clearForm() {
         const form = document.getElementById('constructionPermitForm');
@@ -680,6 +898,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const bondSection = document.getElementById('bondSection');
             if (inspectorSection) inspectorSection.style.display = 'none';
             if (bondSection) bondSection.style.display = 'none';
+            
+            // Reset original end date
+            originalEndDate = '';
             
             formHasChanges = false;
         }
@@ -734,7 +955,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Validate required fields
             const requiredFields = [
-                'permitNumber', 'address_id', 'applicant_name', 'application_date', 'applicant_contact',
+                'permit_number', 'address_id', 'applicant_name', 'application_date', 'applicant_contact',
                 'contractor_name', 'contractor_contact', 'permit_type_id', 'permit_sin',
                 'amount_paid', 'paid_date', 'bond_arn', 'bond_paid', 'bond_paid_date',
                 'permit_start_date', 'permit_end_date'
@@ -749,9 +970,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (field && (!field.value || field.value.trim() === '')) {
                     hasErrors = true;
                     field.classList.add('is-invalid');
-                    errorMessages.push(`${field.previousElementSibling.textContent} is required.`);
+                    // Get label text more safely
+                    const label = form.querySelector(`label[for="${field.id}"]`);
+                    const labelText = label ? label.textContent : fieldName;
+                    errorMessages.push(`${labelText} is required.`);
+                    console.log(`Validation failed for ${fieldName}: value = "${field.value}"`);
                 } else if (field) {
                     field.classList.remove('is-invalid');
+                    console.log(`Validation passed for ${fieldName}: value = "${field.value}"`);
                 }
             });
             
