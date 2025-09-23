@@ -98,6 +98,11 @@ function setupInvoiceLookup() {
 
 // ========== MAIN TRANSACTION LOOKUP ==========
 function lookupTransaction(invoiceNumber, formType) {
+    // Prevent lookup if we're in edit mode
+    if (window.isEditMode) {
+        return;
+    }
+    
     showToast('info', `Checking if SIN #${invoiceNumber} exists...`);
     
     fetch(`/accounts/receivables/check-invoice/${invoiceNumber}`, {
@@ -440,6 +445,9 @@ function setupArrearsEditMode(transaction) {
 }
 
 function setupAccountEditMode(transaction, lineItems) {
+    // Add this line at the beginning to prevent lookup during edit mode
+    window.isEditMode = true;
+    
     // IMPORTANT: Disable the OR number field first to prevent re-triggering lookup
     const orNumberField = document.getElementById('serviceInvoiceNo');
     if (orNumberField) {
