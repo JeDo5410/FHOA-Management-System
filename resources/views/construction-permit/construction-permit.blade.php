@@ -946,9 +946,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Handle form submission with AJAX
+    let isSubmitting = false; // Flag to prevent multiple submissions
+    
     if (form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault(); // Prevent default form submission
+            
+            // Prevent multiple submissions
+            if (isSubmitting) {
+                return;
+            }
             
             // Get form data
             const formData = new FormData(form);
@@ -985,6 +992,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (hasErrors) {
                 showToast('error', 'Please fill in all required fields.');
                 return;
+            }
+            
+            // Set submitting flag and disable the save button
+            isSubmitting = true;
+            const saveButton = document.getElementById('saveBtn');
+            if (saveButton) {
+                saveButton.disabled = true;
+                saveButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
             }
             
             // Show loading message
@@ -1029,6 +1044,15 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Error saving construction permit:', error);
                 showToast('error', 'An error occurred while saving the permit. Please try again.');
+            })
+            .finally(() => {
+                // Reset submission state in all cases (success, error, or catch)
+                isSubmitting = false;
+                const saveButton = document.getElementById('saveBtn');
+                if (saveButton) {
+                    saveButton.disabled = false;
+                    saveButton.innerHTML = 'Save';
+                }
             });
         });
     }
