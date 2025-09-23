@@ -50,7 +50,7 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="permitNumber" class="form-label">Permit Number</label>
-                                <input type="text" class="form-control form-control-sm" id="permitNumber" name="permit_number">
+                                <input type="text" class="form-control form-control-sm bg-light" id="permitNumber" name="permit_number" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -631,6 +631,58 @@ document.addEventListener('DOMContentLoaded', function() {
     // Attach to window for global access
     window.showToast = showToast;
     
+    // Function to generate next permit number
+    function generateNextPermitNumber() {
+        const permitNumberField = document.getElementById('permitNumber');
+        
+        // Show loading in permit number field
+        if (permitNumberField) {
+            permitNumberField.value = 'Generating...';
+        }
+        
+        // Make AJAX request to get next permit number
+        fetch('/construction-permit/next-permit-number', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Set the generated permit number
+                if (permitNumberField) {
+                    permitNumberField.value = data.permit_number;
+                }
+                
+                showToast('success', `Permit number ${data.permit_number} generated successfully`);
+                
+                console.log('Permit number generated:', {
+                    permit_number: data.permit_number,
+                    year: data.year,
+                    month: data.month,
+                    sequence: data.sequence
+                });
+            } else {
+                // Handle error
+                if (permitNumberField) {
+                    permitNumberField.value = '';
+                }
+                showToast('error', data.message || 'Failed to generate permit number');
+            }
+        })
+        .catch(error => {
+            console.error('Error generating permit number:', error);
+            
+            // Clear the field and show error
+            if (permitNumberField) {
+                permitNumberField.value = '';
+            }
+            showToast('error', 'Network error while generating permit number. Please try again.');
+        });
+    }
+    
     // Form state management
     let formHasChanges = false;
     let isFormVisible = false;
@@ -657,11 +709,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 statusField2.value = 'New';
             }
             
-            // Focus on first input
-            const firstInput = form.querySelector('input[type="text"]:not([disabled])');
-            if (firstInput) {
-                setTimeout(() => firstInput.focus(), 100);
-            }
+            // Generate next permit number
+            generateNextPermitNumber();
+            
+            // Focus on first input (after permit number is loaded)
+            setTimeout(() => {
+                const firstInput = form.querySelector('input[type="text"]:not([disabled]):not([readonly])');
+                if (firstInput) {
+                    firstInput.focus();
+                }
+            }, 500);
             
             showToast('info', 'New construction permit form is ready');
         });
@@ -878,8 +935,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function clearForm() {
         const form = document.getElementById('constructionPermitForm');
         if (form) {
+            // Store the permit number before resetting (if it exists and is not empty)
+            const permitNumberField = document.getElementById('permitNumber');
+            const currentPermitNumber = permitNumberField ? permitNumberField.value : '';
+            
             // Reset all form inputs
             form.reset();
+            
+            // Restore the permit number if it was auto-generated (not empty and not 'Generating...')
+            if (permitNumberField && currentPermitNumber && currentPermitNumber !== 'Generating...') {
+                permitNumberField.value = currentPermitNumber;
+            }
             
             // Clear specific fields that might not be reset properly
             const fieldsToDisable = ['memberName', 'address', 'totalArrears', 'amountPaid', 'paidDate', 'status'];

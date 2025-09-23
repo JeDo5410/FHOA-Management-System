@@ -449,4 +449,72 @@ public function search(string $permitNumber): JsonResponse
             ], 500);
         }
     }
+
+    public function getNextPermitNumber(): JsonResponse
+    {
+        try {
+            // Get current year and month
+            $currentDate = now();
+            $year = $currentDate->format('y'); // Last 2 digits of year (e.g., 25 for 2025)
+            $month = $currentDate->format('m'); // Month with leading zero (01-12)
+            
+            // Create the YYMM prefix
+            $prefix = $year . $month;
+            
+            // Query ViewConstructionPermit for the maximum permit number with current YYMM prefix
+            $maxPermitNo = ViewConstructionPermit::whereBetween('permit_no', [
+                intval($prefix . '00'), // Start of range (e.g., 250100)
+                intval($prefix . '99')  // End of range (e.g., 250199)
+            ])->max('permit_no');
+            
+            // Calculate the next permit number
+            if ($maxPermitNo) {
+                // Extract the last 2 digits (NN part) and increment
+                $lastSequence = intval(substr(strval($maxPermitNo), -2));
+                $nextSequence = $lastSequence + 1;
+                
+                // Check if we've exceeded 99 permits for this month
+                if ($nextSequence > 99) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Maximum permits (99) reached for this month.'
+                    ], 422);
+                }
+            } else {
+                // No permits found for this month, start with 01
+                $nextSequence = 1;
+            }
+            
+            // Format the next permit number as YYMMNN
+            $nextPermitNumber = intval($prefix . sprintf('%02d', $nextSequence));
+            
+            Log::info('Next permit number generated', [
+                'prefix' => $prefix,
+                'max_existing' => $maxPermitNo,
+                'next_sequence' => $nextSequence,
+                'next_permit_number' => $nextPermitNumber,
+                'user_id' => Auth::id()
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'permit_number' => $nextPermitNumber,
+                'formatted_number' => strval($nextPermitNumber),
+                'year' => $year,
+                'month' => $month,
+                'sequence' => sprintf('%02d', $nextSequence)
+            ], 200);
+            
+        } catch (\Exception $e) {
+            Log::error('Error generating next permit number', [
+                'error' => $e->getMessage(),
+                'user_id' => Auth::id()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while generating the permit number. Please try again.'
+            ], 500);
+        }
+    }
 }

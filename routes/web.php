@@ -110,6 +110,7 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
     Route::prefix('construction-permit')->group(function () {
         Route::get('/', [ConstructionPermitController::class, 'index'])->name('construction-permit.index');
         Route::post('/', [ConstructionPermitController::class, 'store'])->name('construction-permit.store');
+        Route::get('/next-permit-number', [ConstructionPermitController::class, 'getNextPermitNumber'])->name('construction-permit.next-permit-number');
         Route::get('/search/{permitNumber}', [ConstructionPermitController::class, 'search'])->name('construction-permit.search');
         Route::put('/{permitNumber}', [ConstructionPermitController::class, 'update'])->name('construction-permit.update');
         Route::get('/check-sin/{sinNumber}', [AccountReceivableController::class, 'checkConstructionPermitInvoice'])
