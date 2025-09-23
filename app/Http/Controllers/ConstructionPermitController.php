@@ -517,4 +517,99 @@ public function search(string $permitNumber): JsonResponse
             ], 500);
         }
     }
+
+    /**
+     * Get construction permit status data with optional status filter
+     */
+    public function getPermitStatusData(Request $request)
+    {
+        $status = $request->input('status', 'all');
+        $countOnly = $request->input('count_only', 0);
+        
+        $query = ViewConstructionPermit::query();
+        
+        // Apply status filter
+        if ($status !== 'all') {
+            $query->where('statuscode', $status);
+        }
+        
+        if ($countOnly) {
+            $count = $query->count();
+            return response()->json(['count' => $count]);
+        }
+        
+        $permits = $query->orderBy('permit_no', 'desc')->get();
+        
+        return response()->json($permits);
+    }
+
+    /**
+     * Download construction permit status data as CSV
+     */
+    public function downloadPermitStatusData(Request $request)
+    {
+        $status = $request->input('status', 'all');
+        
+        $query = ViewConstructionPermit::query();
+        
+        // Apply status filter
+        if ($status !== 'all') {
+            $query->where('statuscode', $status);
+        }
+        
+        $permits = $query->orderBy('permit_no', 'desc')->get();
+        
+        // Create CSV content with the 25 columns (excluding fields after "Remarks")
+        $headers = [
+            'Permit No.', 'Permit Type', 'Permit Status', 'Permit Start Date', 'Permit End Date',
+            'HOA Address ID', 'HOA Name', 'Application Date', 'Applicant Name', 'Applicant Contact',
+            'Contractor Name', 'Contractor Contact', 'Payment SIN', 'SIN Date', 'Fee Amount',
+            'Bond ARN', 'Bond Amount', 'Bond Date', 'Inspector', 'Inspection Date',
+            'Inspector Note', 'Bond Release Type', 'Bond Receiver', 'Bond Release Date', 'Remarks'
+        ];
+        
+        $csv = implode(',', $headers) . "\n";
+        
+        foreach ($permits as $permit) {
+            $row = [
+                '"' . str_replace('"', '""', $permit->{'Permit No.'} ?? '') . '"',
+                '"' . str_replace('"', '""', $permit->{'Permit Type'} ?? '') . '"',
+                '"' . str_replace('"', '""', $permit->{'Permit Status'} ?? '') . '"',
+                $permit->{'Permit Start Date'} ?? '',
+                $permit->{'Permit End Date'} ?? '',
+                '"' . str_replace('"', '""', $permit->{'HOA Address ID.'} ?? '') . '"',
+                '"' . str_replace('"', '""', $permit->{'HOA Name'} ?? '') . '"',
+                $permit->ApplicationDate ?? '',
+                '"' . str_replace('"', '""', $permit->{'Applicant Name'} ?? '') . '"',
+                '"' . str_replace('"', '""', $permit->{'Applicant Contact'} ?? '') . '"',
+                '"' . str_replace('"', '""', $permit->{'Contractor Name'} ?? '') . '"',
+                '"' . str_replace('"', '""', $permit->{'Contractor Contact'} ?? '') . '"',
+                '"' . str_replace('"', '""', $permit->{'Payment SIN'} ?? '') . '"',
+                $permit->{'SIN Date'} ?? '',
+                $permit->{'Fee Amt.'} ?? '',
+                '"' . str_replace('"', '""', $permit->{'Bond ARN'} ?? '') . '"',
+                $permit->{'Bond Amt.'} ?? '',
+                $permit->{'Bond Date'} ?? '',
+                '"' . str_replace('"', '""', $permit->Inspector ?? '') . '"',
+                $permit->{'Inspection Date'} ?? '',
+                '"' . str_replace('"', '""', $permit->{'Inspector Note'} ?? '') . '"',
+                '"' . str_replace('"', '""', $permit->{'Bond Release Type'} ?? '') . '"',
+                '"' . str_replace('"', '""', $permit->{'Bond Receiver'} ?? '') . '"',
+                $permit->{'Bond Release Date'} ?? '',
+                '"' . str_replace('"', '""', $permit->Remarks ?? '') . '"'
+            ];
+            
+            $csv .= implode(',', $row) . "\n";
+        }
+        
+        // Generate filename with status and current date
+        $statusText = $status === 'all' ? 'all_status' : 'status_' . $status;
+        $filename = 'construction_permits_' . $statusText . '_' . date('Y-m-d') . '.csv';
+        
+        // Create download response
+        return response()->make($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
 }

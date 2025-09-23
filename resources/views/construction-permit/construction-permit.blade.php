@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Construction Permit')
 @section('content')
+<link rel="stylesheet" href="{{ asset('assets/css/reports.css') }}">
 <div class="container-fluid px-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
@@ -24,14 +25,14 @@
                             <button class="nav-link" id="permit-history-tab" data-bs-toggle="tab" 
                                     data-bs-target="#permit-history" type="button" role="tab" 
                                     aria-controls="permit-history" aria-selected="false">
-                                Permit History
+                                Permit Status
                             </button>
                         </li>
                     </ul>                    
-                    <div>
-                        <button type="button" class="btn btn-primary btn-sm me-2" id="newBtn">New</button>
-                        <button type="button" class="btn btn-secondary btn-sm me-2" id="editBtn">Edit</button>
-                        <button type="submit" class="btn btn-success btn-sm" form="constructionPermitForm" id="saveBtn">Save</button>
+                    <div id="permitActionButtons">
+                        <button type="button" class="btn btn-primary btn-sm me-2 permit-action-btn" id="newBtn">New</button>
+                        <button type="button" class="btn btn-secondary btn-sm me-2 permit-action-btn" id="editBtn">Edit</button>
+                        <button type="submit" class="btn btn-success btn-sm permit-action-btn" form="constructionPermitForm" id="saveBtn">Save</button>
                     </div>
                 </div>
                 <!-- Add a horizontal separator line -->
@@ -269,15 +270,117 @@
                 </form>
                 </div>
 
-                <!-- Permit History Tab -->
+                <!-- Permit Status Tab -->
                 <div class="tab-pane fade" id="permit-history" role="tabpanel" aria-labelledby="permit-history-tab">
-                    <div class="card shadow-sm mb-3">
-                        <div class="card-body p-4">
-                            <div class="text-center text-muted">
-                                <i class="bi bi-clock-history" style="font-size: 2rem;"></i>
-                                <h5 class="mt-2">Permit History</h5>
-                                <p>This section will display the history of permits for the selected member.</p>
+                    <h5 class="mb-4">Construction Permit Status</h5>
+                    
+                    <!-- Filters and Actions Container -->
+                    <div class="filter-card mb-4">
+                        <div class="filter-container">
+                            <!-- Status Filter Column -->
+                            <div class="filter-column">
+                                <div class="column-title">Permit Status Filter</div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge bg-primary" id="currentPermitCount">0</span>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="permitStatus" id="statusAll" value="all" checked onclick="loadPermitStatusData('all')">
+                                    <label class="form-check-label d-flex justify-content-between w-100" for="statusAll">
+                                        <span>All Permits</span>
+                                        <small class="text-muted" id="allPermitsCount">Loading...</small>
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="permitStatus" id="statusOngoing" value="1" onclick="loadPermitStatusData('1')">
+                                    <label class="form-check-label d-flex justify-content-between w-100" for="statusOngoing">
+                                        <span>On-Going</span>
+                                        <small class="text-muted" id="ongoingPermitsCount">Loading...</small>
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="permitStatus" id="statusInspection" value="2" onclick="loadPermitStatusData('2')">
+                                    <label class="form-check-label d-flex justify-content-between w-100" for="statusInspection">
+                                        <span>For Inspection</span>
+                                        <small class="text-muted" id="inspectionPermitsCount">Loading...</small>
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="permitStatus" id="statusBondRelease" value="3" onclick="loadPermitStatusData('3')">
+                                    <label class="form-check-label d-flex justify-content-between w-100" for="statusBondRelease">
+                                        <span>For Bond Release</span>
+                                        <small class="text-muted" id="bondReleasePermitsCount">Loading...</small>
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="permitStatus" id="statusForfeited" value="4" onclick="loadPermitStatusData('4')">
+                                    <label class="form-check-label d-flex justify-content-between w-100" for="statusForfeited">
+                                        <span>Close (Forfeited Bond)</span>
+                                        <small class="text-muted" id="forfeitedPermitsCount">Loading...</small>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="permitStatus" id="statusReleased" value="5" onclick="loadPermitStatusData('5')">
+                                    <label class="form-check-label d-flex justify-content-between w-100" for="statusReleased">
+                                        <span>Close (Bond Released)</span>
+                                        <small class="text-muted" id="releasedPermitsCount">Loading...</small>
+                                    </label>
+                                </div>
                             </div>
+                            
+                            <!-- Actions Column -->
+                            <div class="filter-column">
+                                <div class="column-title">Actions</div>
+                                <div class="action-buttons">
+                                    <button type="button" class="btn btn-success" id="downloadPermitBtn">
+                                        <i class="bi bi-download me-1"></i> Download CSV
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Table Container -->
+                    <div class="table-container">
+                        <div id="permitStatusTableContainer" class="table-responsive">
+                            <table class="table table-bordered table-striped" id="permitStatusTable">
+                                <thead>
+                                    <tr>
+                                        <th>Permit No.</th>
+                                        <th>Permit Type</th>
+                                        <th>Permit Status</th>
+                                        <th>Permit Start Date</th>
+                                        <th>Permit End Date</th>
+                                        <th>HOA Address ID</th>
+                                        <th>HOA Name</th>
+                                        <th>Application Date</th>
+                                        <th>Applicant Name</th>
+                                        <th>Applicant Contact</th>
+                                        <th>Contractor Name</th>
+                                        <th>Contractor Contact</th>
+                                        <th>Payment SIN</th>
+                                        <th>SIN Date</th>
+                                        <th>Fee Amount</th>
+                                        <th>Bond ARN</th>
+                                        <th>Bond Amount</th>
+                                        <th>Bond Date</th>
+                                        <th>Inspector</th>
+                                        <th>Inspection Date</th>
+                                        <th>Inspector Note</th>
+                                        <th>Bond Release Type</th>
+                                        <th>Bond Receiver</th>
+                                        <th>Bond Release Date</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data will be loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Sticky Scrollbar -->
+                        <div class="sticky-scrollbar-container" id="permitStickyScrollbar">
+                            <div class="scrollbar-content" id="permitScrollbarContent"></div>
                         </div>
                     </div>
                 </div>
@@ -352,6 +455,16 @@
 </div>
 
 <style>
+/* Override reports.css for permit action buttons */
+.permit-action-btn {
+    border-radius: 4px !important;
+    padding: 0.25rem 1rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    width: auto !important;
+    text-align: center !important;
+}
+
 /* Base styling */
 .form-control, .form-select {
     border-radius: 4px;
@@ -597,7 +710,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Tab switching functionality
     document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
         tab.addEventListener('shown.bs.tab', function(e) {
-            // Set focus on the first input field when switching tabs
+            const permitActionButtons = document.getElementById('permitActionButtons');
+            
+            // Hide/show action buttons based on active tab
+            if (e.target.id === 'permit-history-tab') {
+                // Hide buttons when permit status tab is active
+                if (permitActionButtons) {
+                    permitActionButtons.style.display = 'none';
+                }
+            } else {
+                // Show buttons for other tabs
+                if (permitActionButtons) {
+                    permitActionButtons.style.display = '';
+                }
+            }
+            
+            // Set focus on the first input field when switching to construction permit tab
             setTimeout(() => {
                 if (e.target.id === 'construction-permit-tab') {
                     const firstInput = document.querySelector('#construction-permit input[type="text"]:not([disabled])');
@@ -998,7 +1126,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 formHasChanges = false;
                 isFormVisible = false;
                 if (form) form.style.display = 'none';
-            };
+            }
         });
     });
     
@@ -1131,5 +1259,6 @@ $jsVersion = '1.0.0';
 @endphp
 <script src="{{ asset('assets/js/construction-permit-address-lookup.js') }}?v={{ $jsVersion }}"></script>
 <script src="{{ asset('assets/js/construction-permit-sin-lookup.js') }}?v={{ $jsVersion }}"></script>
+<script src="{{ asset('assets/js/construction-permit-status.js') }}?v={{ $jsVersion }}"></script>
 
 @endsection

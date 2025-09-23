@@ -115,6 +115,10 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
         Route::put('/{permitNumber}', [ConstructionPermitController::class, 'update'])->name('construction-permit.update');
         Route::get('/check-sin/{sinNumber}', [AccountReceivableController::class, 'checkConstructionPermitInvoice'])
             ->name('construction-permit.check-sin');
+        Route::get('/get-permit-status-data', [ConstructionPermitController::class, 'getPermitStatusData'])
+            ->name('construction-permit.get-permit-status-data');
+        Route::get('/download/permit-status-data', [ConstructionPermitController::class, 'downloadPermitStatusData'])
+            ->name('construction-permit.download.permit-status-data');
     });
 });
 
