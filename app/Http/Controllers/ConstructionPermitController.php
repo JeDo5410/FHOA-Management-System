@@ -519,18 +519,50 @@ public function search(string $permitNumber): JsonResponse
     }
 
     /**
-     * Get construction permit status data with optional status filter
+     * Get construction permit status data with various filter options
      */
     public function getPermitStatusData(Request $request)
     {
-        $status = $request->input('status', 'all');
+        $filterType = $request->input('filter_type', 'all');
         $countOnly = $request->input('count_only', 0);
         
         $query = ViewConstructionPermit::query();
         
-        // Apply status filter
-        if ($status !== 'all') {
-            $query->where('statuscode', $status);
+        // Apply filters based on filter type
+        switch ($filterType) {
+            case 'all':
+                // No additional filtering needed
+                break;
+                
+            case 'permit_id':
+                $permitId = $request->input('permit_id');
+                if ($permitId) {
+                    $query->where('permit_no', $permitId);
+                }
+                break;
+                
+            case 'address_id':
+                $addressId = $request->input('address_id');
+                Log::info('Address ID Filter: ' . $addressId);
+                if ($addressId) {
+                    $query->where('hoa_address_id', $addressId);
+                }
+                break;
+                
+            case 'status':
+                $status = $request->input('status');
+                if ($status) {
+                    $query->where('statuscode', $status);
+                }
+                break;
+                
+            // Legacy support for old status parameter
+            default:
+                $status = $request->input('status', 'all');
+                if ($status !== 'all') {
+                    $query->where('statuscode', $status);
+                }
+                break;
         }
         
         if ($countOnly) {
@@ -548,24 +580,56 @@ public function search(string $permitNumber): JsonResponse
      */
     public function downloadPermitStatusData(Request $request)
     {
-        $status = $request->input('status', 'all');
+        $filterType = $request->input('filter_type', 'all');
         
         $query = ViewConstructionPermit::query();
         
-        // Apply status filter
-        if ($status !== 'all') {
-            $query->where('statuscode', $status);
+        // Apply filters based on filter type (same logic as getPermitStatusData)
+        switch ($filterType) {
+            case 'all':
+                // No additional filtering needed
+                break;
+                
+            case 'permit_id':
+                $permitId = $request->input('permit_id');
+                if ($permitId) {
+                    $query->where('permit_no', $permitId);
+                }
+                break;
+                
+            case 'address_id':
+                $addressId = $request->input('address_id');
+                if ($addressId) {
+                    $query->where('HOA Address ID.', $addressId);
+                }
+                break;
+                
+            case 'status':
+                $status = $request->input('status');
+                if ($status) {
+                    $query->where('statuscode', $status);
+                }
+                break;
+                
+            // Legacy support for old status parameter
+            default:
+                $status = $request->input('status', 'all');
+                if ($status !== 'all') {
+                    $query->where('statuscode', $status);
+                }
+                break;
         }
         
         $permits = $query->orderBy('permit_no', 'desc')->get();
         
-        // Create CSV content with the 25 columns (excluding fields after "Remarks")
+        // Create CSV content with the 26 columns (including Time Enter)
         $headers = [
             'Permit No.', 'Permit Type', 'Permit Status', 'Permit Start Date', 'Permit End Date',
             'HOA Address ID', 'HOA Name', 'Application Date', 'Applicant Name', 'Applicant Contact',
             'Contractor Name', 'Contractor Contact', 'Payment SIN', 'SIN Date', 'Fee Amount',
             'Bond ARN', 'Bond Amount', 'Bond Date', 'Inspector', 'Inspection Date',
-            'Inspector Note', 'Bond Release Type', 'Bond Receiver', 'Bond Release Date', 'Remarks'
+            'Inspector Note', 'Bond Release Type', 'Bond Receiver', 'Bond Release Date', 'Remarks',
+            'Time Enter'
         ];
         
         $csv = implode(',', $headers) . "\n";
@@ -596,20 +660,43 @@ public function search(string $permitNumber): JsonResponse
                 '"' . str_replace('"', '""', $permit->{'Bond Release Type'} ?? '') . '"',
                 '"' . str_replace('"', '""', $permit->{'Bond Receiver'} ?? '') . '"',
                 $permit->{'Bond Release Date'} ?? '',
-                '"' . str_replace('"', '""', $permit->Remarks ?? '') . '"'
+                '"' . str_replace('"', '""', $permit->Remarks ?? '') . '"',
+                $permit->{'Time Enter'} ?? ''
             ];
             
             $csv .= implode(',', $row) . "\n";
         }
         
-        // Generate filename with status and current date
-        $statusText = $status === 'all' ? 'all_status' : 'status_' . $status;
-        $filename = 'construction_permits_' . $statusText . '_' . date('Y-m-d') . '.csv';
+        // Generate filename based on filter type and current date
+        $filterText = $this->getFilterTextForFilename($filterType, $request);
+        $filename = 'construction_permits_' . $filterText . '_' . date('Y-m-d') . '.csv';
         
         // Create download response
         return response()->make($csv, 200, [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
+    }
+    
+    /**
+     * Helper method to generate filter text for filename
+     */
+    private function getFilterTextForFilename($filterType, $request)
+    {
+        switch ($filterType) {
+            case 'all':
+                return 'all';
+            case 'permit_id':
+                $permitId = $request->input('permit_id');
+                return 'permit_' . ($permitId ?: 'id');
+            case 'address_id':
+                $addressId = $request->input('address_id');
+                return 'address_' . ($addressId ?: 'id');
+            case 'status':
+                $status = $request->input('status');
+                return 'status_' . ($status ?: 'filtered');
+            default:
+                return 'filtered';
+        }
     }
 }

@@ -277,53 +277,61 @@
                     <!-- Filters and Actions Container -->
                     <div class="filter-card mb-4">
                         <div class="filter-container">
-                            <!-- Status Filter Column -->
-                            <div class="filter-column">
-                                <div class="column-title">Permit Status Filter</div>
-                                <div class="d-flex justify-content-between align-items-center mb-2">
+                            <!-- Filter Options Column -->
+                            <div class="filter-column" style="flex: 2;">
+                                <div class="column-title">Filter Options</div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
                                     <span class="badge bg-primary" id="currentPermitCount">0</span>
                                 </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="permitStatus" id="statusAll" value="all" checked onclick="loadPermitStatusData('all')">
-                                    <label class="form-check-label d-flex justify-content-between w-100" for="statusAll">
-                                        <span>All Permits</span>
-                                        <small class="text-muted" id="allPermitsCount">Loading...</small>
+                                
+                                <!-- All Permits Filter -->
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="radio" name="permitFilter" id="filterAll" value="all" checked>
+                                    <label class="form-check-label" for="filterAll">
+                                        <strong>All</strong>
                                     </label>
                                 </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="permitStatus" id="statusOngoing" value="1" onclick="loadPermitStatusData('1')">
-                                    <label class="form-check-label d-flex justify-content-between w-100" for="statusOngoing">
-                                        <span>On-Going</span>
-                                        <small class="text-muted" id="ongoingPermitsCount">Loading...</small>
+                                
+                                <!-- Permit ID Filter -->
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="radio" name="permitFilter" id="filterPermitId" value="permit_id">
+                                    <label class="form-check-label" for="filterPermitId">
+                                        <strong>Permit ID</strong>
                                     </label>
+                                    <div class="input-group mt-2" id="permitIdGroup" style="display: none;">
+                                        <input type="number" class="form-control form-control-sm" id="permitIdInput" placeholder="Enter Permit Number" disabled>
+                                        <button class="btn btn-outline-secondary btn-sm" type="button" id="permitIdSearchBtn" disabled>Search</button>
+                                    </div>
                                 </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="permitStatus" id="statusInspection" value="2" onclick="loadPermitStatusData('2')">
-                                    <label class="form-check-label d-flex justify-content-between w-100" for="statusInspection">
-                                        <span>For Inspection</span>
-                                        <small class="text-muted" id="inspectionPermitsCount">Loading...</small>
+                                
+                                <!-- Address ID Filter -->
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="radio" name="permitFilter" id="filterAddressId" value="address_id">
+                                    <label class="form-check-label" for="filterAddressId">
+                                        <strong>Address ID</strong>
                                     </label>
+                                    <div class="input-group mt-2" id="addressIdGroup" style="display: none;">
+                                        <input type="text" class="form-control form-control-sm" id="addressIdInput" placeholder="Enter PhaseLotBlock" maxlength="5" pattern="[0-9]{5}" disabled>
+                                        <button class="btn btn-outline-secondary btn-sm" type="button" id="addressIdSearchBtn" disabled>Search</button>
+                                    </div>
                                 </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="permitStatus" id="statusBondRelease" value="3" onclick="loadPermitStatusData('3')">
-                                    <label class="form-check-label d-flex justify-content-between w-100" for="statusBondRelease">
-                                        <span>For Bond Release</span>
-                                        <small class="text-muted" id="bondReleasePermitsCount">Loading...</small>
+                                
+                                <!-- Permit Status Filter -->
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="radio" name="permitFilter" id="filterStatus" value="status">
+                                    <label class="form-check-label" for="filterStatus">
+                                        <strong>Permit Status</strong>
                                     </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="permitStatus" id="statusForfeited" value="4" onclick="loadPermitStatusData('4')">
-                                    <label class="form-check-label d-flex justify-content-between w-100" for="statusForfeited">
-                                        <span>Close (Forfeited Bond)</span>
-                                        <small class="text-muted" id="forfeitedPermitsCount">Loading...</small>
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="permitStatus" id="statusReleased" value="5" onclick="loadPermitStatusData('5')">
-                                    <label class="form-check-label d-flex justify-content-between w-100" for="statusReleased">
-                                        <span>Close (Bond Released)</span>
-                                        <small class="text-muted" id="releasedPermitsCount">Loading...</small>
-                                    </label>
+                                    <div class="mt-2" id="statusGroup" style="display: none;">
+                                        <select class="form-select form-select-sm" id="statusDropdown" disabled>
+                                            <option value="">Select Status...</option>
+                                            <option value="1">On-Going</option>
+                                            <option value="2">For Inspection</option>
+                                            <option value="3">For Bond Release</option>
+                                            <option value="4">Close (Forfeited Bond)</option>
+                                            <option value="5">Close (Bond Released)</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -370,6 +378,7 @@
                                         <th>Bond Receiver</th>
                                         <th>Bond Release Date</th>
                                         <th>Remarks</th>
+                                        <th>Time Enter</th>
                                     </tr>
                                 </thead>
                                 <tbody>
