@@ -32,7 +32,10 @@
                     <div id="permitActionButtons">
                         <button type="button" class="btn btn-primary btn-sm me-2 permit-action-btn" id="newBtn">New</button>
                         <button type="button" class="btn btn-secondary btn-sm me-2 permit-action-btn" id="editBtn">Edit</button>
-                        <button type="submit" class="btn btn-success btn-sm permit-action-btn" form="constructionPermitForm" id="saveBtn">Save</button>
+                        <button type="submit" class="btn btn-success btn-sm me-2 permit-action-btn" form="constructionPermitForm" id="saveBtn">Save</button>
+                        <button type="button" class="btn btn-success btn-sm permit-action-btn" id="downloadPermitBtn" style="display: none;">
+                            <i class="bi bi-download me-1"></i> Download CSV
+                        </button>
                     </div>
                 </div>
                 <!-- Add a horizontal separator line -->
@@ -272,57 +275,55 @@
 
                 <!-- Permit Status Tab -->
                 <div class="tab-pane fade" id="permit-history" role="tabpanel" aria-labelledby="permit-history-tab">
-                    <h5 class="mb-4">Construction Permit Status</h5>
                     
                     <!-- Filters and Actions Container -->
-                    <div class="filter-card mb-4">
-                        <div class="filter-container">
-                            <!-- Filter Options Column -->
-                            <div class="filter-column" style="flex: 2;">
-                                <div class="column-title">Filter Options</div>
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="badge bg-primary" id="currentPermitCount">0</span>
-                                </div>
-                                
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-body p-3">
+                            <!-- Header with count -->
+                            <div class="d-flex align-items-center mb-3">
+                                <span class="badge bg-primary me-2" id="currentPermitCount">0</span>
+                                <small class="text-muted">permits found</small>
+                            </div>
+                            
+                            <!-- Inline Filter Options -->
+                            <div class="d-flex flex-wrap align-items-center gap-3">
                                 <!-- All Permits Filter -->
-                                <div class="form-check mb-3">
+                                <div class="form-check">
                                     <input class="form-check-input" type="radio" name="permitFilter" id="filterAll" value="all" checked>
-                                    <label class="form-check-label" for="filterAll">
-                                        <strong>All</strong>
-                                    </label>
+                                    <label class="form-check-label fw-semibold" for="filterAll">All</label>
                                 </div>
                                 
                                 <!-- Permit ID Filter -->
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" type="radio" name="permitFilter" id="filterPermitId" value="permit_id">
-                                    <label class="form-check-label" for="filterPermitId">
-                                        <strong>Permit ID</strong>
-                                    </label>
-                                    <div class="input-group mt-2" id="permitIdGroup" style="display: none;">
-                                        <input type="number" class="form-control form-control-sm" id="permitIdInput" placeholder="Enter Permit Number" disabled>
+                                <div class="d-flex align-items-center flex-wrap">
+                                    <div class="form-check me-2">
+                                        <input class="form-check-input" type="radio" name="permitFilter" id="filterPermitId" value="permit_id">
+                                        <label class="form-check-label fw-semibold" for="filterPermitId">Permit ID</label>
+                                    </div>
+                                    <div class="input-group" id="permitIdGroup" style="display: none; width: 200px;">
+                                        <input type="number" class="form-control form-control-sm" id="permitIdInput" placeholder="Enter Number" disabled>
                                         <button class="btn btn-outline-secondary btn-sm" type="button" id="permitIdSearchBtn" disabled>Search</button>
                                     </div>
                                 </div>
                                 
                                 <!-- Address ID Filter -->
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" type="radio" name="permitFilter" id="filterAddressId" value="address_id">
-                                    <label class="form-check-label" for="filterAddressId">
-                                        <strong>Address ID</strong>
-                                    </label>
-                                    <div class="input-group mt-2" id="addressIdGroup" style="display: none;">
-                                        <input type="text" class="form-control form-control-sm" id="addressIdInput" placeholder="Enter PhaseLotBlock" maxlength="5" pattern="[0-9]{5}" disabled>
+                                <div class="d-flex align-items-center flex-wrap">
+                                    <div class="form-check me-2">
+                                        <input class="form-check-input" type="radio" name="permitFilter" id="filterAddressId" value="address_id">
+                                        <label class="form-check-label fw-semibold" for="filterAddressId">Address ID</label>
+                                    </div>
+                                    <div class="input-group" id="addressIdGroup" style="display: none; width: 200px;">
+                                        <input type="text" class="form-control form-control-sm" id="addressIdInput" placeholder="PhaseLotBlock" maxlength="5" pattern="[0-9]{5}" disabled>
                                         <button class="btn btn-outline-secondary btn-sm" type="button" id="addressIdSearchBtn" disabled>Search</button>
                                     </div>
                                 </div>
                                 
                                 <!-- Permit Status Filter -->
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" type="radio" name="permitFilter" id="filterStatus" value="status">
-                                    <label class="form-check-label" for="filterStatus">
-                                        <strong>Permit Status</strong>
-                                    </label>
-                                    <div class="mt-2" id="statusGroup" style="display: none;">
+                                <div class="d-flex align-items-center flex-wrap">
+                                    <div class="form-check me-2">
+                                        <input class="form-check-input" type="radio" name="permitFilter" id="filterStatus" value="status">
+                                        <label class="form-check-label fw-semibold" for="filterStatus">Status</label>
+                                    </div>
+                                    <div id="statusGroup" style="display: none; width: 180px;">
                                         <select class="form-select form-select-sm" id="statusDropdown" disabled>
                                             <option value="">Select Status...</option>
                                             <option value="1">On-Going</option>
@@ -332,16 +333,6 @@
                                             <option value="5">Close (Bond Released)</option>
                                         </select>
                                     </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Actions Column -->
-                            <div class="filter-column">
-                                <div class="column-title">Actions</div>
-                                <div class="action-buttons">
-                                    <button type="button" class="btn btn-success" id="downloadPermitBtn">
-                                        <i class="bi bi-download me-1"></i> Download CSV
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -692,6 +683,55 @@ h4.text-success {
         width: 100%;
         margin-bottom: 1rem;
     }
+    
+    /* Mobile responsive filters */
+    .d-flex.flex-wrap.gap-3 {
+        gap: 0.75rem !important;
+    }
+    
+    .d-flex.align-items-center.flex-wrap {
+        margin-bottom: 0.5rem;
+    }
+    
+    .input-group[id$="Group"] {
+        width: 100% !important;
+        max-width: 300px;
+        margin-top: 0.25rem;
+    }
+    
+    #statusGroup {
+        width: 100% !important;
+        max-width: 200px;
+        margin-top: 0.25rem;
+    }
+}
+
+/* Compact filter styling */
+.gap-3 {
+    gap: 1rem !important;
+}
+
+.form-check-label.fw-semibold {
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.input-group[id$="Group"] {
+    transition: all 0.2s ease;
+}
+
+.input-group[id$="Group"][style*="display: none"] {
+    width: 0 !important;
+    overflow: hidden;
+}
+
+#statusGroup {
+    transition: all 0.2s ease;
+}
+
+#statusGroup[style*="display: none"] {
+    width: 0 !important;
+    overflow: hidden;
 }
 </style>
 
@@ -720,18 +760,24 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
         tab.addEventListener('shown.bs.tab', function(e) {
             const permitActionButtons = document.getElementById('permitActionButtons');
+            const downloadPermitBtn = document.getElementById('downloadPermitBtn');
+            const newBtn = document.getElementById('newBtn');
+            const editBtn = document.getElementById('editBtn');
+            const saveBtn = document.getElementById('saveBtn');
             
-            // Hide/show action buttons based on active tab
+            // Show/hide specific buttons based on active tab
             if (e.target.id === 'permit-history-tab') {
-                // Hide buttons when permit status tab is active
-                if (permitActionButtons) {
-                    permitActionButtons.style.display = 'none';
-                }
+                // Hide construction permit buttons and show download button
+                if (newBtn) newBtn.style.display = 'none';
+                if (editBtn) editBtn.style.display = 'none';
+                if (saveBtn) saveBtn.style.display = 'none';
+                if (downloadPermitBtn) downloadPermitBtn.style.display = '';
             } else {
-                // Show buttons for other tabs
-                if (permitActionButtons) {
-                    permitActionButtons.style.display = '';
-                }
+                // Show construction permit buttons and hide download button
+                if (newBtn) newBtn.style.display = '';
+                if (editBtn) editBtn.style.display = '';
+                if (saveBtn) saveBtn.style.display = '';
+                if (downloadPermitBtn) downloadPermitBtn.style.display = 'none';
             }
             
             // Set focus on the first input field when switching to construction permit tab
