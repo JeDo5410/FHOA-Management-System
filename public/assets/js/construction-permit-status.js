@@ -78,6 +78,69 @@ function handleFilterTypeChange() {
     }
 }
 
+// Function to load permit status counts
+function loadPermitStatusCounts() {
+    fetch('/construction-permit/status-counts')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                updateStatusCountsDisplay(data.total_count, data.status_counts);
+            } else {
+                console.error('Failed to load status counts:', data.message);
+                updateStatusCountsDisplay(0, []);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading status counts:', error);
+            updateStatusCountsDisplay(0, []);
+        });
+}
+
+// Function to update status counts display
+function updateStatusCountsDisplay(totalCount, statusCounts) {
+    const container = document.getElementById('statusCountsContainer');
+    if (!container) return;
+    
+    // Clear existing content
+    container.innerHTML = '';
+    
+    // Add total count badge
+    const totalBadge = document.createElement('span');
+    totalBadge.className = 'badge bg-dark fw-bold';
+    totalBadge.innerHTML = `<i class="bi bi-clipboard-data me-1"></i>Total: ${totalCount}`;
+    container.appendChild(totalBadge);
+    
+    // Add status count badges
+    statusCounts.forEach(status => {
+        const badge = document.createElement('span');
+        badge.className = `badge bg-${status.color} status-count-badge`;
+        badge.setAttribute('data-status-id', status.status_id);
+        badge.innerHTML = `${status.status_name}: ${status.count}`;
+        badge.style.cursor = 'pointer';
+        badge.title = `Click to filter by ${status.status_name}`;
+        
+        // Add click handler to filter by status
+        badge.addEventListener('click', function() {
+            // Select the status filter radio button
+            document.getElementById('filterStatus').checked = true;
+            
+            // Show status dropdown and set value
+            handleFilterTypeChange();
+            document.getElementById('statusDropdown').value = status.status_id;
+            
+            // Load filtered data
+            filterByStatus();
+        });
+        
+        container.appendChild(badge);
+    });
+}
+
 // Function to load all permits
 function loadAllPermits() {
     loadPermitData('all', {});
@@ -146,23 +209,12 @@ function loadPermitData(filterType, params) {
                 tbody.innerHTML = '<tr><td colspan="26" class="text-center">No data found</td></tr>';
                 showToast('info', 'No permit records found');
                 
-                // Update current record count badge to 0
-                const currentCountElement = document.getElementById('currentPermitCount');
-                if (currentCountElement) {
-                    currentCountElement.textContent = '0';
-                }
                 return;
             }
             
             // Show count notification
             const filterText = getFilterText(filterType, params);
             showToast('success', `Found ${data.length} ${filterText} permit records`);
-            
-            // Update current record count badge
-            const currentCountElement = document.getElementById('currentPermitCount');
-            if (currentCountElement) {
-                currentCountElement.textContent = data.length;
-            }
             
             // Add rows
             data.forEach(permit => {
@@ -227,12 +279,6 @@ function loadPermitData(filterType, params) {
             console.error('Error loading permit data:', error);
             showToast('error', 'Failed to load permit data. Please try again.');
             tbody.innerHTML = '<tr><td colspan="26" class="text-center text-danger">Error loading data</td></tr>';
-            
-            // Update current record count badge to 0 on error
-            const currentCountElement = document.getElementById('currentPermitCount');
-            if (currentCountElement) {
-                currentCountElement.textContent = '0';
-            }
         });
 }
 
@@ -354,6 +400,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 100);
             });
         }
+        
+        // Load initial status counts
+        loadPermitStatusCounts();
         
         // Load initial data (all permits)
         loadAllPermits();

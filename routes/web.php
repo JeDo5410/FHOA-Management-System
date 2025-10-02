@@ -119,6 +119,8 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
             ->name('construction-permit.get-permit-status-data');
         Route::get('/download/permit-status-data', [ConstructionPermitController::class, 'downloadPermitStatusData'])
             ->name('construction-permit.download.permit-status-data');
+        Route::get('/status-counts', [ConstructionPermitController::class, 'getPermitStatusCounts'])
+            ->name('construction-permit.status-counts');
     });
 });
 

@@ -817,4 +817,61 @@ public function search(string $permitNumber): JsonResponse
                 return 'filtered';
         }
     }
+
+    /**
+     * Get permit counts grouped by status type
+     */
+    public function getPermitStatusCounts()
+    {
+        try {
+            // Get counts for each status type from the view
+            $statusCounts = DB::table('vw_construction_permit')
+                ->select('statuscode', DB::raw('count(*) as count'))
+                ->groupBy('statuscode')
+                ->orderBy('statuscode')
+                ->get()
+                ->keyBy('statuscode');
+
+            // Define status mapping
+            $statusMap = [
+                1 => ['name' => 'On-Going', 'color' => 'primary'],
+                2 => ['name' => 'For Inspection', 'color' => 'warning'],
+                3 => ['name' => 'For Bond Release', 'color' => 'info'],
+                4 => ['name' => 'Close (Forfeited Bond)', 'color' => 'danger'],
+                5 => ['name' => 'Close (Bond Released)', 'color' => 'success']
+            ];
+
+            $counts = [];
+            $totalCount = 0;
+
+            // Build response with counts for each status
+            foreach ($statusMap as $statusId => $statusInfo) {
+                $count = $statusCounts->has($statusId) ? $statusCounts[$statusId]->count : 0;
+                $counts[] = [
+                    'status_id' => $statusId,
+                    'status_name' => $statusInfo['name'],
+                    'count' => $count,
+                    'color' => $statusInfo['color']
+                ];
+                $totalCount += $count;
+            }
+
+            return response()->json([
+                'success' => true,
+                'total_count' => $totalCount,
+                'status_counts' => $counts
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Error getting permit status counts', [
+                'error' => $e->getMessage(),
+                'user_id' => Auth::id()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while fetching status counts.'
+            ], 500);
+        }
+    }
 }

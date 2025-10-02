@@ -279,10 +279,13 @@
                     <!-- Filters and Actions Container -->
                     <div class="card border-0 shadow-sm mb-3">
                         <div class="card-body p-3">
-                            <!-- Header with count -->
-                            <div class="d-flex align-items-center mb-3">
-                                <span class="badge bg-primary me-2" id="currentPermitCount">0</span>
-                                <small class="text-muted">permits found</small>
+                            <!-- Header with status counts -->
+                            <div class="mb-3">
+                                <h6 class="mb-2 text-muted">Permit Status Overview</h6>
+                                <div class="d-flex flex-wrap gap-2" id="statusCountsContainer">
+                                    <!-- Status counts will be populated by JavaScript -->
+                                    <span class="badge bg-secondary">Loading...</span>
+                                </div>
                             </div>
                             
                             <!-- Inline Filter Options -->
@@ -732,6 +735,41 @@ h4.text-success {
 #statusGroup[style*="display: none"] {
     width: 0 !important;
     overflow: hidden;
+}
+
+/* Status count badges styling */
+.status-count-badge {
+    transition: all 0.2s ease;
+    font-weight: 500 !important;
+}
+
+.status-count-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    opacity: 0.9;
+}
+
+#statusCountsContainer .badge {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    margin: 0.1rem;
+}
+
+#statusCountsContainer .badge.bg-dark {
+    font-size: 0.8rem;
+    padding: 0.6rem 1rem;
+}
+
+/* Responsive status counts */
+@media (max-width: 768px) {
+    #statusCountsContainer {
+        gap: 0.5rem !important;
+    }
+    
+    #statusCountsContainer .badge {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.6rem;
+    }
 }
 </style>
 
@@ -1326,7 +1364,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showToast('success', data.message);
+                    showToast('success', data.message + ' Status counts updated.');
                     formHasChanges = false;
                     
                     // Reset form and hide it
@@ -1334,8 +1372,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     form.style.display = 'none';
                     isFormVisible = false;
                     
-                    // Optionally, you can redirect or update UI
-                    console.log('Permit created with ID:', data.permit_no);
+                    // Refresh status counts to reflect new/updated permit
+                    if (typeof loadPermitStatusCounts === 'function') {
+                        loadPermitStatusCounts();
+                    }
+                    
+                    // Refresh permit table data in background so it's ready when user switches tabs
+                    if (typeof loadAllPermits === 'function') {
+                        loadAllPermits();
+                    }
+                    
+                    console.log('Permit saved with ID:', data.permit_no);
                 } else {
                     showToast('error', data.message || 'An error occurred while saving.');
                     
