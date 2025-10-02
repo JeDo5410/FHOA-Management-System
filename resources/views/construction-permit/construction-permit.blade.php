@@ -240,7 +240,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label for="paymentType" class="form-label">Payment Type</label>
-                                    <select class="form-select form-select-sm" id="paymentType" name="payment_type">
+                                    <select class="form-select form-select-sm" id="paymentType" name="bond_release_type">
                                         <option selected value="">Select...</option>
                                         <option value="Cash">Cash</option>
                                         <option value="Check">Check</option>
@@ -300,7 +300,7 @@
                                         <label class="form-check-label fw-semibold" for="filterPermitId">Permit ID</label>
                                     </div>
                                     <div class="input-group" id="permitIdGroup" style="display: none; width: 200px;">
-                                        <input type="number" class="form-control form-control-sm" id="permitIdInput" placeholder="Enter Number" disabled>
+                                        <input type="text" class="form-control form-control-sm" id="permitIdInput" placeholder="Enter Number" disabled>
                                         <button class="btn btn-outline-secondary btn-sm" type="button" id="permitIdSearchBtn" disabled>Search</button>
                                     </div>
                                 </div>
@@ -1242,6 +1242,66 @@ document.addEventListener('DOMContentLoaded', function() {
                 showToast('error', 'Please fill in all required fields.');
                 return;
             }
+            
+            // Additional validation for inspector section
+            const inspectorNote = form.querySelector('[name="inspector_note"]');
+            const bondReceiver = form.querySelector('[name="bond_receiver"]');
+            const bondReleaseDate = form.querySelector('[name="bond_release_date"]');
+            const bondReleaseType = form.querySelector('[name="bond_release_type"]');
+            const inspectionDate = form.querySelector('[name="inspection_date"]');
+            
+            // Validation 1: Check forfeiture scenario - should not have bond release data
+            if (inspectorNote && inspectorNote.value === 'For Bond Forfeiture') {
+                let forfeitureErrors = [];
+                
+                if (bondReceiver && bondReceiver.value.trim() !== '') {
+                    bondReceiver.classList.add('is-invalid');
+                    forfeitureErrors.push('Bond Receiver should be empty when Inspector Note is "For Bond Forfeiture"');
+                }
+                if (bondReleaseDate && bondReleaseDate.value.trim() !== '') {
+                    bondReleaseDate.classList.add('is-invalid');
+                    forfeitureErrors.push('Bond Release Date should be empty when Inspector Note is "For Bond Forfeiture"');
+                }
+                if (bondReleaseType && bondReleaseType.value.trim() !== '') {
+                    bondReleaseType.classList.add('is-invalid');
+                    forfeitureErrors.push('Payment Type should be empty when Inspector Note is "For Bond Forfeiture"');
+                }
+                
+                if (forfeitureErrors.length > 0) {
+                    showToast('error', 'Bond release information cannot be provided when inspector note is set to "For Bond Forfeiture"');
+                    return;
+                }
+            }
+            
+            // Validation 2: Date validation for bond release
+            if (inspectorNote && inspectorNote.value === 'For Bond Release' && 
+                bondReleaseDate && bondReleaseDate.value.trim() !== '') {
+                
+                const today = new Date();
+                const releaseDate = new Date(bondReleaseDate.value);
+                
+                // Check if bond release date is in the future
+                if (releaseDate > today) {
+                    bondReleaseDate.classList.add('is-invalid');
+                    showToast('error', 'Bond Release Date cannot be in the future');
+                    return;
+                }
+                
+                // Check if inspection date is provided and bond release date is before inspection date
+                if (inspectionDate && inspectionDate.value.trim() !== '') {
+                    const inspDate = new Date(inspectionDate.value);
+                    if (releaseDate < inspDate) {
+                        bondReleaseDate.classList.add('is-invalid');
+                        showToast('error', 'Bond Release Date cannot be earlier than Inspection Date');
+                        return;
+                    }
+                }
+            }
+            
+            // Clear any previous validation errors for inspector fields if validation passes
+            [bondReceiver, bondReleaseDate, bondReleaseType].forEach(field => {
+                if (field) field.classList.remove('is-invalid');
+            });
             
             // Set submitting flag and disable the save button
             isSubmitting = true;

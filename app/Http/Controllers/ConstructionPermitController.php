@@ -324,6 +324,63 @@ public function search(string $permitNumber): JsonResponse
                 'bond_release_type' => 'nullable|string|max:255',
             ]);
 
+            // Custom validation for inspector section
+            $inspectorNote = $validatedData['inspector_note'] ?? null;
+            $bondReceiver = $validatedData['bond_receiver'] ?? null;
+            $bondReleaseDate = $validatedData['bond_release_date'] ?? null;
+            $bondReleaseType = $validatedData['bond_release_type'] ?? null;
+            $inspectionDate = $validatedData['inspection_date'] ?? null;
+
+            // Validation 1: Forfeiture scenario - should not have bond release data
+            if ($inspectorNote === 'For Bond Forfeiture') {
+                $forfeitureErrors = [];
+                
+                if (!empty($bondReceiver)) {
+                    $forfeitureErrors['bond_receiver'] = ['Bond Receiver must be empty when Inspector Note is "For Bond Forfeiture"'];
+                }
+                if (!empty($bondReleaseDate)) {
+                    $forfeitureErrors['bond_release_date'] = ['Bond Release Date must be empty when Inspector Note is "For Bond Forfeiture"'];
+                }
+                if (!empty($bondReleaseType)) {
+                    $forfeitureErrors['bond_release_type'] = ['Payment Type must be empty when Inspector Note is "For Bond Forfeiture"'];
+                }
+                
+                if (!empty($forfeitureErrors)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Bond release information cannot be provided when inspector note is set to "For Bond Forfeiture"',
+                        'errors' => $forfeitureErrors
+                    ], 422);
+                }
+            }
+
+            // Validation 2: Date validation for bond release
+            if ($inspectorNote === 'For Bond Release' && !empty($bondReleaseDate)) {
+                $today = \Carbon\Carbon::today();
+                $releaseDate = \Carbon\Carbon::parse($bondReleaseDate);
+                
+                // Check if bond release date is in the future
+                if ($releaseDate->gt($today)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Bond Release Date cannot be in the future',
+                        'errors' => ['bond_release_date' => ['Bond Release Date cannot be in the future']]
+                    ], 422);
+                }
+                
+                // Check if inspection date is provided and bond release date is before inspection date
+                if (!empty($inspectionDate)) {
+                    $inspDate = \Carbon\Carbon::parse($inspectionDate);
+                    if ($releaseDate->lt($inspDate)) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Bond Release Date cannot be earlier than Inspection Date',
+                            'errors' => ['bond_release_date' => ['Bond Release Date cannot be earlier than Inspection Date']]
+                        ], 422);
+                    }
+                }
+            }
+
             // Get member ID from Member_sum table using address_id
             $memberSum = MemberSum::where('mem_add_id', $validatedData['address_id'])->first();
             
@@ -361,6 +418,67 @@ public function search(string $permitNumber): JsonResponse
                         'success' => false,
                         'message' => 'Cannot extend permit end date when inspector note is set to "For Bond Release" or "For Bond Forfeiture".'
                     ], 422);
+                }
+            }
+
+            // Rule 3: Check for complete bond release (auto-close when all fields are complete)
+            if ($inspectorNote === 'For Bond Release') {
+                // Check if all inspector section fields are complete
+                $inspector = $validatedData['inspector'] ?? null;
+                $inspectionDate = $validatedData['inspection_date'] ?? null;
+                
+                $allInspectorFieldsComplete = !empty($inspector) && 
+                                            !empty($inspectorNote) && 
+                                            !empty($inspectionDate) && 
+                                            !empty($bondReceiver) && 
+                                            !empty($bondReleaseDate) && 
+                                            !empty($bondReleaseType);
+                
+                if ($allInspectorFieldsComplete) {
+                    $statusType = 5; // Close (Bond Released)
+                    Log::info('Auto-setting status to Close (Bond Released) - all inspector fields complete', [
+                        'permit_no' => $validatedData['permit_number'],
+                        'inspector' => $inspector,
+                        'inspector_note' => $inspectorNote,
+                        'inspection_date' => $inspectionDate,
+                        'bond_receiver' => $bondReceiver,
+                        'bond_release_date' => $bondReleaseDate,
+                        'bond_release_type' => $bondReleaseType
+                    ]);
+                }
+            }
+
+            // Rule 4: Status reversion logic when fields are cleared or note changes
+            // If current permit was status 5 (Close - Bond Released) but conditions no longer met, revert status
+            if ($existingPermit->status_type == 5) {
+                $inspector = $validatedData['inspector'] ?? null;
+                $inspectionDate = $validatedData['inspection_date'] ?? null;
+                
+                // Check if inspector fields are no longer complete or note changed
+                $allInspectorFieldsComplete = !empty($inspector) && 
+                                            !empty($inspectorNote) && 
+                                            !empty($inspectionDate) && 
+                                            !empty($bondReceiver) && 
+                                            !empty($bondReleaseDate) && 
+                                            !empty($bondReleaseType);
+                
+                // If fields are incomplete or note changed from "For Bond Release", revert status
+                if (!$allInspectorFieldsComplete || $inspectorNote !== 'For Bond Release') {
+                    if ($inspectorNote === 'For Bond Forfeiture') {
+                        $statusType = 4; // Close (Forfeited Bond)
+                    } elseif ($inspectorNote === 'For Bond Release') {
+                        $statusType = 3; // For Bond Release (incomplete)
+                    } else {
+                        $statusType = 1; // On-Going (if note is empty or other)
+                    }
+                    
+                    Log::info('Reverting status from Close (Bond Released) due to field changes', [
+                        'permit_no' => $validatedData['permit_number'],
+                        'original_status' => $existingPermit->status_type,
+                        'new_status' => $statusType,
+                        'inspector_note' => $inspectorNote,
+                        'all_fields_complete' => $allInspectorFieldsComplete
+                    ]);
                 }
             }
 
