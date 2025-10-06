@@ -11,16 +11,16 @@ set BACKUP_PATH3=C:\Users\Fortezza Admin\OneDrive
 set MAX_BACKUPS=10
 set MYSQL_PATH=C:\Program Files\MySQL\MySQL Server 8.0\bin
 
-REM Create timestamp for unique filename - optimize by removing spaces in one step
+REM Create timestamp for unique filename
 set TIMESTAMP=%date:~10,4%%date:~4,2%%date:~7,2%_%time:~0,2%%time:~3,2%%time:~6,2%
 set TIMESTAMP=!TIMESTAMP: =0!
 
-REM Process all backup paths
+REM Create backup directories if they don't exist
 if not exist "!BACKUP_PATH1!" mkdir "!BACKUP_PATH1!"
 if not exist "!BACKUP_PATH2!" mkdir "!BACKUP_PATH2!"
 if not exist "!BACKUP_PATH3!" mkdir "!BACKUP_PATH3!"
 
-REM Clean up old backups more efficiently using a single sorted dir command
+REM Clean up old backups
 echo Cleaning up old backups...
 for %%P in ("!BACKUP_PATH1!" "!BACKUP_PATH2!" "!BACKUP_PATH3!") do (
     set COUNT=0
@@ -32,50 +32,54 @@ for %%P in ("!BACKUP_PATH1!" "!BACKUP_PATH2!" "!BACKUP_PATH3!") do (
     )
 )
 
-REM Insert log entry into activity_log table - run in background
-start /b "" "!MYSQL_PATH!\mysql" --user=!DB_USER! --password=!DB_PASSWORD! -e "INSERT INTO fhoa.activity_log (Process, timestamp) VALUES('Database BACKUP', NOW());" >nul 2>&1
+REM Initialize status variables
+set STATUS_PATH1=FAILED
+set STATUS_PATH2=FAILED
+set STATUS_PATH3=FAILED
 
-REM Execute the mysqldump commands for all locations
-echo Creating backups... Please wait.
+REM Create backup in BACKUP_PATH1
+echo Creating backup in primary location...
 "!MYSQL_PATH!\mysqldump" --user=!DB_USER! --password=!DB_PASSWORD! --single-transaction --quick --databases %DB_NAME% --result-file="!BACKUP_PATH1!\%DB_NAME%_backup_%TIMESTAMP%.sql"
-
-REM Only create second and third backups if first one succeeded
 if %ERRORLEVEL% == 0 (
     echo Primary backup successful.
-    copy "!BACKUP_PATH1!\%DB_NAME%_backup_%TIMESTAMP%.sql" "!BACKUP_PATH2!\%DB_NAME%_backup_%TIMESTAMP%.sql" >nul
-    if %ERRORLEVEL% == 0 (
-        echo Secondary backup successful.
-        copy "!BACKUP_PATH1!\%DB_NAME%_backup_%TIMESTAMP%.sql" "!BACKUP_PATH3!\%DB_NAME%_backup_%TIMESTAMP%.sql" >nul
-        if %ERRORLEVEL% == 0 (
-            echo OneDrive backup successful.
-        ) else (
-            echo Creating OneDrive backup independently...
-            "!MYSQL_PATH!\mysqldump" --user=!DB_USER! --password=!DB_PASSWORD! --single-transaction --quick --databases %DB_NAME% --result-file="!BACKUP_PATH3!\%DB_NAME%_backup_%TIMESTAMP%.sql"
-        )
-    ) else (
-        echo Creating secondary backup independently...
-        "!MYSQL_PATH!\mysqldump" --user=!DB_USER! --password=!DB_PASSWORD! --single-transaction --quick --databases %DB_NAME% --result-file="!BACKUP_PATH2!\%DB_NAME%_backup_%TIMESTAMP%.sql"
-        echo Creating OneDrive backup...
-        copy "!BACKUP_PATH1!\%DB_NAME%_backup_%TIMESTAMP%.sql" "!BACKUP_PATH3!\%DB_NAME%_backup_%TIMESTAMP%.sql" >nul
-        if %ERRORLEVEL% != 0 (
-            "!MYSQL_PATH!\mysqldump" --user=!DB_USER! --password=!DB_PASSWORD! --single-transaction --quick --databases %DB_NAME% --result-file="!BACKUP_PATH3!\%DB_NAME%_backup_%TIMESTAMP%.sql"
-        )
-    )
+    set STATUS_PATH1=SUCCESS
 ) else (
-    echo Primary backup failed, trying secondary location...
-    "!MYSQL_PATH!\mysqldump" --user=!DB_USER! --password=!DB_PASSWORD! --single-transaction --quick --databases %DB_NAME% --result-file="!BACKUP_PATH2!\%DB_NAME%_backup_%TIMESTAMP%.sql"
-    if %ERRORLEVEL% == 0 (
-        echo Secondary backup successful, copying to OneDrive...
-        copy "!BACKUP_PATH2!\%DB_NAME%_backup_%TIMESTAMP%.sql" "!BACKUP_PATH3!\%DB_NAME%_backup_%TIMESTAMP%.sql" >nul
-        if %ERRORLEVEL% != 0 (
-            echo Creating OneDrive backup independently...
-            "!MYSQL_PATH!\mysqldump" --user=!DB_USER! --password=!DB_PASSWORD! --single-transaction --quick --databases %DB_NAME% --result-file="!BACKUP_PATH3!\%DB_NAME%_backup_%TIMESTAMP%.sql"
-        )
-    ) else (
-        echo Secondary backup failed, trying OneDrive location...
-        "!MYSQL_PATH!\mysqldump" --user=!DB_USER! --password=!DB_PASSWORD! --single-transaction --quick --databases %DB_NAME% --result-file="!BACKUP_PATH3!\%DB_NAME%_backup_%TIMESTAMP%.sql"
-    )
+    echo Primary backup failed.
 )
 
+REM Create backup in BACKUP_PATH2
+echo Creating backup in secondary location...
+"!MYSQL_PATH!\mysqldump" --user=!DB_USER! --password=!DB_PASSWORD! --single-transaction --quick --databases %DB_NAME% --result-file="!BACKUP_PATH2!\%DB_NAME%_backup_%TIMESTAMP%.sql"
+if %ERRORLEVEL% == 0 (
+    echo Secondary backup successful.
+    set STATUS_PATH2=SUCCESS
+) else (
+    echo Secondary backup failed.
+)
+
+REM Create backup in BACKUP_PATH3
+echo Creating backup in OneDrive location...
+"!MYSQL_PATH!\mysqldump" --user=!DB_USER! --password=!DB_PASSWORD! --single-transaction --quick --databases %DB_NAME% --result-file="!BACKUP_PATH3!\%DB_NAME%_backup_%TIMESTAMP%.sql"
+if %ERRORLEVEL% == 0 (
+    echo OneDrive backup successful.
+    set STATUS_PATH3=SUCCESS
+) else (
+    echo OneDrive backup failed.
+)
+
+REM Build dynamic log message with actual paths
+set LOG_MESSAGE=Database BACKUP: !BACKUP_PATH1!(!STATUS_PATH1!), !BACKUP_PATH2!(!STATUS_PATH2!), !BACKUP_PATH3!(!STATUS_PATH3!)
+
+REM Insert log entry into activity_log table with dynamic status
+echo Logging backup status to database...
+"!MYSQL_PATH!\mysql" --user=!DB_USER! --password=!DB_PASSWORD! -e "INSERT INTO fhoa.activity_log (Process, timestamp) VALUES('!LOG_MESSAGE!', NOW());" >nul 2>&1
+
+echo.
+echo ================================================
+echo Backup Summary:
+echo Primary Location: !STATUS_PATH1!
+echo Secondary Location: !STATUS_PATH2!
+echo OneDrive Location: !STATUS_PATH3!
+echo ================================================
 echo Backup process completed at: %time%
 endlocal
