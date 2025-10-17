@@ -724,16 +724,21 @@ h4.text-success {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Custom hover styles for new badges */
+/* Custom hover styles for badges */
 .status-count-badge.bg-primary:hover {
     background-color: #0dcaf0 !important; /* Bootstrap's default --bs-info color */
     cursor: pointer;
     opacity: 0.9;
 }
 
+.status-count-badge.bg-dark:hover {
+    cursor: pointer;
+    opacity: 0.85;
+}
+
 #statusCountsContainer .badge.bg-dark:hover {
     cursor: pointer;
-    opacity: 0.9;
+    opacity: 0.85;
 }
 
 

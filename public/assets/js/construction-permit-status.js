@@ -40,6 +40,14 @@ function handleFilterTypeChange() {
     const checkedRadio = document.querySelector('input[name="permitFilter"]:checked');
     const filterType = checkedRadio ? checkedRadio.value : null;
 
+    // Reset all badges to blue when a radio button is selected
+    if (filterType) {
+        document.querySelectorAll('.status-count-badge').forEach(b => {
+            b.classList.remove('bg-dark');
+            b.classList.add('bg-primary');
+        });
+    }
+
     // Disable all inputs
     document.getElementById('permitIdInput').disabled = true;
     document.getElementById('permitIdSearchBtn').disabled = true;
@@ -88,18 +96,29 @@ function loadPermitStatusCounts() {
 function updateStatusCountsDisplay(totalCount, statusCounts) {
     const container = document.getElementById('statusCountsContainer');
     if (!container) return;
-    
+
     // Clear existing content
     container.innerHTML = '';
-    
+
     // Add "All" count badge
     const allBadge = document.createElement('span');
-    allBadge.className = 'badge bg-dark fw-bold status-count-badge';
+    allBadge.className = 'badge bg-dark fw-bold status-count-badge'; // Start as active (black)
+    allBadge.setAttribute('data-badge-type', 'all');
     allBadge.innerHTML = `<i class="bi bi-clipboard-data me-1"></i>All: ${totalCount}`;
     allBadge.title = 'Click to show all permits';
     allBadge.style.cursor = 'pointer';
-    
+
     allBadge.addEventListener('click', function() {
+        // Remove active class from all badges
+        document.querySelectorAll('.status-count-badge').forEach(b => {
+            b.classList.remove('bg-dark');
+            b.classList.add('bg-primary');
+        });
+
+        // Mark this badge as active
+        this.classList.remove('bg-primary');
+        this.classList.add('bg-dark');
+
         // Uncheck radio filters
         const permitIdRadio = document.getElementById('filterPermitId');
         const addressIdRadio = document.getElementById('filterAddressId');
@@ -113,18 +132,29 @@ function updateStatusCountsDisplay(totalCount, statusCounts) {
         loadAllPermits();
     });
     container.appendChild(allBadge);
-    
+
     // Add status count badges
     statusCounts.forEach(status => {
         const badge = document.createElement('span');
         badge.className = `badge bg-primary status-count-badge`;
         badge.setAttribute('data-status-id', status.status_id);
+        badge.setAttribute('data-badge-type', 'status');
         badge.innerHTML = `${status.status_name}: ${status.count}`;
         badge.style.cursor = 'pointer';
         badge.title = `Click to filter by ${status.status_name}`;
-        
+
         // Add click handler to filter by status
         badge.addEventListener('click', function() {
+            // Remove active class from all badges
+            document.querySelectorAll('.status-count-badge').forEach(b => {
+                b.classList.remove('bg-dark');
+                b.classList.add('bg-primary');
+            });
+
+            // Mark this badge as active
+            this.classList.remove('bg-primary');
+            this.classList.add('bg-dark');
+
             // Uncheck radio filters
             const permitIdRadio = document.getElementById('filterPermitId');
             const addressIdRadio = document.getElementById('filterAddressId');
@@ -137,7 +167,7 @@ function updateStatusCountsDisplay(totalCount, statusCounts) {
             // Load filtered data
             loadPermitData('status', { status: status.status_id });
         });
-        
+
         container.appendChild(badge);
     });
 }
