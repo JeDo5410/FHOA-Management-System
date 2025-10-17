@@ -290,52 +290,28 @@
                             
                             <!-- Inline Filter Options -->
                             <div class="d-flex flex-wrap align-items-center gap-3">
-                                <!-- All Permits Filter -->
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="permitFilter" id="filterAll" value="all" checked>
-                                    <label class="form-check-label fw-semibold" for="filterAll">All</label>
-                                </div>
-                                
                                 <!-- Permit ID Filter -->
-                                <div class="d-flex align-items-center flex-wrap">
-                                    <div class="form-check me-2">
+                                <div class="d-flex align-items-center flex-nowrap">
+                                    <div class="form-check mb-0 me-2">
                                         <input class="form-check-input" type="radio" name="permitFilter" id="filterPermitId" value="permit_id">
-                                        <label class="form-check-label fw-semibold" for="filterPermitId">Permit ID</label>
+                                        <label class="form-check-label fw-semibold text-nowrap" for="filterPermitId">Permit ID</label>
                                     </div>
-                                    <div class="input-group" id="permitIdGroup" style="display: none; width: 200px;">
-                                        <input type="text" class="form-control form-control-sm" id="permitIdInput" placeholder="Enter Number" disabled>
-                                        <button class="btn btn-outline-secondary btn-sm" type="button" id="permitIdSearchBtn" disabled>Search</button>
-                                    </div>
+                                    <input type="text" class="form-control form-control-sm permit-filter-input" id="permitIdInput" placeholder="Enter Number" style="width: 150px;" disabled>
+                                    <button class="btn btn-sm bg-light permit-filter-btn" type="button" id="permitIdSearchBtn" disabled>
+                                        <i class="bi bi-search"></i>
+                                    </button>
                                 </div>
-                                
+
                                 <!-- Address ID Filter -->
-                                <div class="d-flex align-items-center flex-wrap">
-                                    <div class="form-check me-2">
+                                <div class="d-flex align-items-center flex-nowrap">
+                                    <div class="form-check mb-0 me-2">
                                         <input class="form-check-input" type="radio" name="permitFilter" id="filterAddressId" value="address_id">
-                                        <label class="form-check-label fw-semibold" for="filterAddressId">Address ID</label>
+                                        <label class="form-check-label fw-semibold text-nowrap" for="filterAddressId">Address ID</label>
                                     </div>
-                                    <div class="input-group" id="addressIdGroup" style="display: none; width: 200px;">
-                                        <input type="text" class="form-control form-control-sm" id="addressIdInput" placeholder="PhaseLotBlock" maxlength="5" pattern="[0-9]{5}" disabled>
-                                        <button class="btn btn-outline-secondary btn-sm" type="button" id="addressIdSearchBtn" disabled>Search</button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Permit Status Filter -->
-                                <div class="d-flex align-items-center flex-wrap">
-                                    <div class="form-check me-2">
-                                        <input class="form-check-input" type="radio" name="permitFilter" id="filterStatus" value="status">
-                                        <label class="form-check-label fw-semibold" for="filterStatus">Status</label>
-                                    </div>
-                                    <div id="statusGroup" style="display: none; width: 180px;">
-                                        <select class="form-select form-select-sm" id="statusDropdown" disabled>
-                                            <option value="">Select Status...</option>
-                                            <option value="1">On-Going</option>
-                                            <option value="2">For Inspection</option>
-                                            <option value="3">For Bond Release</option>
-                                            <option value="4">Close (Forfeited Bond)</option>
-                                            <option value="5">Close (Bond Released)</option>
-                                        </select>
-                                    </div>
+                                    <input type="text" class="form-control form-control-sm permit-filter-input" id="addressIdInput" placeholder="PhaseLotBlock" maxlength="5" pattern="[0-9]{5}" style="width: 150px;" disabled>
+                                    <button class="btn btn-sm bg-light permit-filter-btn" type="button" id="addressIdSearchBtn" disabled>
+                                        <i class="bi bi-search"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -746,8 +722,20 @@ h4.text-success {
 .status-count-badge:hover {
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Custom hover styles for new badges */
+.status-count-badge.bg-primary:hover {
+    background-color: #0dcaf0 !important; /* Bootstrap's default --bs-info color */
+    cursor: pointer;
     opacity: 0.9;
 }
+
+#statusCountsContainer .badge.bg-dark:hover {
+    cursor: pointer;
+    opacity: 0.9;
+}
+
 
 #statusCountsContainer .badge {
     font-size: 0.75rem;
@@ -765,11 +753,30 @@ h4.text-success {
     #statusCountsContainer {
         gap: 0.5rem !important;
     }
-    
+
     #statusCountsContainer .badge {
         font-size: 0.7rem;
         padding: 0.4rem 0.6rem;
     }
+}
+
+/* Connected input and button styling */
+.permit-filter-input {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-right: 0 !important;
+}
+
+.permit-filter-btn {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border: 1px solid #dee2e6 !important;
+    border-left: 0 !important;
+    padding: 0.25rem 0.5rem !important;
+}
+
+.permit-filter-btn:hover:not(:disabled) {
+    background-color: #e9ecef !important;
 }
 </style>
 
@@ -1417,7 +1424,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 @php
 // Update this version when you change your JS files
-$jsVersion = '1.0.0';
+$jsVersion = '1.0.2';
 @endphp
 <script src="{{ asset('assets/js/construction-permit-address-lookup.js') }}?v={{ $jsVersion }}"></script>
 <script src="{{ asset('assets/js/construction-permit-sin-lookup.js') }}?v={{ $jsVersion }}"></script>

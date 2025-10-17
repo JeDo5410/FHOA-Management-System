@@ -37,46 +37,29 @@ function setupPermitScrollSync() {
 
 // Function to handle filter type changes
 function handleFilterTypeChange() {
-    const filterType = document.querySelector('input[name="permitFilter"]:checked').value;
-    
-    // Hide all input groups
-    document.getElementById('permitIdGroup').style.display = 'none';
-    document.getElementById('addressIdGroup').style.display = 'none';
-    document.getElementById('statusGroup').style.display = 'none';
-    
+    const checkedRadio = document.querySelector('input[name="permitFilter"]:checked');
+    const filterType = checkedRadio ? checkedRadio.value : null;
+
     // Disable all inputs
     document.getElementById('permitIdInput').disabled = true;
     document.getElementById('permitIdSearchBtn').disabled = true;
     document.getElementById('addressIdInput').disabled = true;
     document.getElementById('addressIdSearchBtn').disabled = true;
-    document.getElementById('statusDropdown').disabled = true;
-    
+
     // Clear all inputs
     document.getElementById('permitIdInput').value = '';
     document.getElementById('addressIdInput').value = '';
-    document.getElementById('statusDropdown').value = '';
-    
-    // Show and enable appropriate inputs based on selected filter
-    switch(filterType) {
-        case 'all':
-            loadAllPermits();
-            break;
-        case 'permit_id':
-            document.getElementById('permitIdGroup').style.display = '';
-            document.getElementById('permitIdInput').disabled = false;
-            document.getElementById('permitIdSearchBtn').disabled = false;
-            break;
-        case 'address_id':
-            document.getElementById('addressIdGroup').style.display = '';
-            document.getElementById('addressIdInput').disabled = false;
-            document.getElementById('addressIdSearchBtn').disabled = false;
-            break;
-        case 'status':
-            document.getElementById('statusGroup').style.display = '';
-            document.getElementById('statusDropdown').disabled = false;
-            break;
+
+    // Enable appropriate inputs based on selected filter
+    if (filterType === 'permit_id') {
+        document.getElementById('permitIdInput').disabled = false;
+        document.getElementById('permitIdSearchBtn').disabled = false;
+    } else if (filterType === 'address_id') {
+        document.getElementById('addressIdInput').disabled = false;
+        document.getElementById('addressIdSearchBtn').disabled = false;
     }
 }
+
 
 // Function to load permit status counts
 function loadPermitStatusCounts() {
@@ -109,16 +92,32 @@ function updateStatusCountsDisplay(totalCount, statusCounts) {
     // Clear existing content
     container.innerHTML = '';
     
-    // Add total count badge
-    const totalBadge = document.createElement('span');
-    totalBadge.className = 'badge bg-dark fw-bold';
-    totalBadge.innerHTML = `<i class="bi bi-clipboard-data me-1"></i>Total: ${totalCount}`;
-    container.appendChild(totalBadge);
+    // Add "All" count badge
+    const allBadge = document.createElement('span');
+    allBadge.className = 'badge bg-dark fw-bold status-count-badge';
+    allBadge.innerHTML = `<i class="bi bi-clipboard-data me-1"></i>All: ${totalCount}`;
+    allBadge.title = 'Click to show all permits';
+    allBadge.style.cursor = 'pointer';
+    
+    allBadge.addEventListener('click', function() {
+        // Uncheck radio filters
+        const permitIdRadio = document.getElementById('filterPermitId');
+        const addressIdRadio = document.getElementById('filterAddressId');
+        if (permitIdRadio) permitIdRadio.checked = false;
+        if (addressIdRadio) addressIdRadio.checked = false;
+
+        // Disable input groups
+        handleFilterTypeChange();
+
+        // Load all permits
+        loadAllPermits();
+    });
+    container.appendChild(allBadge);
     
     // Add status count badges
     statusCounts.forEach(status => {
         const badge = document.createElement('span');
-        badge.className = `badge bg-${status.color} status-count-badge`;
+        badge.className = `badge bg-primary status-count-badge`;
         badge.setAttribute('data-status-id', status.status_id);
         badge.innerHTML = `${status.status_name}: ${status.count}`;
         badge.style.cursor = 'pointer';
@@ -126,15 +125,17 @@ function updateStatusCountsDisplay(totalCount, statusCounts) {
         
         // Add click handler to filter by status
         badge.addEventListener('click', function() {
-            // Select the status filter radio button
-            document.getElementById('filterStatus').checked = true;
-            
-            // Show status dropdown and set value
+            // Uncheck radio filters
+            const permitIdRadio = document.getElementById('filterPermitId');
+            const addressIdRadio = document.getElementById('filterAddressId');
+            if (permitIdRadio) permitIdRadio.checked = false;
+            if (addressIdRadio) addressIdRadio.checked = false;
+
+            // Disable input groups
             handleFilterTypeChange();
-            document.getElementById('statusDropdown').value = status.status_id;
-            
+
             // Load filtered data
-            filterByStatus();
+            loadPermitData('status', { status: status.status_id });
         });
         
         container.appendChild(badge);
@@ -353,9 +354,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('addressIdInput').addEventListener('input', function() {
             validateAddressIdInput(this);
         });
-        
-        // Handle status dropdown change
-        document.getElementById('statusDropdown').addEventListener('change', filterByStatus);
         
         // Handle download button click
         const downloadBtn = document.getElementById('downloadPermitBtn');
