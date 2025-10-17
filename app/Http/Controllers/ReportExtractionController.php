@@ -62,21 +62,21 @@ class ReportExtractionController extends Controller
     public function downloadMembersData(Request $request)
     {
         $status = $request->input('status', 'all');
-        
+
         $query = DB::table('vw_member_data');
-        
+
         // Apply filters based on status
         if ($status == 'active') {
-            $query->where('arrear_count', '<=', 2);
+            $query->where('hoa_status', '=', 'ACTIVE');
         } else if ($status == 'delinquent') {
-            $query->where('arrear_count', '>', 2);
+            $query->where('hoa_status', '=', 'DELINQUENT');
         }
-        
+
         $members = $query->get();
         
         // Create CSV content
         $headers = [
-            'Member ID', 'Trans No.', 'Address ID', 'Name', 'SPA/Tenant', 'Type', 'Monthly Dues',
+            'Member ID', 'Trans No.', 'Address ID', 'Name', 'SPA/Tenant', 'Type', 'HOA Status', 'Monthly Dues',
             'Arrear Month', 'Arrear', 'Arrear Count', 'Arrear Interest', 'Last OR', 'Last Pay Date',
             'Last Pay Amount', 'Mobile', 'Date', 'Email',
             'Resident 1', 'Resident 2', 'Resident 3', 'Resident 4', 'Resident 5',
@@ -96,6 +96,7 @@ class ReportExtractionController extends Controller
                 '"' . str_replace('"', '""', $member->mem_name) . '"',
                 '"' . str_replace('"', '""', $member->mem_SPA_Tenant ?? '') . '"',
                 '"' . str_replace('"', '""', $member->mem_type) . '"',
+                '"' . str_replace('"', '""', $member->hoa_status ?? '') . '"',
                 $member->mem_monthlydues,
                 $member->arrear_month,
                 $member->arrear,
