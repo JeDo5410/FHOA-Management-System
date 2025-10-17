@@ -215,7 +215,7 @@ function filterByStatus() {
 function loadPermitData(filterType, params) {
     // Show loading indicator
     const tbody = document.querySelector('#permitStatusTable tbody');
-    tbody.innerHTML = '<tr><td colspan="26" class="text-center">Loading data...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="28" class="text-center">Loading data...</td></tr>';
     
     // Build query parameters
     let queryParams = new URLSearchParams();
@@ -237,9 +237,9 @@ function loadPermitData(filterType, params) {
             tbody.innerHTML = '';
             
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="26" class="text-center">No data found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="28" class="text-center">No data found</td></tr>';
                 showToast('info', 'No permit records found');
-                
+
                 return;
             }
             
@@ -259,7 +259,7 @@ function loadPermitData(filterType, params) {
                 const bondDate = permit['Bond Date'] ? new Date(permit['Bond Date']).toLocaleDateString() : '';
                 const inspectionDate = permit['Inspection Date'] ? new Date(permit['Inspection Date']).toLocaleDateString() : '';
                 const bondReleaseDate = permit['Bond Release Date'] ? new Date(permit['Bond Release Date']).toLocaleDateString() : '';
-                const timeEnter = permit['Time Enter'] ? new Date(permit['Time Enter']).toLocaleString() : '';
+                const timeEntry = permit['Time Entry'] ? new Date(permit['Time Entry']).toLocaleString() : '';
                 
                 // Format currency fields
                 const formatter = new Intl.NumberFormat('en-PH', {
@@ -272,6 +272,7 @@ function loadPermitData(filterType, params) {
                 const bondAmount = permit['Bond Amt.'] ? formatter.format(permit['Bond Amt.']) : '';
                 
                 row.innerHTML = `
+                    <td>${permit['No.'] || ''}</td>
                     <td>${permit['Permit No.'] || ''}</td>
                     <td>${permit['Permit Type'] || ''}</td>
                     <td>${permit['Permit Status'] || ''}</td>
@@ -297,7 +298,8 @@ function loadPermitData(filterType, params) {
                     <td>${permit['Bond Receiver'] || ''}</td>
                     <td>${bondReleaseDate}</td>
                     <td>${permit['Remarks'] || ''}</td>
-                    <td>${timeEnter}</td>
+                    <td>${permit['User Fullname'] || ''}</td>
+                    <td>${timeEntry}</td>
                 `;
                 
                 tbody.appendChild(row);
@@ -309,7 +311,7 @@ function loadPermitData(filterType, params) {
         .catch(error => {
             console.error('Error loading permit data:', error);
             showToast('error', 'Failed to load permit data. Please try again.');
-            tbody.innerHTML = '<tr><td colspan="26" class="text-center text-danger">Error loading data</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="28" class="text-center text-danger">Error loading data</td></tr>';
         });
 }
 

@@ -739,21 +739,22 @@ public function search(string $permitNumber): JsonResponse
         }
         
         $permits = $query->orderBy('permit_no', 'desc')->get();
-        
-        // Create CSV content with the 26 columns (including Time Enter)
+
+        // Create CSV content with the 28 columns (including No., User Fullname, and Time Entry)
         $headers = [
-            'Permit No.', 'Permit Type', 'Permit Status', 'Permit Start Date', 'Permit End Date',
+            'No.', 'Permit No.', 'Permit Type', 'Permit Status', 'Permit Start Date', 'Permit End Date',
             'HOA Address ID', 'HOA Name', 'Application Date', 'Applicant Name', 'Applicant Contact',
             'Contractor Name', 'Contractor Contact', 'Payment SIN', 'SIN Date', 'Fee Amount',
             'Bond ARN', 'Bond Amount', 'Bond Date', 'Inspector', 'Inspection Date',
             'Inspector Note', 'Bond Release Type', 'Bond Receiver', 'Bond Release Date', 'Remarks',
-            'Time Enter'
+            'User Fullname', 'Time Entry'
         ];
         
         $csv = implode(',', $headers) . "\n";
         
         foreach ($permits as $permit) {
             $row = [
+                $permit->{'No.'} ?? '',
                 '"' . str_replace('"', '""', $permit->{'Permit No.'} ?? '') . '"',
                 '"' . str_replace('"', '""', $permit->{'Permit Type'} ?? '') . '"',
                 '"' . str_replace('"', '""', $permit->{'Permit Status'} ?? '') . '"',
@@ -779,7 +780,8 @@ public function search(string $permitNumber): JsonResponse
                 '"' . str_replace('"', '""', $permit->{'Bond Receiver'} ?? '') . '"',
                 $permit->{'Bond Release Date'} ?? '',
                 '"' . str_replace('"', '""', $permit->Remarks ?? '') . '"',
-                $permit->{'Time Enter'} ?? ''
+                '"' . str_replace('"', '""', $permit->{'User Fullname'} ?? '') . '"',
+                $permit->{'Time Entry'} ?? ''
             ];
             
             $csv .= implode(',', $row) . "\n";

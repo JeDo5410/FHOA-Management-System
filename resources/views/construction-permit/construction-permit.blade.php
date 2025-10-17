@@ -323,6 +323,7 @@
                             <table class="table table-bordered table-striped" id="permitStatusTable">
                                 <thead>
                                     <tr>
+                                        <th>No.</th>
                                         <th>Permit No.</th>
                                         <th>Permit Type</th>
                                         <th>Permit Status</th>
@@ -348,7 +349,8 @@
                                         <th>Bond Receiver</th>
                                         <th>Bond Release Date</th>
                                         <th>Remarks</th>
-                                        <th>Time Enter</th>
+                                        <th>User Fullname</th>
+                                        <th>Time Entry</th>
                                     </tr>
                                 </thead>
                                 <tbody>
