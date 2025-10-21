@@ -22,7 +22,7 @@ class PayableForm {
     };
 
     static CONFIG = {
-        MAX_CHARS: 45,
+        MAX_CHARS: 300,
     };
 
     /**

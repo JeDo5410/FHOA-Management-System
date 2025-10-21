@@ -114,7 +114,7 @@ class AccountReceivableController extends Controller
                 'received_by' => 'required|string|max:45',
                 'payment_mode' => 'required|in:CASH,GCASH,CHECK,BANK_TRANSFER',
                 'reference_no' => 'nullable|string|max:45',
-                'remarks' => 'nullable|string|max:45'
+                'remarks' => 'nullable|string|max:300'
             ]);
 
             // Trim leading zeros from SIN before saving
@@ -183,7 +183,7 @@ class AccountReceivableController extends Controller
                 'received_by' => 'required|string|max:45',
                 'payment_mode' => 'required|in:CASH,GCASH,CHECK,BANK_TRANSFER',
                 'reference_no' => 'nullable|string|max:45',
-                'remarks' => 'nullable|string|max:45'
+                'remarks' => 'nullable|string|max:300'
             ]);
     
             // Begin transaction for data integrity
@@ -557,7 +557,7 @@ class AccountReceivableController extends Controller
                 'received_by' => 'required|string|max:45',
                 'payment_mode' => 'required|in:CASH,GCASH,CHECK,BANK_TRANSFER',
                 'reference_no' => 'nullable|string|max:45',
-                'remarks' => 'required|string|max:100'  // Increased max length to accommodate "CANCELLED OR: "
+                'remarks' => 'required|string|max:300'  // Increased max length to accommodate "CANCELLED OR: "
             ]);
 
             // Begin transaction for data integrity

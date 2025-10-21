@@ -260,10 +260,10 @@
                                                 id="remarks" 
                                                 name="remarks"
                                                 rows="3"
-                                                maxlength="200"
+                                                maxlength="300"
                                                 style="resize: none;"
                                             ></textarea>
-                                            <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="remarksCharCount">0/200</small>
+                                            <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="remarksCharCount">0/300</small>
                                         </div>
                                     </div>
                                 </div>

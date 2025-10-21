@@ -57,7 +57,7 @@ class ConstructionPermitController extends Controller
                 'bond_paid_date' => 'required|date',
                 'permit_start_date' => 'required|date',
                 'permit_end_date' => 'required|date|after_or_equal:permit_start_date',
-                'remarks' => 'nullable|string|max:200',
+                'remarks' => 'nullable|string|max:300',
                 // Optional inspector/bond fields
                 'inspector' => 'nullable|string|max:255',
                 'inspector_note' => 'nullable|string|max:255',
@@ -314,7 +314,7 @@ public function search(string $permitNumber): JsonResponse
                 'bond_paid_date' => 'required|date',
                 'permit_start_date' => 'required|date',
                 'permit_end_date' => 'required|date|after_or_equal:permit_start_date',
-                'remarks' => 'nullable|string|max:200',
+                'remarks' => 'nullable|string|max:300',
                 // Optional inspector/bond fields
                 'inspector' => 'nullable|string|max:255',
                 'inspector_note' => 'nullable|string|max:255',

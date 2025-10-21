@@ -80,7 +80,7 @@ class AccountPayableController extends Controller
                 'total_amount' => 'required|numeric|min:0.01',
                 'payment_mode' => 'required|in:PETTY CASH,CASH,GCASH,CHECK',
                 'reference_no' => 'nullable|string|max:50',
-                'remarks' => 'nullable|string|max:100'
+                'remarks' => 'nullable|string|max:300'
             ]);
 
             DB::beginTransaction();
@@ -198,7 +198,7 @@ class AccountPayableController extends Controller
                 'total_amount' => 'required|numeric|min:0.01',
                 'payment_mode' => 'required|in:PETTY CASH,CASH,GCASH,CHECK',
                 'reference_no' => 'nullable|string|max:50',
-                'remarks' => 'required|string|max:150'
+                'remarks' => 'required|string|max:300'
             ]);
 
             DB::beginTransaction();
@@ -290,7 +290,7 @@ class AccountPayableController extends Controller
                 'total_amount' => 'required|numeric', // Allow negative amounts
                 'payment_mode' => 'required|in:PETTY CASH,CASH,GCASH,CHECK',
                 'reference_no' => 'nullable|string|max:50',
-                'remarks' => 'required|string|max:150'
+                'remarks' => 'required|string|max:300'
             ]);
 
             DB::beginTransaction();

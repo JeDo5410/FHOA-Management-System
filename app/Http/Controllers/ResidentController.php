@@ -335,7 +335,8 @@ class ResidentController extends Controller
             // Validate the request
             $request->validate([
                 // ... other validation rules ...
-                'member_remarks' => 'nullable|string|max:100',
+                'member_remarks' => 'nullable|string|max:300',
+                'vehicle_remarks' => 'nullable|string|max:300',
             ]);
     
             // Handle residents and relationships with uppercase conversion

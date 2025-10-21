@@ -333,12 +333,12 @@
                                                         class="form-control form-control-sm" 
                                                         id="arrears_remarks" 
                                                         name="arrears_remarks"
-                                                        rows="1"
-                                                        maxlength="100"
+                                                        rows="3"
+                                                        maxlength="300"
                                                         style="resize: none;"
                                                         autocomplete="off"
                                                     ></textarea>
-                                                    <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="arrearsCharCount">0/100</small>
+                                                    <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="arrearsCharCount">0/300</small>
                                                 </div>
                                             </div>
                                         </div>
@@ -551,12 +551,12 @@
                                                         class="form-control form-control-sm" 
                                                         id="remarks" 
                                                         name="remarks"
-                                                        rows="1"
-                                                        maxlength="100"
+                                                        rows="3"
+                                                        maxlength="300"
                                                         style="resize: none;"
                                                         autocomplete="off"
                                                     ></textarea>
-                                                    <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="charCount">0/100</small>
+                                                    <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="charCount">0/300</small>
                                                 </div>
                                             </div>
                                         </div>

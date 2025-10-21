@@ -492,12 +492,15 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                         <div class="row mt-2">
                             <div class="col-12">
                                 <label for="member_remarks" class="form-label">Remarks</label>
-                                <textarea class="form-control form-control-sm" 
-                                    id="member_remarks" 
-                                    name="member_remarks" 
-                                    rows="2"
-                                    maxlength="100"></textarea>
-                                <small class="text-muted">Maximum 100 characters</small>
+                                <div class="position-relative">
+                                    <textarea class="form-control form-control-sm"
+                                        id="member_remarks"
+                                        name="member_remarks"
+                                        rows="3"
+                                        maxlength="300"
+                                        style="resize: none;"></textarea>
+                                    <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="memberRemarksCharCount">0/300</small>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -632,10 +635,15 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                         <div class="row mt-2">
                             <div class="col-12">
                                 <label for="vehicle_remarks" class="form-label">Remarks</label>
-                                <textarea class="form-control form-control-sm" 
-                                    id="vehicle_remarks" 
-                                    name="vehicle_remarks" 
-                                    rows="2"></textarea>
+                                <div class="position-relative">
+                                    <textarea class="form-control form-control-sm"
+                                        id="vehicle_remarks"
+                                        name="vehicle_remarks"
+                                        rows="3"
+                                        maxlength="300"
+                                        style="resize: none;"></textarea>
+                                    <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="vehicleRemarksCharCount">0/300</small>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -762,6 +770,29 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
     <script>
         // Auto-focus the Address ID field when the page loads
         document.addEventListener('DOMContentLoaded', function() {
+            // Character count for remarks textareas
+            const memberRemarksTextarea = document.getElementById('member_remarks');
+            const memberCharCountDisplay = document.getElementById('memberRemarksCharCount');
+
+            if (memberRemarksTextarea && memberCharCountDisplay) {
+                memberRemarksTextarea.addEventListener('input', function() {
+                    const currentLength = this.value.length;
+                    const maxLength = this.getAttribute('maxlength');
+                    memberCharCountDisplay.textContent = `${currentLength}/${maxLength}`;
+                });
+            }
+
+            const vehicleRemarksTextarea = document.getElementById('vehicle_remarks');
+            const vehicleCharCountDisplay = document.getElementById('vehicleRemarksCharCount');
+
+            if (vehicleRemarksTextarea && vehicleCharCountDisplay) {
+                vehicleRemarksTextarea.addEventListener('input', function() {
+                    const currentLength = this.value.length;
+                    const maxLength = this.getAttribute('maxlength');
+                    vehicleCharCountDisplay.textContent = `${currentLength}/${maxLength}`;
+                });
+            }
+
             // Focus on the resident_addressId input when the page loads
             const addressIdField = document.getElementById('resident_addressId');
             if (addressIdField) {

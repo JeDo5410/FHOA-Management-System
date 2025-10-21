@@ -192,12 +192,12 @@
                                         class="form-control form-control-sm" 
                                         id="remarks" 
                                         name="remarks"
-                                        rows="1"
-                                        maxlength="45"
+                                        rows="3"
+                                        maxlength="300"
                                         style="resize: none;"
                                         autocomplete="off"
                                     ></textarea>
-                                    <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="charCount">0/45</small>
+                                    <small class="text-muted position-absolute end-0 bottom-0 pe-2" id="charCount">0/300</small>
                                 </div>
                             </div>
                         </div>
