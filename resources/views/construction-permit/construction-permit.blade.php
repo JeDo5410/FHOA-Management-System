@@ -207,46 +207,52 @@
                                 </div>
                             </div>
 
-                            <!-- Row 6: Inspector, Inspector Note, Inspection Date (Hidden by default, shown when status is 3,4,5) -->
-                            <div class="row g-3 mb-3" id="inspectorSection" style="display: none;">
-                                <div class="col-md-4">
-                                    <label for="inspector" class="form-label">Inspector</label>
-                                    <input type="text" class="form-control form-control-sm" id="inspector" name="inspector">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="inspectorNote" class="form-label">Inspector Note</label>
-                                    <select class="form-select form-select-sm" id="inspectorNote" name="inspector_note">
-                                        <option selected value="">Select...</option>
-                                        <option value="For Bond Release">For Bond Release</option>
-                                        <option value="For Bond Forfeiture">For Bond Forfeiture</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="inspectionDate" class="form-label">Inspection Date</label>
-                                    <input type="date" class="form-control form-control-sm" id="inspectionDate" name="inspection_date">
-                                </div>
-                            </div>
+                            <!-- Inspector and Bond Information Container (Hidden by default, shown when status is 3,4,5) -->
+                            <div class="inspector-bond-container border rounded p-3 mb-3" id="inspectorBondSection" style="display: none; background-color: #f8f9fa;">
+                                <h6 class="mb-3 text-muted" style="font-size: 0.875rem; font-weight: 500;">
+                                    <i class="bi bi-clipboard-check me-1"></i> Inspector & Bond Information
+                                </h6>
 
-                            <!-- Row 7: Bond Receiver, Bond Release Date, Payment Type (Hidden by default, shown when status is 3,4,5) -->
-                            <div class="row g-3 mb-3" id="bondSection" style="display: none;">
-                                <div class="col-md-4">
-                                    <label for="bondReceiver" class="form-label">Bond Receiver</label>
-                                    <input type="text" class="form-control form-control-sm" id="bondReceiver" name="bond_receiver">
+                                <!-- Row 6: Inspector, Inspector Note, Inspection Date -->
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-4">
+                                        <label for="inspector" class="form-label">Inspector</label>
+                                        <input type="text" class="form-control form-control-sm" id="inspector" name="inspector">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="inspectorNote" class="form-label">Inspector Note</label>
+                                        <select class="form-select form-select-sm" id="inspectorNote" name="inspector_note">
+                                            <option selected value="">Select...</option>
+                                            <option value="For Bond Release">For Bond Release</option>
+                                            <option value="For Bond Forfeiture">For Bond Forfeiture</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="inspectionDate" class="form-label">Inspection Date</label>
+                                        <input type="date" class="form-control form-control-sm" id="inspectionDate" name="inspection_date">
+                                    </div>
                                 </div>
 
-                                <div class="col-md-4">
-                                    <label for="bondReleaseDate" class="form-label">Bond Release Date</label>
-                                    <input type="date" class="form-control form-control-sm" id="bondReleaseDate" name="bond_release_date">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="paymentType" class="form-label">Payment Type</label>
-                                    <select class="form-select form-select-sm" id="paymentType" name="bond_release_type">
-                                        <option selected value="">Select...</option>
-                                        <option value="Cash">Cash</option>
-                                        <option value="Check">Check</option>
-                                        <option value="GCash">GCash</option>
-                                        <option value="Bank Transfer">Bank Transfer</option>
-                                    </select>
+                                <!-- Row 7: Bond Receiver, Bond Release Date, Payment Type -->
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label for="bondReceiver" class="form-label">Bond Receiver</label>
+                                        <input type="text" class="form-control form-control-sm" id="bondReceiver" name="bond_receiver">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="bondReleaseDate" class="form-label">Bond Release Date</label>
+                                        <input type="date" class="form-control form-control-sm" id="bondReleaseDate" name="bond_release_date">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="paymentType" class="form-label">Payment Type</label>
+                                        <select class="form-select form-select-sm" id="paymentType" name="bond_release_type">
+                                            <option selected value="">Select...</option>
+                                            <option value="Cash">Cash</option>
+                                            <option value="Check">Check</option>
+                                            <option value="GCash">GCash</option>
+                                            <option value="Bank Transfer">Bank Transfer</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
@@ -444,6 +450,24 @@
     font-weight: 500 !important;
     width: auto !important;
     text-align: center !important;
+}
+
+/* Inspector and Bond Information Container */
+.inspector-bond-container {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.inspector-bond-container h6 {
+    color: #6c757d;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem !important;
+}
+
+.inspector-bond-container h6 i {
+    color: #0d6efd;
 }
 
 /* Base styling */
@@ -1141,11 +1165,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('paymentType').value = permit.bond_release_type || '';
         document.getElementById('remarks').value = permit.remarks || '';
         
-        // Show inspector and bond sections for editing
-        const inspectorSection = document.getElementById('inspectorSection');
-        const bondSection = document.getElementById('bondSection');
-        if (inspectorSection) inspectorSection.style.display = 'flex';
-        if (bondSection) bondSection.style.display = 'flex';
+        // Show inspector and bond section for editing
+        const inspectorBondSection = document.getElementById('inspectorBondSection');
+        if (inspectorBondSection) inspectorBondSection.style.display = 'block';
         
         // Enable amount paid and paid date fields for editing
         document.getElementById('amountPaid').disabled = false;
@@ -1194,11 +1216,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Hide inspector and bond sections
-            const inspectorSection = document.getElementById('inspectorSection');
-            const bondSection = document.getElementById('bondSection');
-            if (inspectorSection) inspectorSection.style.display = 'none';
-            if (bondSection) bondSection.style.display = 'none';
+            // Hide inspector and bond section
+            const inspectorBondSection = document.getElementById('inspectorBondSection');
+            if (inspectorBondSection) inspectorBondSection.style.display = 'none';
             
             // Reset original end date
             originalEndDate = '';
