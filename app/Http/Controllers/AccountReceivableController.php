@@ -6,6 +6,7 @@ use App\Models\ChartOfAccount;
 use App\Models\AcctReceivable;
 use App\Models\ArDetail;
 use App\Models\MemberSum;
+use App\Models\ViewAcctReceivable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -351,36 +352,29 @@ class AccountReceivableController extends Controller
 
     /**
      * Get payment history for a member with type 101
+     * Now using vw_acct_receivable view for optimized performance
      */
     public function getPaymentHistory($memberId)
     {
         try {
-            // Get only the most recent transaction for each unique OR number
-            $payments = AcctReceivable::where('acct_receivable.mem_id', $memberId)
-                ->join('charts_of_account', 'acct_receivable.acct_type_id', '=', 'charts_of_account.acct_type_id')
-                ->where('charts_of_account.acct_type', 'Association Receipts')
-                ->where('charts_of_account.acct_name', 'Association Dues')
-                ->whereIn('acct_receivable.ar_transno', function($query) use ($memberId) {
-                    $query->select(DB::raw('MAX(ar_transno)'))
-                          ->from('acct_receivable')
-                          ->where('mem_id', $memberId)
-                          ->groupBy('or_number');
-                })
-                ->orderBy('acct_receivable.ar_date', 'desc')
-                ->orderBy('acct_receivable.ar_transno', 'desc')
+            // Query the view which already contains the latest transactions per OR number
+            // and includes all necessary joins (acct_receivable + charts_of_account + users)
+            $payments = ViewAcctReceivable::forMember($memberId)
+                ->orderBy('ar_date', 'desc')
+                ->orderBy('ar_transno', 'desc')
                 ->select(
-                    'acct_receivable.ar_transno',
-                    'acct_receivable.ar_date',
-                    'acct_receivable.ar_amount',
-                    'acct_receivable.or_number',
-                    'acct_receivable.arrear_bal',
-                    'acct_receivable.ar_remarks',
-                    'acct_receivable.payor_name',
-                    'acct_receivable.timestamp',
-                    'charts_of_account.acct_description'
+                    'ar_transno',
+                    'ar_date',
+                    'ar_amount',
+                    'or_number',
+                    'arrear_bal',
+                    'ar_remarks',
+                    'payor_name',
+                    'timestamp',
+                    'acct_description'
                 )
                 ->get();
-                
+
             return response()->json([
                 'success' => true,
                 'data' => $payments,
@@ -388,7 +382,7 @@ class AccountReceivableController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Error fetching payment history: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error fetching payment history: ' . $e->getMessage()

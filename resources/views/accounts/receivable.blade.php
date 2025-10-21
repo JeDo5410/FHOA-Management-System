@@ -654,7 +654,7 @@
     
     <!-- Payment History Modal -->
     <div class="modal fade" id="paymentHistoryModal" tabindex="-1" aria-labelledby="paymentHistoryModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-payment-history">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="paymentHistoryModalLabel">Payment History</h5>
@@ -1158,6 +1158,67 @@
 
     #paymentHistoryModal .spinner-border + p {
     font-size: 14px;
+    }
+
+    /* Payment History Modal - Responsive Width */
+    .modal-payment-history {
+        max-width: 80vw; /* 80% of viewport width on larger screens */
+    }
+
+    /* Tablet and smaller devices */
+    @media (max-width: 992px) {
+        .modal-payment-history {
+            max-width: 90vw; /* 90% on tablets */
+        }
+    }
+
+    /* Mobile devices */
+    @media (max-width: 768px) {
+        .modal-payment-history {
+            max-width: 95vw; /* 95% on mobile */
+            margin: 0.5rem auto;
+        }
+
+        /* Make table scrollable on mobile */
+        #paymentHistoryModal .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Adjust member info layout on mobile */
+        #paymentHistoryModal .bg-light .row {
+            flex-direction: column;
+        }
+
+        #paymentHistoryModal .bg-light .col-md-6 {
+            width: 100%;
+        }
+
+        #paymentHistoryModal .text-md-end {
+            text-align: left !important;
+        }
+    }
+
+    /* Very small devices */
+    @media (max-width: 576px) {
+        .modal-payment-history {
+            max-width: 98vw; /* Almost full width on small phones */
+            margin: 0.25rem auto;
+        }
+
+        #paymentHistoryModal .modal-title {
+            font-size: 14px;
+        }
+
+        #paymentHistoryModal .table {
+            font-size: 12px;
+        }
+
+        #paymentHistoryModal .table th,
+        #paymentHistoryModal .table td {
+            font-size: 12px;
+            padding: 0.25rem;
+        }
     }
 </style>
 
