@@ -1,4 +1,17 @@
 // Transaction reversal and edit functionality
+
+// Utility function to format numbers with commas
+function formatNumberWithCommas(number) {
+    if (number === null || number === undefined || isNaN(number)) {
+        return '0.00';
+    }
+    const num = parseFloat(number);
+    return num.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     setupInvoiceLookup();
 });
@@ -145,7 +158,7 @@ function showTransactionChoiceModal(transaction, formType, lineItems) {
         month: 'long',
         day: 'numeric'
     });
-    document.getElementById('modalTransactionAmount').textContent = '₱ ' + parseFloat(transaction.ar_amount).toFixed(2);
+    document.getElementById('modalTransactionAmount').textContent = '₱ ' + formatNumberWithCommas(transaction.ar_amount);
     document.getElementById('modalPayorName').textContent = transaction.payor_name;
     
     // Store transaction data for later use
@@ -519,13 +532,13 @@ function setupAccountEditMode(transaction, lineItems) {
             }
         });
         
-        // Calculate total
+        // Calculate total with comma formatting
         let total = 0;
         document.querySelectorAll('.amount-input').forEach(input => {
             const value = parseFloat(input.value) || 0;
             total += value;
         });
-        document.getElementById('totalAmount').value = total.toFixed(2);
+        document.getElementById('totalAmount').value = formatNumberWithCommas(total);
         
         // Re-attach event listeners
         if (typeof attachRemoveLineListeners === 'function') {
@@ -1083,13 +1096,13 @@ function setupAccountReversal(transaction, lineItems) {
             }
         });
         
-        // Calculate total manually
+        // Calculate total manually with comma formatting
         let total = 0;
         document.querySelectorAll('.amount-input').forEach(input => {
             const value = parseFloat(input.value) || 0;
             total += value;
         });
-        document.getElementById('totalAmount').value = total.toFixed(2);
+        document.getElementById('totalAmount').value = formatNumberWithCommas(total);
         
         // Re-attach event listeners for the new rows
         if (typeof attachRemoveLineListeners === 'function') {

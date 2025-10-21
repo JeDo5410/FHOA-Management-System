@@ -1,6 +1,18 @@
 // receivable-address-lookup.js
 // Address lookup functionality for HOA Monthly Dues tab in Account Receivable
 
+// Utility function to format numbers with commas
+function formatNumberWithCommas(number) {
+    if (number === null || number === undefined || isNaN(number)) {
+        return '0.00';
+    }
+    const num = parseFloat(number);
+    return num.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
 class ArrearsAddressLookup {
     constructor() {
         // Initialize element references
@@ -443,18 +455,18 @@ class ArrearsAddressLookup {
     openPaymentHistoryModal() {
         // Get the current member ID from our lookup
         const addressId = this.addressInput?.value;
-        
+
         // If no address is selected, show an error and return
         if (!addressId) {
             showToast('error', 'Please select a member address first');
             return;
         }
-        
-        // Populate the modal with member info
+
+        // Populate the modal with member info - values already have commas from populateForm
         document.getElementById('modalMemberName').textContent = this.memberNameField?.value || '-';
         document.getElementById('modalMemberAddress').textContent = this.memberAddressField?.value || '-';
-        document.getElementById('modalCurrentArrears').textContent = this.arrearsAmountField?.value || '-';
-        document.getElementById('modalTotalArrears').textContent = document.getElementById('total_arrears')?.value || '-';
+        document.getElementById('modalCurrentArrears').textContent = '₱ ' + (this.arrearsAmountField?.value || '0.00');
+        document.getElementById('modalTotalArrears').textContent = '₱ ' + (document.getElementById('total_arrears')?.value || '0.00');
         
         // Show loading state
         document.getElementById('paymentHistoryLoading').classList.remove('d-none');
@@ -562,23 +574,23 @@ class ArrearsAddressLookup {
                 day: 'numeric'
             });
             
-            // Format the amounts - handle edge cases to prevent ₱NaN
+            // Format the amounts with commas - handle edge cases to prevent ₱NaN
             let formattedAmount = 'N/A';
             let formattedBalance = 'N/A';
-            
-            // Safely format amount
+
+            // Safely format amount with commas
             if (payment.ar_amount !== null && payment.ar_amount !== undefined) {
                 const amountValue = parseFloat(payment.ar_amount);
                 if (!isNaN(amountValue)) {
-                    formattedAmount = '₱ ' + amountValue.toFixed(2);
+                    formattedAmount = '₱ ' + formatNumberWithCommas(amountValue);
                 }
             }
-            
-            // Safely format balance
+
+            // Safely format balance with commas
             if (payment.arrear_bal !== null && payment.arrear_bal !== undefined) {
                 const balanceValue = parseFloat(payment.arrear_bal);
                 if (!isNaN(balanceValue)) {
-                    formattedBalance = '₱ ' + balanceValue.toFixed(2);
+                    formattedBalance = '₱ ' + formatNumberWithCommas(balanceValue);
                 }
             }
             
@@ -631,24 +643,24 @@ class ArrearsAddressLookup {
         if (this.arrearsAmountField) {
             // Log what we're getting for arrear
             console.log('Arrear value:', memberSum.arrear);
-            
-            // Format the arrears amount as currency
+
+            // Format the arrears amount as currency with commas
             const arrearValue = memberSum.arrear !== undefined ? memberSum.arrear : 0;
-            
-            // Use a simple toString approach first to ensure we see something
-            this.arrearsAmountField.value = parseFloat(arrearValue).toFixed(2);
+
+            // Use formatting with commas
+            this.arrearsAmountField.value = formatNumberWithCommas(arrearValue);
         }
 
         const totalArrearsField = document.getElementById('total_arrears');
         if (totalArrearsField) {
             // Log what we're getting for total arrears
             console.log('Total arrears value:', memberSum.arrear_total);
-            
-            // Format the total arrears amount as currency
+
+            // Format the total arrears amount as currency with commas
             const totalArrearValue = memberSum.arrear_total !== undefined ? memberSum.arrear_total : 0;
-            
-            // Use a simple toString approach
-            totalArrearsField.value = parseFloat(totalArrearValue).toFixed(2);
+
+            // Use formatting with commas
+            totalArrearsField.value = formatNumberWithCommas(totalArrearValue);
         }
         
         // Populate Last Payment Date
@@ -679,20 +691,12 @@ class ArrearsAddressLookup {
         if (this.lastPaymentField) {
             // Log what we're getting for last_payamount
             console.log('Last payment amount value:', memberSum.last_payamount);
-            
-            // Format the last payment amount as currency
+
+            // Format the last payment amount as currency with commas
             const lastPayment = memberSum.last_payamount !== undefined ? memberSum.last_payamount : 0;
-            
-            // Use simple formatting first
-            this.lastPaymentField.value = '₱ ' + parseFloat(lastPayment).toFixed(2);
-            
-            /*
-            this.lastPaymentField.value = parseFloat(lastPayment).toLocaleString('en-US', {
-                style: 'currency',
-                currency: 'PHP',
-                minimumFractionDigits: 2
-            });
-            */
+
+            // Use formatting with commas
+            this.lastPaymentField.value = '₱ ' + formatNumberWithCommas(lastPayment);
         }
         
         if (this.lastORField) {

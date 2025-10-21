@@ -1223,6 +1223,18 @@
 </style>
 
 <script>
+// Utility function to format numbers with commas
+function formatNumberWithCommas(number) {
+    if (number === null || number === undefined || isNaN(number)) {
+        return '0.00';
+    }
+    const num = parseFloat(number);
+    return num.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
 // Initialize SIN Masked Input functionality
 function initializeSinMaskedInputs() {
     const sinInputs = document.querySelectorAll('.sin-masked-input');
@@ -1617,13 +1629,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function calculateTotal() {
         const amountInputs = document.querySelectorAll('.amount-input');
         let total = 0;
-        
+
         amountInputs.forEach(input => {
             const value = parseFloat(input.value) || 0;
             total += value;
         });
-        
-        document.getElementById('totalAmount').value = total.toFixed(2);
+
+        document.getElementById('totalAmount').value = formatNumberWithCommas(total);
     }
         
     // Handle form submission based on active tab
