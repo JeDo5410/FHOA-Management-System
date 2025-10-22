@@ -28,6 +28,9 @@ class ArrearsAddressLookup {
         // Initialize state variables
         this.debounceTimer = null;
         this.isLoading = false;
+        this.currentArrears = 0; // Store the current member's arrears principal
+        this.currentInterest = 0; // Store the current member's interest
+        this.currentTotalArrears = 0; // Store the current member's total arrears
         this.dropdownContainer = null;
 
         // Setup functionality if the address input exists
@@ -462,11 +465,12 @@ class ArrearsAddressLookup {
             return;
         }
 
-        // Populate the modal with member info - values already have commas from populateForm
+        // Populate the modal with member info - use stored values for consistency
         document.getElementById('modalMemberName').textContent = this.memberNameField?.value || '-';
         document.getElementById('modalMemberAddress').textContent = this.memberAddressField?.value || '-';
-        document.getElementById('modalCurrentArrears').textContent = '₱ ' + (this.arrearsAmountField?.value || '0.00');
-        document.getElementById('modalTotalArrears').textContent = '₱ ' + (document.getElementById('total_arrears')?.value || '0.00');
+        document.getElementById('modalCurrentArrears').textContent = '₱ ' + formatNumberWithCommas(this.currentArrears);
+        document.getElementById('modalInterest').textContent = '₱ ' + formatNumberWithCommas(this.currentInterest);
+        document.getElementById('modalTotalArrears').textContent = '₱ ' + formatNumberWithCommas(this.currentTotalArrears);
         
         // Show loading state
         document.getElementById('paymentHistoryLoading').classList.remove('d-none');
@@ -640,28 +644,28 @@ class ArrearsAddressLookup {
         }
         
         // Populate Arrears Amount - Accessing arrear (singular) from memberSum
+        // Store the arrears value for use in payment history modal
+        this.currentArrears = memberSum.arrear !== undefined ? memberSum.arrear : 0;
+        console.log('Arrear value:', this.currentArrears);
+
+        // Also populate the field if it exists (even if hidden, we might use it elsewhere)
         if (this.arrearsAmountField) {
-            // Log what we're getting for arrear
-            console.log('Arrear value:', memberSum.arrear);
-
-            // Format the arrears amount as currency with commas
-            const arrearValue = memberSum.arrear !== undefined ? memberSum.arrear : 0;
-
-            // Use formatting with commas
-            this.arrearsAmountField.value = formatNumberWithCommas(arrearValue);
+            this.arrearsAmountField.value = formatNumberWithCommas(this.currentArrears);
         }
+
+        // Store the total arrears value for use in payment history modal
+        this.currentTotalArrears = memberSum.arrear_total !== undefined ? memberSum.arrear_total : 0;
+        console.log('Total arrears value:', this.currentTotalArrears);
 
         const totalArrearsField = document.getElementById('total_arrears');
         if (totalArrearsField) {
-            // Log what we're getting for total arrears
-            console.log('Total arrears value:', memberSum.arrear_total);
-
-            // Format the total arrears amount as currency with commas
-            const totalArrearValue = memberSum.arrear_total !== undefined ? memberSum.arrear_total : 0;
-
             // Use formatting with commas
-            totalArrearsField.value = formatNumberWithCommas(totalArrearValue);
+            totalArrearsField.value = formatNumberWithCommas(this.currentTotalArrears);
         }
+
+        // Store the interest value for use in payment history modal
+        this.currentInterest = memberSum.arrear_interest !== undefined ? memberSum.arrear_interest : 0;
+        console.log('Interest value:', this.currentInterest);
         
         // Populate Last Payment Date
         if (this.lastPaydateField) {

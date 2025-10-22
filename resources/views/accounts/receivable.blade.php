@@ -95,46 +95,46 @@
                                 </div>
                             </div>
                             
-                            <!-- Second Row - 4 columns -->
-                            <div class="col-md-3">
+                            <!-- Second Row - 3 columns (matching first row layout) -->
+                            <div class="col-md-4">
                                 <div class="mb-2">
                                     <label for="lastPaydate" class="form-label">Last Payment Date</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="bi bi-calendar"></i></span>
-                                        <input type="text" 
-                                            class="form-control form-control-sm" 
-                                            id="lastPaydate" 
+                                        <input type="text"
+                                            class="form-control form-control-sm"
+                                            id="lastPaydate"
                                             name="last_paydate"
                                             disabled>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="mb-2">
                                     <label for="lastPayment" class="form-label">Last Payment Amount</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="bi bi-cash"></i></span>
-                                        <input type="text" 
-                                            class="form-control form-control-sm" 
-                                            id="lastPayment" 
+                                        <input type="text"
+                                            class="form-control form-control-sm"
+                                            id="lastPayment"
                                             name="last_payment"
                                             disabled>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="mb-2">
                                     <label for="lastOR" class="form-label">Last OR Number</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="bi bi-receipt"></i></span>
-                                        <input type="text" 
-                                            class="form-control form-control-sm" 
-                                            id="lastOR" 
+                                        <input type="text"
+                                            class="form-control form-control-sm"
+                                            id="lastOR"
                                             name="last_or"
                                             disabled>
-                                        <button class="btn btn-outline-secondary btn-sm" 
-                                            type="button" 
-                                            id="viewPaymentHistory" 
+                                        <button class="btn btn-outline-secondary btn-sm"
+                                            type="button"
+                                            id="viewPaymentHistory"
                                             disabled>
                                             <i class="bi bi-clock-history"></i>
                                         </button>
@@ -142,7 +142,8 @@
                                     <small class="form-text text-muted">Click <i class="bi bi-clock-history"></i> to view payment history</small>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <!-- Arrears (Principal) field - Hidden as per requirements -->
+                            <!-- <div class="col-md-3">
                                 <div class="mb-2">
                                     <label for="arrears" class="form-label">Arrears (Principal)</label>
                                     <div class="input-group">
@@ -150,7 +151,7 @@
                                         <input type="text" class="form-control form-control-sm text-danger fw-bold" id="arrears_amount" name="arrears_amount" disabled>
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                         </div>
 
                         <!-- Single container for HOA Monthly Dues tab -->
@@ -669,8 +670,9 @@
                                 <p class="mb-0"><strong>Address:</strong> <span id="modalMemberAddress">-</span></p>
                             </div>
                             <div class="col-md-6 text-md-end">
-                                <p class="mb-1"><strong>Arrears (Principal):</strong> <span id="modalCurrentArrears" class="text-danger">-</span></p>
-                                <p class="mb-0"><strong>Total Arrears (with Interest):</strong> <span id="modalTotalArrears" class="text-danger">-</span></p>
+                                <p class="mb-1"><strong>Arrears:</strong> <span id="modalCurrentArrears" class="text-danger">-</span></p>
+                                <p class="mb-1"><strong>Interest:</strong> <span id="modalInterest" class="text-danger">-</span></p>
+                                <p class="mb-0"><strong>Total Arrears:</strong> <span id="modalTotalArrears" class="text-danger">-</span></p>
                             </div>
                         </div>
                     </div>
