@@ -574,7 +574,7 @@ class ArrearsAddressLookup {
             const paymentDate = new Date(payment.ar_date);
             const formattedDate = paymentDate.toLocaleDateString('en-US', {
                 year: 'numeric',
-                month: 'long',
+                month: 'short',
                 day: 'numeric'
             });
             
