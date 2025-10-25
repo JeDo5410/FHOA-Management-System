@@ -31,19 +31,21 @@ class ReportExtractionController extends Controller
     public function getMembersData(Request $request)
     {
         $status = $request->input('status', 'all');
-        
+
         $query = DB::table('vw_member_data');
-        
+
         // Apply filters based on status
         if ($status == 'active') {
             $query->where('hoa_status', '=', 'ACTIVE');
         } else if ($status == 'delinquent') {
             $query->where('hoa_status', '=', 'DELINQUENT');
         }
-        
+
         $members = $query->get();
-        
-        return response()->json($members);
+
+        return response()->json([
+            'members' => $members,
+        ]);
     }
     
     /**
@@ -73,11 +75,11 @@ class ReportExtractionController extends Controller
         }
 
         $members = $query->get();
-        
+
         // Create CSV content
         $headers = [
             'Member ID', 'Trans No.', 'Address ID', 'Name', 'SPA/Tenant', 'Type', 'HOA Status', 'Monthly Dues',
-            'Arrear Month', 'Arrear', 'Arrear Count', 'Arrear Interest', 'Last OR', 'Last Pay Date',
+            'Arrear Month', 'Arrear', 'Arrear Count', 'Arrear Interest', 'Arrear Total', 'Last OR', 'Last Pay Date',
             'Last Pay Amount', 'Mobile', 'Date', 'Email',
             'Resident 1', 'Resident 2', 'Resident 3', 'Resident 4', 'Resident 5',
             'Resident 6', 'Resident 7', 'Resident 8', 'Resident 9', 'Resident 10',
@@ -85,9 +87,9 @@ class ReportExtractionController extends Controller
             'Relationship 6', 'Relationship 7', 'Relationship 8', 'Relationship 9', 'Relationship 10',
             'Remarks'
         ];
-        
+
         $csv = implode(',', $headers) . "\n";
-        
+
         foreach ($members as $member) {
             $row = [
                 $member->mem_id,
@@ -102,6 +104,7 @@ class ReportExtractionController extends Controller
                 $member->arrear,
                 $member->arrear_count,
                 $member->arrear_interest,
+                $member->arrear_total,
                 $member->last_or,
                 $member->last_paydate,
                 $member->last_payamount,
@@ -130,13 +133,13 @@ class ReportExtractionController extends Controller
                 '"' . str_replace('"', '""', $member->mem_Relationship10 ?? '') . '"',
                 '"' . str_replace('"', '""', $member->mem_remarks ?? '') . '"'
             ];
-            
+
             $csv .= implode(',', $row) . "\n";
         }
-        
+
         // Generate filename with current date
         $filename = 'members_data_(' . $status . ')_' . date('Y-m-d') . '.csv';
-        
+
         // Create download response
         return Response::make($csv, 200, [
             'Content-Type' => 'text/csv',

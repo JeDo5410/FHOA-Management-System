@@ -176,8 +176,8 @@ function loadMemberCounts() {
 function loadMemberData(status) {
     // Show loading indicator
     const tbody = document.querySelector('#memberDataTable tbody');
-    tbody.innerHTML = '<tr><td colspan="39" class="text-center">Loading data...</td></tr>';
-    
+    tbody.innerHTML = '<tr><td colspan="40" class="text-center">Loading data...</td></tr>';
+
     // Fetch data from server
     fetch(`/reports/get-members-data?status=${status}`)
         .then(response => {
@@ -186,53 +186,74 @@ function loadMemberData(status) {
             }
             return response.json();
         })
-        .then(data => {
+        .then(response => {
+            // Extract members from response (arrear_total is already in each member row from vw_member_data)
+            const data = response.members || [];
+
             // Clear loading indicator
             tbody.innerHTML = '';
-            
+
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="39" class="text-center">No data found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="40" class="text-center">No data found</td></tr>';
                 showToast('info', 'No records found');
-                
+
                 // Update current record count badge to 0
                 const currentCountElement = document.getElementById('currentRecordCount');
                 if (currentCountElement) {
                     currentCountElement.textContent = '0';
                 }
+
+                // Update total arrears display
+                const totalArrearsElement = document.getElementById('totalArrearsAmount');
+                if (totalArrearsElement) {
+                    totalArrearsElement.textContent = '₱0.00';
+                }
                 return;
             }
-            
+
             // Show count notification
             const statusText = status === 'all' ? 'total' : status;
             showToast('success', `Found ${data.length} ${statusText} member records`);
-            
+
             // Update current record count badge
             const currentCountElement = document.getElementById('currentRecordCount');
             if (currentCountElement) {
                 currentCountElement.textContent = data.length;
             }
-            
+
+            // Calculate total arrears from the arrear_total column in vw_member_data
+            const totalArrears = data.reduce((sum, member) => {
+                return sum + (parseFloat(member.arrear_total) || 0);
+            }, 0);
+
+            // Format and display total arrears
+            const formatter = new Intl.NumberFormat('en-PH', {
+                style: 'currency',
+                currency: 'PHP',
+                minimumFractionDigits: 2
+            });
+
+            const totalArrearsElement = document.getElementById('totalArrearsAmount');
+            if (totalArrearsElement) {
+                totalArrearsElement.textContent = formatter.format(totalArrears);
+            }
+
             // Add rows
             data.forEach(member => {
                 const row = document.createElement('tr');
-                
+
                 // Format date fields
                 const arrearMonth = member.arrear_month ? new Date(member.arrear_month).toLocaleDateString() : 'N/A';
                 const lastPayDate = member.last_paydate ? new Date(member.last_paydate).toLocaleDateString() : 'N/A';
                 const memDate = member.mem_date ? new Date(member.mem_date).toLocaleDateString() : 'N/A';
-                
+
                 // Format currency fields
-                const formatter = new Intl.NumberFormat('en-PH', {
-                    style: 'currency',
-                    currency: 'PHP',
-                    minimumFractionDigits: 2
-                });
-                
                 const monthlydues = member.mem_monthlydues ? formatter.format(member.mem_monthlydues) : '₱0.00';
                 const arrear = member.arrear ? formatter.format(member.arrear) : '₱0.00';
                 const arrearInterest = member.arrear_interest ? formatter.format(member.arrear_interest) : '₱0.00';
+                const arrearTotal = member.arrear_total ? formatter.format(member.arrear_total) : '₱0.00';
                 const lastPayAmount = member.last_payamount ? formatter.format(member.last_payamount) : '₱0.00';
-                
+
                 row.innerHTML = `
                     <td>${member.mem_id || ''}</td>
                     <td>${member.mem_transno || ''}</td>
@@ -246,6 +267,7 @@ function loadMemberData(status) {
                     <td>${arrear}</td>
                     <td>${member.arrear_count || '0'}</td>
                     <td>${arrearInterest}</td>
+                    <td>${arrearTotal}</td>
                     <td>${member.last_or || ''}</td>
                     <td>${lastPayDate}</td>
                     <td>${lastPayAmount}</td>
@@ -274,22 +296,28 @@ function loadMemberData(status) {
                 <td>${member.mem_Relationship10 || ''}</td>
                 <td>${member.mem_remarks || ''}</td>
             `;
-            
+
             tbody.appendChild(row);
         });
-        
+
         // Update scrollbar
         updateScrollbarWidth();
     })
     .catch(error => {
         console.error('Error loading member data:', error);
         showToast('error', 'Failed to load member data. Please try again.');
-        tbody.innerHTML = '<tr><td colspan="39" class="text-center text-danger">Error loading data</td></tr>';
-        
+        tbody.innerHTML = '<tr><td colspan="40" class="text-center text-danger">Error loading data</td></tr>';
+
         // Update current record count badge to 0 on error
         const currentCountElement = document.getElementById('currentRecordCount');
         if (currentCountElement) {
             currentCountElement.textContent = '0';
+        }
+
+        // Update total arrears display to 0 on error
+        const totalArrearsElement = document.getElementById('totalArrearsAmount');
+        if (totalArrearsElement) {
+            totalArrearsElement.textContent = '₱0.00';
         }
     });
 }

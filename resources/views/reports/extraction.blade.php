@@ -125,6 +125,7 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                             <th>Arrear</th>
                                             <th>Arrear Count</th>
                                             <th>Arrear Interest</th>
+                                            <th>Arrear Total</th>
                                             <th>Last OR</th>
                                             <th>Last Pay Date</th>
                                             <th>Last Pay Amount</th>
@@ -157,6 +158,13 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                     <tbody>
                                         <!-- Data will be loaded dynamically -->
                                     </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th colspan="12" class="text-end">Total Arrears:</th>
+                                            <th id="totalArrearsAmount">₱0.00</th>
+                                            <th colspan="27"></th>
+                                        </tr>
+                                    </tfoot>
                                 </table>
                             </div>
                             
