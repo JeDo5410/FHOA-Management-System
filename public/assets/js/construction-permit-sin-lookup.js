@@ -29,12 +29,12 @@ function handleSinLookup(sinValue) {
     if (!sinValue || sinValue === '0' || sinValue === '') {
         return;
     }
-    
+
     // Convert to integer to remove leading zeros
     const sinNumber = parseInt(sinValue, 10);
-    
-    // Skip if not a valid number or zero
-    if (isNaN(sinNumber) || sinNumber <= 0) {
+
+    // Skip if not a valid number (but allow negative numbers)
+    if (isNaN(sinNumber) || sinNumber === 0) {
         return;
     }
     
