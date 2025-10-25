@@ -309,7 +309,10 @@ class AccountReceivableController extends Controller
                 'new_arrear_balance' => $newArrearBalance,
                 'payment_amount' => $paymentAmount
             ]);
-            
+
+            // Reset arrear_interest to 0 when payment is made
+            $memberSum->arrear_interest = 0;
+
             // Calculate and update arrear_total (arrear + arrear_interest)
             $arrearInterest = $memberSum->arrear_interest ?? 0;
             $calculatedArrearTotal = $newArrearBalance + $arrearInterest;
@@ -322,7 +325,31 @@ class AccountReceivableController extends Controller
                 'calculated_arrear_total' => $calculatedArrearTotal,
                 'assigned_arrear_total' => $memberSum->arrear_total
             ]);
-            
+
+            // Calculate arrear_count based on arrear_total
+            // Get the member's monthly dues from their member type
+            $memberData = $memberSum->memberData()->latest('mem_transno')->first();
+            if ($memberData && $memberData->memberType) {
+                $monthlyDues = $memberData->memberType->mem_monthlydues;
+
+                if ($monthlyDues > 0) {
+                    if ($memberSum->arrear_total < 0) {
+                        // Member paid ahead, set arrear_count to 0
+                        $memberSum->arrear_count = 0;
+                    } else {
+                        // Calculate arrear_count (months unpaid)
+                        $memberSum->arrear_count = round($memberSum->arrear_total / $monthlyDues);
+                    }
+
+                    Log::info('STORE ARREARS - Arrear count calculated', [
+                        'member_id' => $memberSum->mem_id,
+                        'arrear_total' => $memberSum->arrear_total,
+                        'monthly_dues' => $monthlyDues,
+                        'arrear_count' => $memberSum->arrear_count
+                    ]);
+                }
+            }
+
             $memberSum->user_id = Auth::id();
             $memberSum->save();
             
@@ -660,10 +687,35 @@ class AccountReceivableController extends Controller
             
             // Update member_sum record with the new arrear balance
             $memberSum->arrear = $newArrearBalance;
-            
+
             // Calculate and update arrear_total (arrear + arrear_interest)
             $arrearInterest = $memberSum->arrear_interest ?? 0;
             $memberSum->arrear_total = $newArrearBalance + $arrearInterest;
+
+            // Calculate arrear_count based on arrear_total
+            // Get the member's monthly dues from their member type
+            $memberData = $memberSum->memberData()->latest('mem_transno')->first();
+            if ($memberData && $memberData->memberType) {
+                $monthlyDues = $memberData->memberType->mem_monthlydues;
+
+                if ($monthlyDues > 0) {
+                    if ($memberSum->arrear_total < 0) {
+                        // Member paid ahead, set arrear_count to 0
+                        $memberSum->arrear_count = 0;
+                    } else {
+                        // Calculate arrear_count (months unpaid)
+                        $memberSum->arrear_count = round($memberSum->arrear_total / $monthlyDues);
+                    }
+
+                    Log::info('REVERSAL ARREARS - Arrear count calculated', [
+                        'member_id' => $memberSum->mem_id,
+                        'arrear_total' => $memberSum->arrear_total,
+                        'monthly_dues' => $monthlyDues,
+                        'arrear_count' => $memberSum->arrear_count
+                    ]);
+                }
+            }
+
             $memberSum->user_id = Auth::id();
             $memberSum->save();
             
@@ -919,7 +971,31 @@ private function storeArrearsReceivableEdit(Request $request)
             'calculated_arrear_total' => $calculatedArrearTotal,
             'assigned_arrear_total' => $memberSum->arrear_total
         ]);
-        
+
+        // Calculate arrear_count based on arrear_total
+        // Get the member's monthly dues from their member type
+        $memberData = $memberSum->memberData()->latest('mem_transno')->first();
+        if ($memberData && $memberData->memberType) {
+            $monthlyDues = $memberData->memberType->mem_monthlydues;
+
+            if ($monthlyDues > 0) {
+                if ($memberSum->arrear_total < 0) {
+                    // Member paid ahead, set arrear_count to 0
+                    $memberSum->arrear_count = 0;
+                } else {
+                    // Calculate arrear_count (months unpaid)
+                    $memberSum->arrear_count = round($memberSum->arrear_total / $monthlyDues);
+                }
+
+                Log::info('EDIT ARREARS - Arrear count calculated', [
+                    'member_id' => $memberSum->mem_id,
+                    'arrear_total' => $memberSum->arrear_total,
+                    'monthly_dues' => $monthlyDues,
+                    'arrear_count' => $memberSum->arrear_count
+                ]);
+            }
+        }
+
         $memberSum->user_id = Auth::id();
         $memberSum->save();
         
