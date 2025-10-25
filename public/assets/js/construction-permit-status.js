@@ -391,12 +391,31 @@ document.addEventListener('DOMContentLoaded', function() {
         const downloadBtn = document.getElementById('downloadPermitBtn');
         if (downloadBtn) {
             downloadBtn.addEventListener('click', function() {
-                const filterType = document.querySelector('input[name="permitFilter"]:checked').value;
+                const checkedRadio = document.querySelector('input[name="permitFilter"]:checked');
+                let filterType = 'all'; // Default to 'all' if no radio is checked
                 let downloadUrl = '/construction-permit/download/permit-status-data';
                 let queryParams = new URLSearchParams();
-                
+
+                // Determine filter type from checked radio or active badge
+                if (checkedRadio) {
+                    filterType = checkedRadio.value;
+                } else {
+                    // Check if a status badge is active
+                    const activeBadge = document.querySelector('.status-count-badge.bg-dark');
+                    if (activeBadge) {
+                        const badgeType = activeBadge.getAttribute('data-badge-type');
+                        if (badgeType === 'status') {
+                            filterType = 'status';
+                            const statusId = activeBadge.getAttribute('data-status-id');
+                            if (statusId) queryParams.set('status', statusId);
+                        } else {
+                            filterType = 'all';
+                        }
+                    }
+                }
+
                 queryParams.set('filter_type', filterType);
-                
+
                 switch(filterType) {
                     case 'permit_id':
                         const permitId = document.getElementById('permitIdInput').value.trim();
@@ -406,14 +425,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         const addressId = document.getElementById('addressIdInput').value.trim();
                         if (addressId) queryParams.set('address_id', addressId);
                         break;
-                    case 'status':
-                        const status = document.getElementById('statusDropdown').value;
-                        if (status) queryParams.set('status', status);
-                        break;
                 }
-                
+
                 downloadUrl += '?' + queryParams.toString();
-                
+
                 // Redirect to download URL
                 window.location.href = downloadUrl;
             });
