@@ -990,13 +990,19 @@ function setupArrearsReversal(transaction) {
 function prepareFormForSubmission(form) {
     // Find all disabled fields that need to be temporarily enabled
     const disabledFields = form.querySelectorAll('input:disabled, select:disabled, textarea:disabled');
-    
+
     // Store original disabled state and enable fields
     disabledFields.forEach(field => {
         field.dataset.wasDisabled = 'true';
         field.disabled = false;
     });
-    
+
+    // Strip commas from total_amount field before submission
+    const totalAmountField = form.querySelector('#totalAmount, #arrearsTotalAmount');
+    if (totalAmountField && totalAmountField.value) {
+        totalAmountField.value = totalAmountField.value.replace(/,/g, '');
+    }
+
     // Return a function to restore the state if needed
     return function() {
         disabledFields.forEach(field => {
