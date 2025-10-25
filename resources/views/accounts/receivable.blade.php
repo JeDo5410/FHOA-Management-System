@@ -1832,11 +1832,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const accountReferenceContainer = document.querySelector('#reference').closest('.col-md-4');
         const accountPaymentRadios = document.querySelectorAll('input[name="payment_mode"]');
         const referenceField = document.getElementById('reference');
-        
+
         // For HOA Monthly Dues tab
         const arrearsReferenceContainer = document.querySelector('#arrears_reference').closest('.col-md-4');
         const arrearsPaymentRadios = document.querySelectorAll('input[name="arrears_payment_mode"]');
         const arrearsReferenceField = document.getElementById('arrears_reference');
+
         
         // Event handlers for Account Receivable tab
         if (accountPaymentRadios) {
@@ -1864,11 +1865,21 @@ document.addEventListener('DOMContentLoaded', function() {
         if (arrearsPaymentRadios) {
             arrearsPaymentRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
+                    // CRITICAL FIX: Only apply changes if this radio is actually checked
+                    // This prevents unchecked radios from clearing the reference field during mass change events
+                    if (!this.checked) {
+                        return;
+                    }
+
                     if (this.value === 'CASH') {
                         arrearsReferenceContainer.style.display = 'none';
                         arrearsReferenceField.removeAttribute('required');
-                        arrearsReferenceField.value = ''; // Clear value
-                        
+
+                        // CRITICAL FIX: Only clear value if NOT in edit/reversal mode
+                        if (!window.isEditMode && !window.isReversalMode) {
+                            arrearsReferenceField.value = ''; // Clear value
+                        }
+
                         // Move focus to another field if reference had focus
                         if (document.activeElement === arrearsReferenceField) {
                             document.getElementById('arrears_remarks').focus();
@@ -1876,7 +1887,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         arrearsReferenceContainer.style.display = 'block';
                         arrearsReferenceField.setAttribute('required', 'required');
-                        arrearsReferenceField.focus();
+                        // Only focus if not in edit mode (to avoid disrupting form population)
+                        if (!window.isEditMode && !window.isReversalMode) {
+                            arrearsReferenceField.focus();
+                        }
                     }
                 });
             });

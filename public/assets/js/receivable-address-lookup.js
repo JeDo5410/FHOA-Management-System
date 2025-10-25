@@ -404,30 +404,27 @@ class ArrearsAddressLookup {
     }
 
     selectAddressById(addressId, memberId) {
-        console.log('Direct address selection by ID:', addressId, 'Member ID:', memberId);
-        
         if (!addressId) {
             console.error('No address ID provided for selection');
             return;
         }
-        
+
         // Format the address for display
         const formattedAddress = this.translateAddressId(addressId);
         this.addressInput.value = addressId;
         this.memberAddressField.value = formattedAddress;
-        
+
         // Get the member details directly using the member ID
         this.fetchMemberDetails(memberId)
             .then(data => {
-                console.log('Member details fetched successfully for reversal');
                 this.populateForm(data);
-                
+
                 // If in reversal mode, restore the payor name (this will be handled by the calling function)
                 this.hideDropdown();
                 this.showLookupSuccess();
             })
             .catch(error => {
-                console.error('Error fetching member details for reversal:', error);
+                console.error('Error fetching member details:', error);
                 this.showToastNotification('error', 'Failed to load member details');
             });
     }
@@ -620,17 +617,13 @@ class ArrearsAddressLookup {
             console.error('No data provided to populate form');
             return;
         }
-        
+
         const { memberSum, memberData } = data;
-    
+
         if (!memberSum || !memberData) {
             console.error('Invalid member data received');
             return;
         }
-
-        // Debug to see what data we're getting
-        console.log('Member Sum Data:', memberSum);
-        console.log('Member Data:', memberData);
     
         // Populate Member Name
         if (this.memberNameField) {
@@ -646,7 +639,6 @@ class ArrearsAddressLookup {
         // Populate Arrears Amount - Accessing arrear (singular) from memberSum
         // Store the arrears value for use in payment history modal
         this.currentArrears = memberSum.arrear !== undefined ? memberSum.arrear : 0;
-        console.log('Arrear value:', this.currentArrears);
 
         // Also populate the field if it exists (even if hidden, we might use it elsewhere)
         if (this.arrearsAmountField) {
@@ -655,7 +647,6 @@ class ArrearsAddressLookup {
 
         // Store the total arrears value for use in payment history modal
         this.currentTotalArrears = memberSum.arrear_total !== undefined ? memberSum.arrear_total : 0;
-        console.log('Total arrears value:', this.currentTotalArrears);
 
         const totalArrearsField = document.getElementById('total_arrears');
         if (totalArrearsField) {
@@ -665,13 +656,9 @@ class ArrearsAddressLookup {
 
         // Store the interest value for use in payment history modal
         this.currentInterest = memberSum.arrear_interest !== undefined ? memberSum.arrear_interest : 0;
-        console.log('Interest value:', this.currentInterest);
-        
+
         // Populate Last Payment Date
         if (this.lastPaydateField) {
-            // Log what we're getting for last_paydate
-            console.log('Last paydate value:', memberSum.last_paydate);
-            
             let lastPaydate = memberSum.last_paydate || '';
             // Format the date if it exists
             if (lastPaydate) {
@@ -693,20 +680,14 @@ class ArrearsAddressLookup {
         
         // Populate Last Payment Amount
         if (this.lastPaymentField) {
-            // Log what we're getting for last_payamount
-            console.log('Last payment amount value:', memberSum.last_payamount);
-
             // Format the last payment amount as currency with commas
             const lastPayment = memberSum.last_payamount !== undefined ? memberSum.last_payamount : 0;
 
             // Use formatting with commas
             this.lastPaymentField.value = '₱ ' + formatNumberWithCommas(lastPayment);
         }
-        
+
         if (this.lastORField) {
-            // Log what we're getting for last OR
-            console.log('Last OR value:', memberSum.last_salesinvoice);
-            
             // Set the value of the Last OR field
             this.lastORField.value = memberSum.last_or || 'N/A';
         }
@@ -722,22 +703,36 @@ class ArrearsAddressLookup {
             viewPaymentHistoryBtn.disabled = false;
         }
 
+        // CRITICAL FIX: Save reference field value before triggering change events
+        // In edit/reversal mode, we need to preserve the reference number
+        const arrearsRefField = document.getElementById('arrears_reference');
+        const savedReferenceValue = arrearsRefField ? arrearsRefField.value : '';
+
         // Trigger change events for any dependent logic
         document.querySelectorAll('input, select, textarea').forEach(element => {
             element.dispatchEvent(new Event('change', { bubbles: true }));
         });
-        
-        // Make sure CASH is selected and trigger its change event specifically
-        const cashRadio = document.getElementById('arrears_cash');
-        if (cashRadio) {
-            cashRadio.checked = true;
-            cashRadio.dispatchEvent(new Event('change', { bubbles: true }));
+
+        // CRITICAL FIX: Restore reference field value after triggering change events
+        // This prevents it from being cleared by payment mode change handlers
+        if ((window.isEditMode || window.isReversalMode) && savedReferenceValue && arrearsRefField) {
+            arrearsRefField.value = savedReferenceValue;
         }
-        
-        // Hide reference field explicitly
-        const referenceContainer = document.getElementById('arrears_reference')?.closest('.col-md-4');
-        if (referenceContainer) {
-            referenceContainer.style.display = 'none';
+
+        // CRITICAL FIX: Only reset to CASH if NOT in edit or reversal mode
+        // In edit/reversal mode, the payment method is already set by setupArrearsEditMode/setupArrearsReversal
+        if (!window.isEditMode && !window.isReversalMode) {
+            const cashRadio = document.getElementById('arrears_cash');
+            if (cashRadio) {
+                cashRadio.checked = true;
+                cashRadio.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            // Hide reference field explicitly only when setting to CASH
+            const referenceContainer = document.getElementById('arrears_reference')?.closest('.col-md-4');
+            if (referenceContainer) {
+                referenceContainer.style.display = 'none';
+            }
         }
         
         // redirect focus after address lookup

@@ -375,7 +375,7 @@ function setupArrearsEditMode(transaction) {
     const originalPayorName = transaction.payor_name;
     const originalAddress = transaction.payor_address;
     const memberId = transaction.mem_id;
-    
+
     // IMPORTANT: Disable the OR number field first to prevent re-triggering lookup
     const orNumberField = document.getElementById('arrears_serviceInvoiceNo');
     if (orNumberField) {
@@ -383,30 +383,30 @@ function setupArrearsEditMode(transaction) {
         orNumberField.setAttribute('disabled', 'disabled');
         orNumberField.classList.add('bg-light'); // Visual indication it's disabled
     }
-    
+
     // Populate form fields with transaction data (similar to reversal but positive amounts)
     document.getElementById('arrears_receivedFrom').value = originalPayorName;
     const originalDate = new Date(transaction.ar_date);
     document.getElementById('arrears_date').value = originalDate.toLocaleDateString('en-CA');
-    
+
     // Set the address ID and trigger lookup
     const addressIdField = document.getElementById('arrears_addressId');
     if (addressIdField) {
         addressIdField.value = "Loading...";
         window.isEditMode = true;
-        
+
         fetchAddressIdByMemberId(memberId)
             .then(addressId => {
                 if (addressId) {
                     addressIdField.value = addressId;
-                    
+
                     if (window.arrearsAddressLookup && typeof window.arrearsAddressLookup.selectAddressById === 'function') {
                         window.arrearsAddressLookup.selectAddressById(addressId, memberId);
                     } else {
                         const event = new Event('blur', { bubbles: true });
                         addressIdField.dispatchEvent(event);
                     }
-                    
+
                     // Restore original payor name after lookup
                     setTimeout(() => {
                         document.getElementById('arrears_receivedFrom').value = originalPayorName;
@@ -422,31 +422,41 @@ function setupArrearsEditMode(transaction) {
                 showToast('error', 'Error loading address ID: ' + error.message);
             });
     }
-    
+
     // Set payment mode
     const paymentModeRadio = document.querySelector(`input[name="arrears_payment_mode"][value="${transaction.payment_type}"]`);
     if (paymentModeRadio) {
         paymentModeRadio.checked = true;
         paymentModeRadio.dispatchEvent(new Event('change'));
     }
-    
+
     // Set reference number if it exists
     if (transaction.payment_Ref) {
-        document.getElementById('arrears_reference').value = transaction.payment_Ref;
+        const refField = document.getElementById('arrears_reference');
+        if (refField) {
+            refField.value = transaction.payment_Ref;
+
+            // Make sure reference field container is visible for non-CASH payments
+            if (transaction.payment_type !== 'CASH') {
+                const refContainer = refField.closest('.col-md-4');
+                if (refContainer) {
+                    refContainer.style.display = 'block';
+                }
+            }
+        }
     }
-    
+
     // Set account type and amount (positive for edit)
     const accountTypeSelect = document.querySelector('select[name="arrears_items[0][coa]"]');
     if (accountTypeSelect) {
         accountTypeSelect.value = transaction.acct_type_id;
     }
-    
+
     const amountInput = document.querySelector('.arrears-amount-input');
     if (amountInput) {
-        // Use positive amount for edit (user can modify)
         amountInput.value = Math.abs(parseFloat(transaction.ar_amount));
     }
-    
+
     // Set remarks - prepend "EDITED FROM SIN: "
     const remarksField = document.getElementById('arrears_remarks');
     if (remarksField) {
@@ -882,37 +892,35 @@ function setupArrearsReversal(transaction) {
     const originalPayorName = transaction.payor_name;
     const originalAddress = transaction.payor_address;
     const memberId = transaction.mem_id;
-    
+
     // CRITICAL: Set the SIN number field FIRST before anything else
     const orNumberField = document.getElementById('arrears_serviceInvoiceNo');
     if (orNumberField) {
         orNumberField.value = transaction.or_number;
     }
-    
+
     // Populate form fields with transaction data
     document.getElementById('arrears_receivedFrom').value = originalPayorName;
     const originalDate = new Date(transaction.ar_date);
     const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
     document.getElementById('arrears_date').value = originalDate.toLocaleDateString('en-CA', options);
-        
+
     // Set the address ID - we'll fetch the actual address ID using the mem_id
     const addressIdField = document.getElementById('arrears_addressId');
     if (addressIdField) {
         // Temporarily set the field to show we're working on it
         addressIdField.value = "Loading...";
-        
+
         // Add a flag to indicate we're in reversal mode
         window.isReversalMode = true;
-        
+
         // First, fetch the correct address ID using the mem_id
         fetchAddressIdByMemberId(memberId)
             .then(addressId => {
                 if (addressId) {
-                    console.log('Found address ID:', addressId, 'for member ID:', memberId);
-                    
                     // Set the address ID field with the correct value
                     addressIdField.value = addressId;
-                    
+
                     // IMPROVED APPROACH: Directly call the lookup function rather than relying on events
                     if (window.arrearsAddressLookup && typeof window.arrearsAddressLookup.selectAddressById === 'function') {
                         // Call the lookup function directly if available
@@ -921,12 +929,12 @@ function setupArrearsReversal(transaction) {
                         // Fallback: Try to trigger the blur event
                         const event = new Event('blur', { bubbles: true });
                         addressIdField.dispatchEvent(event);
-                        
+
                         // Additional fallback: Try with input event
                         const inputEvent = new Event('input', { bubbles: true });
                         addressIdField.dispatchEvent(inputEvent);
                     }
-                    
+
                     // Restore the original payor name after a delay
                     setTimeout(() => {
                         document.getElementById('arrears_receivedFrom').value = originalPayorName;
@@ -944,7 +952,6 @@ function setupArrearsReversal(transaction) {
             });
     }
 
-    
     // Set payment mode
     const paymentModeRadio = document.querySelector(`input[name="arrears_payment_mode"][value="${transaction.payment_type}"]`);
     if (paymentModeRadio) {
@@ -952,37 +959,48 @@ function setupArrearsReversal(transaction) {
         // Trigger change event to update UI for reference field
         paymentModeRadio.dispatchEvent(new Event('change'));
     }
-    
+
     // Set reference number if it exists
     if (transaction.payment_Ref) {
-        document.getElementById('arrears_reference').value = transaction.payment_Ref;
+        const refField = document.getElementById('arrears_reference');
+        if (refField) {
+            refField.value = transaction.payment_Ref;
+
+            // Make sure reference field container is visible for non-CASH payments
+            if (transaction.payment_type !== 'CASH') {
+                const refContainer = refField.closest('.col-md-4');
+                if (refContainer) {
+                    refContainer.style.display = 'block';
+                }
+            }
+        }
     }
-    
+
     // Set line item (for arrears there's typically just one)
     // First find the account type dropdown and set its value
     const accountTypeSelect = document.querySelector('select[name="arrears_items[0][coa]"]');
     if (accountTypeSelect) {
         accountTypeSelect.value = transaction.acct_type_id;
     }
-    
+
     // Set amount (negative for reversal)
     const amountInput = document.querySelector('.arrears-amount-input');
     if (amountInput) {
         // Make amount negative for reversal
         amountInput.value = -Math.abs(parseFloat(transaction.ar_amount));
     }
-    
-    // Set remarks - prepend "CANCELLED OR: "
+
+    // Set remarks - prepend "CANCELLED SIN: "
     const remarksField = document.getElementById('arrears_remarks');
     if (remarksField) {
         remarksField.value = `CANCELLED SIN: ${transaction.or_number}`;
-        
+
         // Append original remarks if they exist
         if (transaction.ar_remarks) {
             remarksField.value += ` - ${transaction.ar_remarks}`;
         }
     }
-    
+
     // Disable fields that shouldn't be changed during reversal
     disableArrearsFormFields();
 }
