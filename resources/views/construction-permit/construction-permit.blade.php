@@ -431,11 +431,11 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="searchPermitBtn">
                     <span class="spinner-border spinner-border-sm d-none me-2" id="searchSpinner"></span>
                     Search
                 </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>
