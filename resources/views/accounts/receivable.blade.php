@@ -613,54 +613,6 @@
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
-    <!-- Transaction Choice Modal -->
-    <div class="modal fade" id="transactionChoiceModal" tabindex="-1" aria-labelledby="transactionChoiceModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="transactionChoiceModalLabel">SIN Found - Choose Action</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        <strong>Existing SIN Found:</strong> This SIN already exists in the system.
-                    </div>
-                    
-                    <div class="mb-3 p-3 bg-light rounded">
-                        <h6 class="fw-bold mb-2">Transaction Details:</h6>
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <p class="mb-1"><strong>SIN Number:</strong> <span id="modalSinNumber">-</span></p>
-                                <p class="mb-1"><strong>Date:</strong> <span id="modalTransactionDate">-</span></p>
-                            </div>
-                            <div class="col-sm-6">
-                                <p class="mb-1"><strong>Amount:</strong> <span id="modalTransactionAmount">-</span></p>
-                                <p class="mb-0"><strong>Payor:</strong> <span id="modalPayorName">-</span></p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <p class="mb-3">What would you like to do with this SIN?</p>
-                    
-                    <div class="d-grid gap-2">
-                        <button type="button" class="btn btn-info btn-lg" id="editTransactionBtn">
-                            <i class="bi bi-pencil-square me-2"></i>Edit Transaction
-                            <small class="d-block text-white-50">Modify the details of this SIN</small>
-                        </button>
-                        <button type="button" class="btn btn-danger btn-lg" id="cancelTransactionBtn">
-                            <i class="bi bi-x-circle me-2"></i>Cancel Transaction
-                            <small class="d-block text-white-50">Reverse/cancel this SIN</small>
-                        </button>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Exit</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- SIN Input Modal for Edit/Cancel OR -->
     <div class="modal fade" id="sinInputModal" tabindex="-1" aria-labelledby="sinInputModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -1435,7 +1387,22 @@ document.addEventListener('DOMContentLoaded', function() {
             // Step 1: Reset BOTH forms to ensure a clean state.
             if (arrearsForm) arrearsForm.reset();
             if (accountForm) accountForm.reset();
-            
+
+            // Step 1.5: Re-disable SIN fields after form reset
+            // Use setTimeout to ensure form.reset() has completed
+            setTimeout(() => {
+                const arrearsSinField = document.getElementById('arrears_serviceInvoiceNo');
+                const accountSinField = document.getElementById('serviceInvoiceNo');
+                if (arrearsSinField) {
+                    arrearsSinField.disabled = true;
+                    arrearsSinField.setAttribute('disabled', 'disabled');
+                }
+                if (accountSinField) {
+                    accountSinField.disabled = true;
+                    accountSinField.setAttribute('disabled', 'disabled');
+                }
+            }, 0);
+
             // Step 2: Manually reset UI elements not handled by form.reset()
             // For Account Receivable tab
             document.getElementById('totalAmount').value = '';

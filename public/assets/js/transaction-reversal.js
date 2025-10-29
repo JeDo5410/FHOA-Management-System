@@ -12,350 +12,6 @@ function formatNumberWithCommas(number) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    setupInvoiceLookup();
-});
-
-function setupInvoiceLookup() {
-    const arrearsInvoiceField = document.getElementById('arrears_serviceInvoiceNo');
-    const accountInvoiceField = document.getElementById('serviceInvoiceNo');
-    
-    if (arrearsInvoiceField) {
-        arrearsInvoiceField.addEventListener('blur', function() {
-            // Get the raw value and process it for SIN lookup
-            const rawValue = this.value.trim();
-            
-            // If this is a masked input, extract numeric value for lookup
-            if (this.classList.contains('sin-masked-input')) {
-                const numericValue = rawValue.replace(/\D/g, '');
-                if (numericValue && numericValue !== '0' && numericValue !== '00000') {
-                    // Convert to integer to remove leading zeros for lookup
-                    const invoiceNumber = parseInt(numericValue, 10);
-                    if (invoiceNumber > 0) {
-                        lookupTransaction(invoiceNumber.toString(), 'arrears');
-                    }
-                }
-            } else if (rawValue && rawValue !== '0') {
-                lookupTransaction(rawValue, 'arrears');
-            }
-        });
-        
-        arrearsInvoiceField.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                
-                // Get the raw value and process it for SIN lookup
-                const rawValue = this.value.trim();
-                
-                // If this is a masked input, extract numeric value for lookup
-                if (this.classList.contains('sin-masked-input')) {
-                    const numericValue = rawValue.replace(/\D/g, '');
-                    if (numericValue && numericValue !== '0' && numericValue !== '00000') {
-                        // Convert to integer to remove leading zeros for lookup
-                        const invoiceNumber = parseInt(numericValue, 10);
-                        if (invoiceNumber > 0) {
-                            lookupTransaction(invoiceNumber.toString(), 'arrears');
-                        }
-                    }
-                } else if (rawValue && rawValue !== '0') {
-                    lookupTransaction(rawValue, 'arrears');
-                }
-            }
-        });
-    }
-    
-    if (accountInvoiceField) {
-        accountInvoiceField.addEventListener('blur', function() {
-            // Get the raw value and process it for SIN lookup
-            const rawValue = this.value.trim();
-            
-            // If this is a masked input, extract numeric value for lookup
-            if (this.classList.contains('sin-masked-input')) {
-                const numericValue = rawValue.replace(/\D/g, '');
-                if (numericValue && numericValue !== '0' && numericValue !== '00000') {
-                    // Convert to integer to remove leading zeros for lookup
-                    const invoiceNumber = parseInt(numericValue, 10);
-                    if (invoiceNumber > 0) {
-                        lookupTransaction(invoiceNumber.toString(), 'account');
-                    }
-                }
-            } else if (rawValue && rawValue !== '0') {
-                lookupTransaction(rawValue, 'account');
-            }
-        });
-        
-        accountInvoiceField.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                
-                // Get the raw value and process it for SIN lookup
-                const rawValue = this.value.trim();
-                
-                // If this is a masked input, extract numeric value for lookup
-                if (this.classList.contains('sin-masked-input')) {
-                    const numericValue = rawValue.replace(/\D/g, '');
-                    if (numericValue && numericValue !== '0' && numericValue !== '00000') {
-                        // Convert to integer to remove leading zeros for lookup
-                        const invoiceNumber = parseInt(numericValue, 10);
-                        if (invoiceNumber > 0) {
-                            lookupTransaction(invoiceNumber.toString(), 'account');
-                        }
-                    }
-                } else if (rawValue && rawValue !== '0') {
-                    lookupTransaction(rawValue, 'account');
-                }
-            }
-        });
-    }
-}
-
-// ========== MAIN TRANSACTION LOOKUP ==========
-function lookupTransaction(invoiceNumber, formType) {
-    // Prevent lookup if we're in edit mode
-    if (window.isEditMode) {
-        return;
-    }
-    
-    showToast('info', `Checking if SIN #${invoiceNumber} exists...`);
-    
-    fetch(`/accounts/receivables/check-invoice/${invoiceNumber}`, {
-        method: 'GET',
-        headers: {
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.exists) {
-            const transactionTabType = data.tab_type;
-            
-            if (transactionTabType !== formType) {
-                showToast('error', `This SIN (#${invoiceNumber}) belongs to the ${data.tab_type === 'arrears' ? 'HOA Monthly Dues' : 'Account Receivable'} tab. Please switch tabs to modify it.`);
-                return;
-            }
-            
-            // Show choice modal instead of going directly to reversal
-            showTransactionChoiceModal(data.transaction, formType, data.line_items);
-        }
-    })
-    .catch(error => {
-        showToast('error', 'Error checking SIN: ' + error.message);
-    });
-}
-
-// ========== TRANSACTION CHOICE MODAL ==========
-function showTransactionChoiceModal(transaction, formType, lineItems) {
-    // Populate modal with transaction details
-    document.getElementById('modalSinNumber').textContent = transaction.or_number;
-    document.getElementById('modalTransactionDate').textContent = new Date(transaction.ar_date).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-    document.getElementById('modalTransactionAmount').textContent = '₱ ' + formatNumberWithCommas(transaction.ar_amount);
-    document.getElementById('modalPayorName').textContent = transaction.payor_name;
-    
-    // Store transaction data for later use
-    window.currentTransactionData = {
-        transaction: transaction,
-        formType: formType,
-        lineItems: lineItems
-    };
-    
-    // Setup modal button events
-    setupChoiceModalEvents();
-    
-    // Show the modal
-    const modal = new bootstrap.Modal(document.getElementById('transactionChoiceModal'));
-    modal.show();
-}
-
-function setupChoiceModalEvents() {
-    // Remove existing event listeners to prevent duplicates
-    const editBtn = document.getElementById('editTransactionBtn');
-    const cancelBtn = document.getElementById('cancelTransactionBtn');
-    
-    // Clone buttons to remove all event listeners
-    const newEditBtn = editBtn.cloneNode(true);
-    const newCancelBtn = cancelBtn.cloneNode(true);
-    editBtn.parentNode.replaceChild(newEditBtn, editBtn);
-    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
-    
-    // Add fresh event listeners
-    newEditBtn.addEventListener('click', function() {
-        const modalElement = document.getElementById('transactionChoiceModal');
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        
-        // Properly hide the modal and remove backdrop
-        modal.hide();
-        
-        // Ensure backdrop is removed after modal animation completes
-        modalElement.addEventListener('hidden.bs.modal', function onHidden() {
-            // Remove this event listener to prevent it from running multiple times
-            modalElement.removeEventListener('hidden.bs.modal', onHidden);
-            
-            // Remove any remaining backdrop
-            removeAllBackdrops();
-            
-            // Remove modal-open class from body
-            document.body.classList.remove('modal-open');
-            document.body.style.removeProperty('overflow');
-            document.body.style.removeProperty('padding-right');
-            
-            // Setup edit mode after ensuring modal is completely closed
-            setTimeout(() => {
-                setupEditMode(window.currentTransactionData);
-            }, 100);
-        });
-    });
-    
-    newCancelBtn.addEventListener('click', function() {
-        const modalElement = document.getElementById('transactionChoiceModal');
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        
-        // Properly hide the modal and remove backdrop
-        modal.hide();
-        
-        // Ensure backdrop is removed after modal animation completes
-        modalElement.addEventListener('hidden.bs.modal', function onHidden() {
-            // Remove this event listener to prevent it from running multiple times
-            modalElement.removeEventListener('hidden.bs.modal', onHidden);
-            
-            // Remove any remaining backdrop
-            removeAllBackdrops();
-            
-            // Remove modal-open class from body
-            document.body.classList.remove('modal-open');
-            document.body.style.removeProperty('overflow');
-            document.body.style.removeProperty('padding-right');
-            
-            // Setup reversal after ensuring modal is completely closed
-            setTimeout(() => {
-                setupReversal(window.currentTransactionData.transaction, window.currentTransactionData.formType, 
-                             window.currentTransactionData.formType === 'arrears', window.currentTransactionData.lineItems);
-            }, 100);
-        });
-    });
-}
-
-// Helper function to remove all modal backdrops
-function removeAllBackdrops() {
-    // Remove all backdrop elements
-    const backdrops = document.querySelectorAll('.modal-backdrop');
-    backdrops.forEach(backdrop => backdrop.remove());
-    
-    // Also remove any inline styles that might have been added
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-        modal.style.removeProperty('display');
-        modal.classList.remove('show');
-    });
-    
-    // Reset body classes and styles
-    document.body.classList.remove('modal-open');
-    document.body.style.removeProperty('overflow');
-    document.body.style.removeProperty('padding-right');
-}
-
-// Add this cleanup function to be called when needed
-function cleanupModalState() {
-    // Remove modal-open class from body
-    document.body.classList.remove('modal-open');
-    document.body.style.removeProperty('overflow');
-    document.body.style.removeProperty('padding-right');
-    
-    // Remove all backdrops
-    removeAllBackdrops();
-    
-    // Ensure all modals are properly hidden
-    const modals = document.querySelectorAll('.modal.show');
-    modals.forEach(modal => {
-        modal.classList.remove('show');
-        modal.style.display = 'none';
-    });
-}
-
-// Fix for the Exit button and X close button
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle modal close events for all close triggers
-    const transactionChoiceModal = document.getElementById('transactionChoiceModal');
-    
-    if (transactionChoiceModal) {
-        // Handle modal close events (X button, Exit button, clicking outside)
-        transactionChoiceModal.addEventListener('hidden.bs.modal', function() {
-            // Ensure complete modal cleanup
-            removeAllBackdrops();
-            
-            // Determine which tab is currently active
-            const activeTab = document.querySelector('.tab-pane.active');
-            const activeTabId = activeTab ? activeTab.getAttribute('id') : null;
-            
-            // Reset the appropriate form based on active tab
-            if (activeTabId === 'arrears') {
-                // Reset arrears form
-                if (typeof clearArrearsFormFields === 'function') {
-                    clearArrearsFormFields();
-                }
-                // Reset any edit or reversal modes
-                if (typeof resetEditMode === 'function') {
-                    resetEditMode();
-                }
-                if (typeof resetReversalMode === 'function') {
-                    resetReversalMode();
-                }
-            } else if (activeTabId === 'account') {
-                // Reset account form
-                if (typeof clearAccountFormFields === 'function') {
-                    clearAccountFormFields();
-                }
-                // Reset any edit or reversal modes
-                if (typeof resetEditMode === 'function') {
-                    resetEditMode();
-                }
-                if (typeof resetReversalMode === 'function') {
-                    resetReversalMode();
-                }
-            }
-            
-            // Show confirmation message
-            showToast('info', 'Form has been reset');
-        });
-        
-        // Additional cleanup for all modal close triggers
-        transactionChoiceModal.addEventListener('hide.bs.modal', function() {
-            // This fires before the modal starts hiding
-            removeAllBackdrops();
-        });
-        
-        // Handle manual close events (X button, Exit button)
-        const closeButtons = transactionChoiceModal.querySelectorAll('[data-bs-dismiss="modal"], .btn-close');
-        closeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                // Force cleanup when manually closing
-                setTimeout(() => {
-                    removeAllBackdrops();
-                }, 150); // Small delay to ensure modal animation completes
-            });
-        });
-        
-        // Handle clicking outside the modal (backdrop click)
-        transactionChoiceModal.addEventListener('click', function(e) {
-            if (e.target === transactionChoiceModal) {
-                // Force cleanup for backdrop clicks
-                setTimeout(() => {
-                    removeAllBackdrops();
-                }, 150);
-            }
-        });
-    }
-});
-
 // ========== EDIT MODE FUNCTIONALITY ==========
 function setupEditMode(transactionData) {
     const { transaction, formType, lineItems } = transactionData;
@@ -571,11 +227,11 @@ function changeToEditMode() {
         saveButton.classList.remove('btn-primary', 'btn-danger');
         saveButton.classList.add('btn-info');
         saveButton.setAttribute('data-edit-mode', 'true');
-        
+
         // Clone button to remove existing handlers (EXACTLY like reversal mode)
         const newButton = saveButton.cloneNode(true);
         saveButton.parentNode.replaceChild(newButton, saveButton);
-        
+
         // Add edit mode click handler
         newButton.addEventListener('click', function(e) {
             e.preventDefault();
@@ -584,14 +240,17 @@ function changeToEditMode() {
             return false;
         });
     }
-    
+
     // Visual indication for edit mode - change border color
     const formContainer = document.querySelector('.card.shadow-sm.border-success');
     if (formContainer) {
         formContainer.classList.remove('border-success', 'border-danger');
         formContainer.classList.add('border-info');
     }
-    
+
+    // Hide Edit OR and Cancel OR buttons during edit mode
+    hideEditCancelButtons();
+
     // NO BADGE ADDED - Just like reversal mode
 }
 
@@ -823,35 +482,42 @@ function resetEditMode() {
         saveButton.classList.remove('btn-danger', 'btn-info');
         saveButton.classList.add('btn-primary');
         saveButton.removeAttribute('data-edit-mode');
-        
+
         // Reset onclick to null first (like reversal reset)
         saveButton.onclick = null;
-        
+
         // Optional: Clone to ensure all listeners are removed
         const newButton = saveButton.cloneNode(true);
         saveButton.parentNode.replaceChild(newButton, saveButton);
     }
-    
+
     // Reset visual styling
     const formContainer = document.querySelector('.card.shadow-sm.border-info, .card.shadow-sm.border-danger');
     if (formContainer) {
         formContainer.classList.remove('border-danger', 'border-info');
         formContainer.classList.add('border-success');
     }
-    
+
     // Clear edit mode flag
     window.isEditMode = false;
-    
-    // Enable all fields INCLUDING the OR number fields
+
+    // Show Edit OR and Cancel OR buttons again
+    showEditCancelButtons();
+
+    // Enable all fields EXCEPT the SIN fields (they should stay disabled)
     document.querySelectorAll('#arrearsReceivableForm input, #arrearsReceivableForm select, #arrearsReceivableForm textarea').forEach(element => {
-        if (element.id !== 'arrears_active_tab' && element.name !== 'form_type') {
+        if (element.id !== 'arrears_active_tab' &&
+            element.name !== 'form_type' &&
+            element.id !== 'arrears_serviceInvoiceNo') {  // Keep SIN field disabled
             element.removeAttribute('disabled');
             element.classList.remove('bg-light');
         }
     });
-    
+
     document.querySelectorAll('#accountReceivableForm input, #accountReceivableForm select, #accountReceivableForm textarea').forEach(element => {
-        if (element.id !== 'account_active_tab' && element.name !== 'form_type') {
+        if (element.id !== 'account_active_tab' &&
+            element.name !== 'form_type' &&
+            element.id !== 'serviceInvoiceNo') {  // Keep SIN field disabled
             element.removeAttribute('disabled');
             element.classList.remove('bg-light');
         }
@@ -1234,11 +900,11 @@ function changeToReversalMode() {
         saveButton.classList.remove('btn-primary');
         saveButton.classList.add('btn-danger');
         saveButton.setAttribute('data-reversal-mode', 'true');
-        
+
         // CRITICAL FIX: Clone button to remove all existing handlers
         const newButton = saveButton.cloneNode(true);
         saveButton.parentNode.replaceChild(newButton, saveButton);
-        
+
         // Add NEW click handler to the cloned button
         newButton.addEventListener('click', function(e) {
             e.preventDefault(); // Prevent default form submission
@@ -1248,13 +914,16 @@ function changeToReversalMode() {
             return false; // Extra prevention measure
         });
     }
-    
+
     // Visual indication that we're in reversal mode
     const formContainer = document.querySelector('.card.shadow-sm.border-success');
     if (formContainer) {
         formContainer.classList.remove('border-success');
         formContainer.classList.add('border-danger');
     }
+
+    // Hide Edit OR and Cancel OR buttons during reversal mode
+    hideEditCancelButtons();
 }
 
 function showReversalConfirmation() {
@@ -1454,31 +1123,40 @@ function resetReversalMode() {
         saveButton.classList.remove('btn-danger');
         saveButton.classList.add('btn-primary');
         saveButton.removeAttribute('data-reversal-mode');
-        
+
         // Reset the onclick handler
         saveButton.onclick = null;
     }
-    
+
     // Reset visual styling
     const formContainer = document.querySelector('.card.shadow-sm.border-danger');
     if (formContainer) {
         formContainer.classList.remove('border-danger');
         formContainer.classList.add('border-success');
     }
-    
-    // Enable all fields in both forms
+
+    // Show Edit OR and Cancel OR buttons again
+    showEditCancelButtons();
+
+    // Enable all fields in both forms EXCEPT the SIN fields (they should stay disabled)
     document.querySelectorAll('#arrearsReceivableForm input, #arrearsReceivableForm select, #arrearsReceivableForm textarea').forEach(element => {
-        if (element.id !== 'arrears_active_tab' && element.name !== 'form_type' && !element.classList.contains('form-check-input')) {
+        if (element.id !== 'arrears_active_tab' &&
+            element.name !== 'form_type' &&
+            element.id !== 'arrears_serviceInvoiceNo' &&  // Keep SIN field disabled
+            !element.classList.contains('form-check-input')) {
             element.removeAttribute('disabled');
         }
     });
-    
+
     document.querySelectorAll('#accountReceivableForm input, #accountReceivableForm select, #accountReceivableForm textarea').forEach(element => {
-        if (element.id !== 'account_active_tab' && element.name !== 'form_type' && !element.classList.contains('form-check-input')) {
+        if (element.id !== 'account_active_tab' &&
+            element.name !== 'form_type' &&
+            element.id !== 'serviceInvoiceNo' &&  // Keep SIN field disabled
+            !element.classList.contains('form-check-input')) {
             element.removeAttribute('disabled');
         }
     });
-    
+
     // Re-enable add/remove line buttons
     document.querySelectorAll('.add-line, .remove-line').forEach(button => {
         button.removeAttribute('disabled');
@@ -1686,5 +1364,31 @@ function switchToCorrectTab(tabType, callback) {
         showToast('info', `Switched to ${tabType === 'arrears' ? 'HOA Monthly Dues' : 'Account Receivable'} tab`);
     } else {
         showToast('error', 'Could not switch to the required tab');
+    }
+}
+
+// ========== BUTTON VISIBILITY MANAGEMENT ==========
+
+function hideEditCancelButtons() {
+    const editOrBtn = document.getElementById('editOrBtn');
+    const cancelOrBtn = document.getElementById('cancelOrBtn');
+
+    if (editOrBtn) {
+        editOrBtn.style.display = 'none';
+    }
+    if (cancelOrBtn) {
+        cancelOrBtn.style.display = 'none';
+    }
+}
+
+function showEditCancelButtons() {
+    const editOrBtn = document.getElementById('editOrBtn');
+    const cancelOrBtn = document.getElementById('cancelOrBtn');
+
+    if (editOrBtn) {
+        editOrBtn.style.display = 'inline-block';
+    }
+    if (cancelOrBtn) {
+        cancelOrBtn.style.display = 'inline-block';
     }
 }
