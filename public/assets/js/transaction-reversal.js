@@ -1485,3 +1485,206 @@ function resetReversalMode() {
         button.classList.remove('disabled');
     });
 }
+
+// ========== NEW BUTTON-BASED EDIT/CANCEL FUNCTIONALITY ==========
+
+// Store the current action ('edit' or 'cancel')
+let currentSinAction = '';
+
+// Initialize button event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    const editOrBtn = document.getElementById('editOrBtn');
+    const cancelOrBtn = document.getElementById('cancelOrBtn');
+
+    if (editOrBtn) {
+        editOrBtn.addEventListener('click', function() {
+            showSinInputModal('edit');
+        });
+    }
+
+    if (cancelOrBtn) {
+        cancelOrBtn.addEventListener('click', function() {
+            showSinInputModal('cancel');
+        });
+    }
+
+    // Setup continue button handler
+    setupSinContinueButton();
+});
+
+function showSinInputModal(action) {
+    currentSinAction = action;
+
+    // Update modal header and text based on action
+    const modalHeader = document.getElementById('sinInputModalHeader');
+    const actionText = document.getElementById('sinActionText');
+    const sinInputField = document.getElementById('sinInputField');
+
+    if (action === 'edit') {
+        modalHeader.classList.remove('bg-danger');
+        modalHeader.classList.add('bg-info', 'text-white');
+        actionText.textContent = 'edit';
+    } else {
+        modalHeader.classList.remove('bg-info');
+        modalHeader.classList.add('bg-danger', 'text-white');
+        actionText.textContent = 'cancel';
+    }
+
+    // Clear previous input
+    sinInputField.value = '';
+    sinInputField.classList.remove('is-invalid');
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('sinInputModal'));
+    modal.show();
+
+    // Focus on input after modal is shown
+    document.getElementById('sinInputModal').addEventListener('shown.bs.modal', function() {
+        sinInputField.focus();
+    }, { once: true });
+}
+
+function setupSinContinueButton() {
+    const continueBtn = document.getElementById('sinContinueBtn');
+    const sinInputField = document.getElementById('sinInputField');
+
+    if (continueBtn) {
+        // Remove existing listeners
+        const newBtn = continueBtn.cloneNode(true);
+        continueBtn.parentNode.replaceChild(newBtn, continueBtn);
+
+        // Add click handler
+        newBtn.addEventListener('click', function() {
+            const sinValue = sinInputField.value.trim();
+
+            // Validate input - allow positive and negative integers
+            if (!sinValue) {
+                sinInputField.classList.add('is-invalid');
+                showToast('error', 'Please enter a Service Invoice Number');
+                return;
+            }
+
+            // Parse the SIN - handle negative numbers
+            const parsedSin = parseInt(sinValue, 10);
+
+            if (isNaN(parsedSin) || parsedSin === 0) {
+                sinInputField.classList.add('is-invalid');
+                showToast('error', 'Please enter a valid number (positive or negative)');
+                return;
+            }
+
+            // Close modal and proceed with lookup
+            const modalInstance = bootstrap.Modal.getInstance(document.getElementById('sinInputModal'));
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+
+            // Perform lookup via button
+            lookupTransactionViaButton(parsedSin, currentSinAction);
+        });
+
+        // Also allow Enter key
+        sinInputField.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                newBtn.click();
+            }
+        });
+    }
+}
+
+function lookupTransactionViaButton(invoiceNumber, action) {
+    showToast('info', `Checking if SIN #${invoiceNumber} exists...`);
+
+    fetch(`/accounts/receivables/check-invoice/${invoiceNumber}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.exists) {
+            const transactionTabType = data.tab_type;
+
+            // IMPORTANT: Set the mode flag BEFORE switching tabs
+            // This prevents fetchNextSinNumber() from overwriting the SIN
+            if (action === 'edit') {
+                window.isEditMode = true;
+            } else if (action === 'cancel') {
+                window.isReversalMode = true;
+            }
+
+            // Switch to the correct tab if needed
+            switchToCorrectTab(transactionTabType, function() {
+                // After tab switch, proceed with edit or cancel
+                if (action === 'edit') {
+                    setupEditMode({
+                        transaction: data.transaction,
+                        formType: transactionTabType,
+                        lineItems: data.line_items
+                    });
+                    showToast('info', 'Edit mode enabled. Modify the transaction and click "Update SIN"');
+                } else if (action === 'cancel') {
+                    setupReversal(
+                        data.transaction,
+                        transactionTabType,
+                        transactionTabType === 'arrears',
+                        data.line_items
+                    );
+                    showToast('info', 'Cancel mode enabled. Review and click "Cancel SIN"');
+                }
+            });
+        } else {
+            showToast('error', `SIN #${invoiceNumber} not found in the system`);
+        }
+    })
+    .catch(error => {
+        showToast('error', 'Error checking SIN: ' + error.message);
+    });
+}
+
+function switchToCorrectTab(tabType, callback) {
+    const activeTab = document.querySelector('.tab-pane.active');
+    const activeTabId = activeTab ? activeTab.getAttribute('id') : null;
+
+    // Determine target tab
+    const targetTabId = tabType === 'arrears' ? 'arrears' : 'account';
+
+    if (activeTabId === targetTabId) {
+        // Already on correct tab, just execute callback
+        if (callback) callback();
+        return;
+    }
+
+    // Need to switch tabs
+    const targetTabButton = document.getElementById(`${targetTabId}-tab`);
+    if (targetTabButton) {
+        // Create tab instance and show it
+        const tab = new bootstrap.Tab(targetTabButton);
+
+        // Wait for tab to be fully shown before executing callback
+        targetTabButton.addEventListener('shown.bs.tab', function onTabShown() {
+            // Remove listener to prevent multiple calls
+            targetTabButton.removeEventListener('shown.bs.tab', onTabShown);
+
+            // Execute callback after tab is shown
+            setTimeout(() => {
+                if (callback) callback();
+            }, 200);
+        });
+
+        // Show the tab
+        tab.show();
+
+        showToast('info', `Switched to ${tabType === 'arrears' ? 'HOA Monthly Dues' : 'Account Receivable'} tab`);
+    } else {
+        showToast('error', 'Could not switch to the required tab');
+    }
+}

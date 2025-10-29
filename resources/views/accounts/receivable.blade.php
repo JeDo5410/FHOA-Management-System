@@ -36,7 +36,13 @@
                         </li>
                     </ul>                    
                     <div>
-                        <button type="button" class="btn btn-secondary btn-sm me-2" 
+                        <button type="button" class="btn btn-info btn-sm me-2" id="editOrBtn">
+                            <i class="bi bi-pencil-square me-1"></i>Edit OR
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm me-2" id="cancelOrBtn">
+                            <i class="bi bi-x-circle me-1"></i>Cancel OR
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm me-2"
                                 onclick="showToast('info', 'Operation cancelled'); setTimeout(function() { window.location.href='{{ route('accounts.receivables') }}'; }, 1000);">
                             Cancel
                         </button>
@@ -163,11 +169,12 @@
                                     <div class="col-md-3">
                                         <div class="mb-2">
                                             <label for="arrears_serviceInvoiceNo" class="form-label">Service Invoice No.</label>
-                                            <input type="text" 
-                                                class="form-control form-control-sm sin-masked-input" 
-                                                id="arrears_serviceInvoiceNo" 
+                                            <input type="text"
+                                                class="form-control form-control-sm sin-masked-input"
+                                                id="arrears_serviceInvoiceNo"
                                                 name="arrears_service_invoice_no"
                                                 autocomplete="off"
+                                                disabled
                                                 required>
                                         </div>
                                     </div>
@@ -362,11 +369,12 @@
                             <div class="col-md-3">
                                 <div class="mb-2">
                                     <label for="serviceInvoiceNo" class="form-label">Service Invoice No.</label>
-                                    <input type="text" 
-                                        class="form-control form-control-sm sin-masked-input" 
-                                        id="serviceInvoiceNo" 
+                                    <input type="text"
+                                        class="form-control form-control-sm sin-masked-input"
+                                        id="serviceInvoiceNo"
                                         name="service_invoice_no"
                                         autocomplete="off"
+                                        disabled
                                         required>
                                 </div>
                             </div>
@@ -652,7 +660,39 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- SIN Input Modal for Edit/Cancel OR -->
+    <div class="modal fade" id="sinInputModal" tabindex="-1" aria-labelledby="sinInputModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" id="sinInputModalHeader">
+                    <h5 class="modal-title" id="sinInputModalLabel">Enter Service Invoice Number</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Enter SIN:</strong> Please enter the Service Invoice Number you want to <span id="sinActionText">edit</span>.
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="sinInputField" class="form-label">Service Invoice No.</label>
+                        <input type="text"
+                            class="form-control"
+                            id="sinInputField"
+                            placeholder="Enter SIN (accepts positive or negative numbers)"
+                            autocomplete="off">
+                        <div class="form-text text-muted">Enter the complete SIN number. Negative numbers are also accepted.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="sinContinueBtn">Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Payment History Modal -->
     <div class="modal fade" id="paymentHistoryModal" tabindex="-1" aria-labelledby="paymentHistoryModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-payment-history">
@@ -1413,7 +1453,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Step 3: CRITICAL FIX - Fetch the next SIN number AFTER clearing.
             // This ensures the active tab always has the correct, latest SIN.
-            fetchNextSinNumber();
+            // IMPORTANT: Don't fetch new SIN if we're in edit or reversal mode
+            if (!window.isEditMode && !window.isReversalMode) {
+                fetchNextSinNumber();
+            }
 
             const now = new Date();
             const philippineTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
