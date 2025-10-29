@@ -834,41 +834,59 @@ private function storeArrearsReceivableEdit(Request $request)
 
         // Begin transaction for data integrity
         DB::beginTransaction();
-        
-        // Find the member record using the address ID
-        $memberSum = MemberSum::where('mem_add_id', $validated['arrears_address_id'])->first();
-        
-        if (!$memberSum) {
-            // Add this logging when member is not found
-            Log::error('Member not found during arrears edit', [
+
+        // Get the original transaction FIRST to determine the original member
+        $originalSinNumber = $validated['arrears_service_invoice_no'];
+
+        // Find the most recent positive transaction for this SIN (the actual payment, not cancellations)
+        $originalTransaction = AcctReceivable::where('or_number', $originalSinNumber)
+            ->where('ar_amount', '>', 0)
+            ->whereNotNull('mem_id')
+            ->orderBy('ar_transno', 'desc')
+            ->first();
+
+        if (!$originalTransaction) {
+            Log::error('Original transaction not found during arrears edit', [
+                'sin_number' => $originalSinNumber
+            ]);
+            throw new \Exception('Original transaction not found');
+        }
+
+        // Get the original member from the original transaction
+        $originalMemberSum = MemberSum::where('mem_id', $originalTransaction->mem_id)->first();
+
+        if (!$originalMemberSum) {
+            Log::error('Original member not found during arrears edit', [
+                'sin_number' => $originalSinNumber,
+                'original_mem_id' => $originalTransaction->mem_id
+            ]);
+            throw new \Exception('Original member not found');
+        }
+
+        // Get the original address ID from the member record
+        $originalAddressId = $originalMemberSum->mem_add_id;
+
+        // Find the NEW member record using the NEW address ID from the form
+        $newMemberSum = MemberSum::where('mem_add_id', $validated['arrears_address_id'])->first();
+
+        if (!$newMemberSum) {
+            Log::error('New member not found during arrears edit', [
                 'address_id' => $validated['arrears_address_id'],
-                'sin_number' => $validated['arrears_service_invoice_no']
+                'sin_number' => $originalSinNumber
             ]);
             throw new \Exception('Member not found with the provided Address ID');
         }
 
-        // Add this logging after finding member
-        Log::info('Member found for arrears edit', [
-            'member_id' => $memberSum->mem_id,
-            'member_name' => $memberSum->mem_fname . ' ' . $memberSum->mem_lname,
-            'address_id' => $validated['arrears_address_id'],
-            'current_arrear_balance' => $memberSum->arrear
+        // Detect if address has changed
+        $addressChanged = ($originalAddressId !== $validated['arrears_address_id']);
+
+        Log::info('Address change detection', [
+            'original_address_id' => $originalAddressId,
+            'new_address_id' => $validated['arrears_address_id'],
+            'address_changed' => $addressChanged,
+            'original_member_id' => $originalMemberSum->mem_id,
+            'new_member_id' => $newMemberSum->mem_id
         ]);
-        
-        // Get the original transaction that we're editing
-        $originalSinNumber = $validated['arrears_service_invoice_no'];
-        $originalTransaction = AcctReceivable::where('or_number', $originalSinNumber)
-            ->where('mem_id', $memberSum->mem_id)
-            ->first();
-            
-        if (!$originalTransaction) {
-            // Add this logging when original transaction is not found
-            Log::error('Original transaction not found during arrears edit', [
-                'sin_number' => $originalSinNumber,
-                'member_id' => $memberSum->mem_id
-            ]);
-            throw new \Exception('Original transaction not found');
-        }
 
         // Add this logging after finding original transaction
         Log::info('Original transaction found for editing', [
@@ -878,160 +896,252 @@ private function storeArrearsReceivableEdit(Request $request)
             'original_remarks' => $originalTransaction->ar_remarks,
             'sin_number' => $originalSinNumber
         ]);
-        
-        // STEP 1: Create cancellation entry for original transaction
-        $cancellationTransaction = new AcctReceivable();
-        $cancellationTransaction->mem_id = $memberSum->mem_id;
-        $cancellationTransaction->or_number = $originalSinNumber;
-        $cancellationTransaction->ar_date = now()->format('Y-m-d');
-        $cancellationTransaction->ar_amount = -abs($originalTransaction->ar_amount); // Negative amount
-        $cancellationTransaction->arrear_bal = $memberSum->arrear + abs($originalTransaction->ar_amount); // Restore original balance
-        $cancellationTransaction->acct_type_id = $originalTransaction->acct_type_id;
-        $cancellationTransaction->payor_name = $originalTransaction->payor_name;
-        $cancellationTransaction->payor_address = $formattedAddress;
-        $cancellationTransaction->payment_type = $originalTransaction->payment_type;
-        $cancellationTransaction->payment_Ref = $originalTransaction->payment_Ref;
-        $cancellationTransaction->receive_by = Auth::user()->fullname ?? Auth::user()->name;
-        $cancellationTransaction->ar_remarks = "SYSTEM CANCELLATION FOR EDIT - Original SIN: {$originalSinNumber}";
-        $cancellationTransaction->user_id = Auth::id();
-        $cancellationTransaction->save();
 
-        // Add this logging after creating cancellation transaction
-        Log::info('Cancellation transaction created', [
-            'cancellation_transaction_id' => $cancellationTransaction->ar_transno,
-            'cancellation_amount' => $cancellationTransaction->ar_amount,
-            'restored_balance' => $cancellationTransaction->arrear_bal,
-            'sin_number' => $originalSinNumber
-        ]);
-        
-        // STEP 2: Create new transaction with updated details
+        // Get the new payment amount
         $newPaymentAmount = $validated['arrears_items'][0]['amount'];
-        $currentArrear = $memberSum->arrear + abs($originalTransaction->ar_amount); // Balance after cancellation
-        $newArrearBalance = $currentArrear - $newPaymentAmount;
 
-        // Add this logging before creating new transaction
-        Log::info('Creating new edited transaction', [
-            'new_amount' => $newPaymentAmount,
-            'balance_after_cancellation' => $currentArrear,
-            'new_balance_after_payment' => $newArrearBalance,
-            'sin_number' => $originalSinNumber
-        ]);
-        
-        $editedTransaction = new AcctReceivable();
-        $editedTransaction->mem_id = $memberSum->mem_id;
-        $editedTransaction->or_number = $originalSinNumber; // Keep same SIN number
-        $editedTransaction->ar_date = now()->format('Y-m-d');;
-        $editedTransaction->ar_amount = $newPaymentAmount;
-        $editedTransaction->arrear_bal = $newArrearBalance;
-        $editedTransaction->acct_type_id = $validated['arrears_items'][0]['coa'];
-        $editedTransaction->payor_name = strtoupper($validated['arrears_received_from']);
-        $editedTransaction->payor_address = $formattedAddress;
-        $editedTransaction->payment_type = $validated['arrears_payment_mode'];
-        $editedTransaction->payment_Ref = $validated['arrears_reference_no'] ?? null;
-        $editedTransaction->receive_by = $validated['arrears_received_by'];
-        $editedTransaction->ar_remarks = $validated['arrears_remarks'];
-        $editedTransaction->user_id = Auth::id();
-        $editedTransaction->save();
+        if ($addressChanged) {
+            // ============================================================
+            // SCENARIO 1: ADDRESS CHANGED - Reverse from old, apply to new
+            // ============================================================
 
-        // Add this logging after creating edited transaction
-        Log::info('New edited transaction created', [
-            'edited_transaction_id' => $editedTransaction->ar_transno,
-            'edited_amount' => $editedTransaction->ar_amount,
-            'edited_date' => $editedTransaction->ar_date,
-            'edited_remarks' => $editedTransaction->ar_remarks,
-            'final_arrear_balance' => $editedTransaction->arrear_bal,
-            'sin_number' => $originalSinNumber
-        ]);
-        
-        // STEP 3: Update member_sum with new payment information
-        $memberSum->last_or = $originalSinNumber;
-        $memberSum->last_paydate = $validated['arrears_date'];
-        $memberSum->last_payamount = $newPaymentAmount;
-        $memberSum->arrear = $newArrearBalance;
-        
-        // Log before arrear_total calculation
-        Log::info('EDIT ARREARS - Before arrear_total calculation', [
-            'member_id' => $memberSum->mem_id,
-            'current_arrear' => $memberSum->arrear,
-            'current_arrear_interest' => $memberSum->arrear_interest,
-            'new_arrear_balance' => $newArrearBalance,
-            'new_payment_amount' => $newPaymentAmount,
-            'original_sin' => $originalSinNumber
-        ]);
-        
-        // Calculate and update arrear_total (arrear + arrear_interest)
-        $arrearInterest = $memberSum->arrear_interest ?? 0;
-        $calculatedArrearTotal = $newArrearBalance + $arrearInterest;
-        $memberSum->arrear_total = $calculatedArrearTotal;
-        
-        // Log after arrear_total calculation
-        Log::info('EDIT ARREARS - After arrear_total calculation', [
-            'member_id' => $memberSum->mem_id,
-            'arrear_interest' => $arrearInterest,
-            'calculated_arrear_total' => $calculatedArrearTotal,
-            'assigned_arrear_total' => $memberSum->arrear_total
-        ]);
+            Log::info('=== ADDRESS CHANGE DETECTED - Processing reversal and reapplication ===', [
+                'original_member_id' => $originalMemberSum->mem_id,
+                'new_member_id' => $newMemberSum->mem_id,
+                'original_address' => $originalAddressId,
+                'new_address' => $validated['arrears_address_id'],
+                'amount' => $newPaymentAmount
+            ]);
 
-        // Calculate arrear_count based on arrear_total
-        // Get the member's monthly dues from their member type
-        $memberData = $memberSum->memberData()->latest('mem_transno')->first();
-        if ($memberData && $memberData->memberType) {
-            $monthlyDues = $memberData->memberType->mem_monthlydues;
+            $originalFormattedAddress = $this->formatAddressId($originalAddressId);
+            $newFormattedAddress = $this->formatAddressId($validated['arrears_address_id']);
 
-            if ($monthlyDues > 0) {
-                if ($memberSum->arrear_total < 0) {
-                    // Member paid ahead, set arrear_count to 0
-                    $memberSum->arrear_count = 0;
-                } else {
-                    // Calculate arrear_count (months unpaid)
-                    $memberSum->arrear_count = round($memberSum->arrear_total / $monthlyDues);
+            // STEP 1: Create cancellation transaction for ORIGINAL member
+            $cancellationTransaction = new AcctReceivable();
+            $cancellationTransaction->mem_id = $originalMemberSum->mem_id; // Original member
+            $cancellationTransaction->or_number = $originalSinNumber;
+            $cancellationTransaction->ar_date = now()->format('Y-m-d');
+            $cancellationTransaction->ar_amount = -abs($originalTransaction->ar_amount);
+            $cancellationTransaction->arrear_bal = $originalMemberSum->arrear + abs($originalTransaction->ar_amount);
+            $cancellationTransaction->acct_type_id = $originalTransaction->acct_type_id;
+            $cancellationTransaction->payor_name = $originalTransaction->payor_name;
+            $cancellationTransaction->payor_address = $originalFormattedAddress;
+            $cancellationTransaction->payment_type = $originalTransaction->payment_type;
+            $cancellationTransaction->payment_Ref = $originalTransaction->payment_Ref;
+            $cancellationTransaction->receive_by = Auth::user()->fullname ?? Auth::user()->name;
+            $cancellationTransaction->ar_remarks = "SYSTEM CANCELLATION FOR EDIT - Address changed from {$originalFormattedAddress} to {$newFormattedAddress}";
+            $cancellationTransaction->user_id = Auth::id();
+            $cancellationTransaction->save();
+
+            Log::info('Cancellation transaction created for original member', [
+                'transaction_id' => $cancellationTransaction->ar_transno,
+                'member_id' => $originalMemberSum->mem_id,
+                'amount' => $cancellationTransaction->ar_amount,
+                'new_balance' => $cancellationTransaction->arrear_bal
+            ]);
+
+            // STEP 2: Update ORIGINAL member - restore their arrear balance
+            $originalMemberSum->arrear = $originalMemberSum->arrear + abs($originalTransaction->ar_amount);
+
+            // Recalculate arrear_total for original member
+            $originalArrearInterest = $originalMemberSum->arrear_interest ?? 0;
+            $originalMemberSum->arrear_total = $originalMemberSum->arrear + $originalArrearInterest;
+
+            // Recalculate arrear_count for original member
+            $originalMemberData = $originalMemberSum->memberData()->latest('mem_transno')->first();
+            if ($originalMemberData && $originalMemberData->memberType) {
+                $monthlyDues = $originalMemberData->memberType->mem_monthlydues;
+                if ($monthlyDues > 0) {
+                    $originalMemberSum->arrear_count = $originalMemberSum->arrear_total < 0
+                        ? 0
+                        : round($originalMemberSum->arrear_total / $monthlyDues);
                 }
-
-                Log::info('EDIT ARREARS - Arrear count calculated', [
-                    'member_id' => $memberSum->mem_id,
-                    'arrear_total' => $memberSum->arrear_total,
-                    'monthly_dues' => $monthlyDues,
-                    'arrear_count' => $memberSum->arrear_count
-                ]);
             }
+
+            $originalMemberSum->user_id = Auth::id();
+            $originalMemberSum->save();
+
+            Log::info('Original member balance restored', [
+                'member_id' => $originalMemberSum->mem_id,
+                'restored_arrear' => $originalMemberSum->arrear,
+                'arrear_total' => $originalMemberSum->arrear_total,
+                'arrear_count' => $originalMemberSum->arrear_count
+            ]);
+
+            // STEP 3: Create new transaction for NEW member
+            $newArrearBalance = $newMemberSum->arrear - $newPaymentAmount;
+
+            $editedTransaction = new AcctReceivable();
+            $editedTransaction->mem_id = $newMemberSum->mem_id; // New member
+            $editedTransaction->or_number = $originalSinNumber;
+            $editedTransaction->ar_date = now()->format('Y-m-d');
+            $editedTransaction->ar_amount = $newPaymentAmount;
+            $editedTransaction->arrear_bal = $newArrearBalance;
+            $editedTransaction->acct_type_id = $validated['arrears_items'][0]['coa'];
+            $editedTransaction->payor_name = strtoupper($validated['arrears_received_from']);
+            $editedTransaction->payor_address = $newFormattedAddress;
+            $editedTransaction->payment_type = $validated['arrears_payment_mode'];
+            $editedTransaction->payment_Ref = $validated['arrears_reference_no'] ?? null;
+            $editedTransaction->receive_by = $validated['arrears_received_by'];
+            $editedTransaction->ar_remarks = $validated['arrears_remarks'];
+            $editedTransaction->user_id = Auth::id();
+            $editedTransaction->save();
+
+            Log::info('New transaction created for new member', [
+                'transaction_id' => $editedTransaction->ar_transno,
+                'member_id' => $newMemberSum->mem_id,
+                'amount' => $editedTransaction->ar_amount,
+                'new_balance' => $editedTransaction->arrear_bal
+            ]);
+
+            // STEP 4: Update NEW member - apply payment
+            $newMemberSum->last_or = $originalSinNumber;
+            $newMemberSum->last_paydate = $validated['arrears_date'];
+            $newMemberSum->last_payamount = $newPaymentAmount;
+            $newMemberSum->arrear = $newArrearBalance;
+
+            // Reset arrear_interest to 0 when payment is made
+            $newMemberSum->arrear_interest = 0;
+
+            // Recalculate arrear_total for new member
+            $newArrearInterest = $newMemberSum->arrear_interest ?? 0;
+            $newMemberSum->arrear_total = $newArrearBalance + $newArrearInterest;
+
+            // Recalculate arrear_count for new member
+            $newMemberData = $newMemberSum->memberData()->latest('mem_transno')->first();
+            if ($newMemberData && $newMemberData->memberType) {
+                $monthlyDues = $newMemberData->memberType->mem_monthlydues;
+                if ($monthlyDues > 0) {
+                    $newMemberSum->arrear_count = $newMemberSum->arrear_total < 0
+                        ? 0
+                        : round($newMemberSum->arrear_total / $monthlyDues);
+                }
+            }
+
+            $newMemberSum->user_id = Auth::id();
+            $newMemberSum->save();
+
+            Log::info('New member balance updated', [
+                'member_id' => $newMemberSum->mem_id,
+                'new_arrear' => $newMemberSum->arrear,
+                'arrear_total' => $newMemberSum->arrear_total,
+                'arrear_count' => $newMemberSum->arrear_count
+            ]);
+
+        } else {
+            // ============================================================
+            // SCENARIO 2: ADDRESS NOT CHANGED - Standard edit on same member
+            // ============================================================
+
+            Log::info('=== NO ADDRESS CHANGE - Standard edit processing ===', [
+                'member_id' => $originalMemberSum->mem_id,
+                'address' => $originalAddressId
+            ]);
+
+            // STEP 1: Create cancellation entry for original transaction
+            $cancellationTransaction = new AcctReceivable();
+            $cancellationTransaction->mem_id = $originalMemberSum->mem_id;
+            $cancellationTransaction->or_number = $originalSinNumber;
+            $cancellationTransaction->ar_date = now()->format('Y-m-d');
+            $cancellationTransaction->ar_amount = -abs($originalTransaction->ar_amount);
+            $cancellationTransaction->arrear_bal = $originalMemberSum->arrear + abs($originalTransaction->ar_amount);
+            $cancellationTransaction->acct_type_id = $originalTransaction->acct_type_id;
+            $cancellationTransaction->payor_name = $originalTransaction->payor_name;
+            $cancellationTransaction->payor_address = $formattedAddress;
+            $cancellationTransaction->payment_type = $originalTransaction->payment_type;
+            $cancellationTransaction->payment_Ref = $originalTransaction->payment_Ref;
+            $cancellationTransaction->receive_by = Auth::user()->fullname ?? Auth::user()->name;
+            $cancellationTransaction->ar_remarks = "SYSTEM CANCELLATION FOR EDIT - Original SIN: {$originalSinNumber}";
+            $cancellationTransaction->user_id = Auth::id();
+            $cancellationTransaction->save();
+
+            Log::info('Cancellation transaction created', [
+                'cancellation_transaction_id' => $cancellationTransaction->ar_transno,
+                'cancellation_amount' => $cancellationTransaction->ar_amount,
+                'restored_balance' => $cancellationTransaction->arrear_bal
+            ]);
+
+            // STEP 2: Create new transaction with updated details
+            $currentArrear = $originalMemberSum->arrear + abs($originalTransaction->ar_amount);
+            $newArrearBalance = $currentArrear - $newPaymentAmount;
+
+            $editedTransaction = new AcctReceivable();
+            $editedTransaction->mem_id = $originalMemberSum->mem_id;
+            $editedTransaction->or_number = $originalSinNumber;
+            $editedTransaction->ar_date = now()->format('Y-m-d');
+            $editedTransaction->ar_amount = $newPaymentAmount;
+            $editedTransaction->arrear_bal = $newArrearBalance;
+            $editedTransaction->acct_type_id = $validated['arrears_items'][0]['coa'];
+            $editedTransaction->payor_name = strtoupper($validated['arrears_received_from']);
+            $editedTransaction->payor_address = $formattedAddress;
+            $editedTransaction->payment_type = $validated['arrears_payment_mode'];
+            $editedTransaction->payment_Ref = $validated['arrears_reference_no'] ?? null;
+            $editedTransaction->receive_by = $validated['arrears_received_by'];
+            $editedTransaction->ar_remarks = $validated['arrears_remarks'];
+            $editedTransaction->user_id = Auth::id();
+            $editedTransaction->save();
+
+            Log::info('New edited transaction created', [
+                'edited_transaction_id' => $editedTransaction->ar_transno,
+                'edited_amount' => $editedTransaction->ar_amount,
+                'final_arrear_balance' => $editedTransaction->arrear_bal
+            ]);
+
+            // STEP 3: Update member_sum with new payment information
+            $originalMemberSum->last_or = $originalSinNumber;
+            $originalMemberSum->last_paydate = $validated['arrears_date'];
+            $originalMemberSum->last_payamount = $newPaymentAmount;
+            $originalMemberSum->arrear = $newArrearBalance;
+
+            // Calculate and update arrear_total
+            $arrearInterest = $originalMemberSum->arrear_interest ?? 0;
+            $calculatedArrearTotal = $newArrearBalance + $arrearInterest;
+            $originalMemberSum->arrear_total = $calculatedArrearTotal;
+
+            // Calculate arrear_count based on arrear_total
+            $memberData = $originalMemberSum->memberData()->latest('mem_transno')->first();
+            if ($memberData && $memberData->memberType) {
+                $monthlyDues = $memberData->memberType->mem_monthlydues;
+                if ($monthlyDues > 0) {
+                    $originalMemberSum->arrear_count = $originalMemberSum->arrear_total < 0
+                        ? 0
+                        : round($originalMemberSum->arrear_total / $monthlyDues);
+                }
+            }
+
+            $originalMemberSum->user_id = Auth::id();
+            $originalMemberSum->save();
+
+            Log::info('Member summary updated', [
+                'member_id' => $originalMemberSum->mem_id,
+                'updated_arrear' => $originalMemberSum->arrear,
+                'arrear_total' => $originalMemberSum->arrear_total,
+                'arrear_count' => $originalMemberSum->arrear_count
+            ]);
         }
 
-        $memberSum->user_id = Auth::id();
-        $memberSum->save();
-        
-        // Log after saving
-        Log::info('EDIT ARREARS - After saving to database', [
-            'member_id' => $memberSum->mem_id,
-            'saved_arrear' => $memberSum->arrear,
-            'saved_arrear_total' => $memberSum->arrear_total
-        ]);
-
-        // Add this logging after updating member summary
-        Log::info('Member summary updated', [
-            'member_id' => $memberSum->mem_id,
-            'updated_last_or' => $memberSum->last_or,
-            'updated_last_paydate' => $memberSum->last_paydate,
-            'updated_last_payamount' => $memberSum->last_payamount,
-            'updated_arrear_balance' => $memberSum->arrear,
-            'sin_number' => $originalSinNumber
-        ]);
-        
         // Commit the transaction
         DB::commit();
 
         // Add this logging after successful commit
         Log::info('=== ARREARS RECEIVABLE EDIT COMPLETED SUCCESSFULLY ===', [
             'sin_number' => $originalSinNumber,
-            'member_id' => $memberSum->mem_id,
+            'original_member_id' => $originalMemberSum->mem_id,
+            'new_member_id' => $addressChanged ? $newMemberSum->mem_id : $originalMemberSum->mem_id,
+            'address_changed' => $addressChanged,
             'original_amount' => $originalTransaction->ar_amount,
             'new_amount' => $newPaymentAmount,
             'user_id' => Auth::id(),
             'timestamp' => now()
         ]);
-        
-        // Return success response
+
+        // Return success response with appropriate message
+        $successMessage = $addressChanged
+            ? "SIN #{$originalSinNumber} has been successfully updated. Payment transferred from {$this->formatAddressId($originalAddressId)} to {$this->formatAddressId($validated['arrears_address_id'])}"
+            : "SIN #{$originalSinNumber} has been successfully updated";
+
         return redirect()->route('accounts.receivables', ['tab' => $request->input('active_tab', 'arrears')])
-            ->with('success', "SIN #{$originalSinNumber} has been successfully updated");
+            ->with('success', $successMessage);
                         
     } catch (\Illuminate\Validation\ValidationException $e) {
         // Add this logging for validation errors
