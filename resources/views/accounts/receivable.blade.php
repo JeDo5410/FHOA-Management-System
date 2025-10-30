@@ -2121,7 +2121,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @php
 // Update this version when you change your JS files
-$jsVersion = '1.2.0';
+$jsVersion = '1.3.0';
 @endphp
 <script src="{{ asset('assets/js/receivable-address-lookup.js') }}?v={{ $jsVersion }}"></script>
 <script src="{{ asset('assets/js/transaction-reversal.js') }}?v={{ $jsVersion }}"></script>
