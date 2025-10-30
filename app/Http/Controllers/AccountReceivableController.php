@@ -249,7 +249,7 @@ class AccountReceivableController extends Controller
                 'arrears_received_by' => 'required|string|max:45',
                 'arrears_payment_mode' => 'required|in:CASH,GCASH,CHECK,BANK_TRANSFER',
                 'arrears_reference_no' => 'nullable|string|max:45',
-                'arrears_remarks' => 'nullable|string|max:45'
+                'arrears_remarks' => 'nullable|string|max:300'
             ]);
 
             // *** MODIFICATION: Convert Address ID to formatted string ***
