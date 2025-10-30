@@ -643,7 +643,7 @@ class AccountReceivableController extends Controller
                 'arrears_received_by' => 'required|string|max:45',
                 'arrears_payment_mode' => 'required|in:CASH,GCASH,CHECK,BANK_TRANSFER',
                 'arrears_reference_no' => 'nullable|string|max:45',
-                'arrears_remarks' => 'required|string|max:100' // Increased max length to accommodate "CANCELLED OR: "
+                'arrears_remarks' => 'required|string|max:300' // Increased max length to accommodate "CANCELLED OR: "
             ]);
 
             $formattedAddress = $this->formatAddressId($validated['arrears_address_id']);
@@ -821,7 +821,7 @@ private function storeArrearsReceivableEdit(Request $request)
             'arrears_received_by' => 'required|string|max:45',
             'arrears_payment_mode' => 'required|in:CASH,GCASH,CHECK,BANK_TRANSFER',
             'arrears_reference_no' => 'nullable|string|max:45',
-            'arrears_remarks' => 'required|string|max:150' // Increased for edit remarks
+            'arrears_remarks' => 'required|string|max:300' // Increased for edit remarks
         ]);
 
         // Add this logging right after validation
