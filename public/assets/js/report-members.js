@@ -145,28 +145,37 @@ function loadMemberCounts() {
         active: document.getElementById('activeMembersCount'),
         delinquent: document.getElementById('delinquentMembersCount')
     };
-    
+
     // Set loading state
     Object.values(countElements).forEach(el => {
         if (el) el.textContent = 'Loading...';
     });
-    
+
     // Fetch counts for all filter types
     ['all', 'active', 'delinquent'].forEach(status => {
         fetch(`/reports/get-members-data?status=${status}&count_only=1`)
             .then(response => response.json())
             .then(data => {
-                const count = Array.isArray(data) ? data.length : (data.count || 0);
+                // Handle response based on structure
+                let count = 0;
+                if (data.members) {
+                    count = Array.isArray(data.members) ? data.members.length : 0;
+                } else if (data.count !== undefined) {
+                    count = data.count;
+                } else if (Array.isArray(data)) {
+                    count = data.length;
+                }
+
                 const element = countElements[status];
                 if (element) {
-                    element.textContent = `(${count})`;
+                    element.textContent = count;
                 }
             })
             .catch(error => {
                 console.error(`Error loading ${status} member count:`, error);
                 const element = countElements[status];
                 if (element) {
-                    element.textContent = '(Error)';
+                    element.textContent = 'Error';
                 }
             });
     });

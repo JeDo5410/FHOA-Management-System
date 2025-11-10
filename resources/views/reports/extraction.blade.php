@@ -71,21 +71,24 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                                             <span class="badge bg-primary" id="currentRecordCount">0</span>
                                         </div>
                                         <div class="form-check mb-2">
-                                            <input class="form-check-input" type="radio" name="memberStatus" id="statusAll" value="all" checked onclick="loadMemberData('all')">
+                                            <input class="form-check-input" type="radio" name="memberStatus" id="statusAll" value="all"
+                                                {{ request('member_status', 'all') === 'all' ? 'checked' : '' }} onclick="loadMemberData('all')">
                                             <label class="form-check-label d-flex justify-content-between w-100" for="statusAll">
                                                 <span>All Members</span>
                                                 <small class="text-muted" id="allMembersCount">Loading...</small>
                                             </label>
                                         </div>
                                         <div class="form-check mb-2">
-                                            <input class="form-check-input" type="radio" name="memberStatus" id="statusActive" value="active" onclick="loadMemberData('active')">
+                                            <input class="form-check-input" type="radio" name="memberStatus" id="statusActive" value="active"
+                                                {{ request('member_status') === 'active' ? 'checked' : '' }} onclick="loadMemberData('active')">
                                             <label class="form-check-label d-flex justify-content-between w-100" for="statusActive">
                                                 <span>Active Members</span>
                                                 <small class="text-muted" id="activeMembersCount">Loading...</small>
                                             </label>
                                         </div>
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="memberStatus" id="statusDelinquent" value="delinquent" onclick="loadMemberData('delinquent')">
+                                            <input class="form-check-input" type="radio" name="memberStatus" id="statusDelinquent" value="delinquent"
+                                                {{ request('member_status') === 'delinquent' ? 'checked' : '' }} onclick="loadMemberData('delinquent')">
                                             <label class="form-check-label d-flex justify-content-between w-100" for="statusDelinquent">
                                                 <span>Delinquent Members</span>
                                                 <small class="text-muted" id="delinquentMembersCount">Loading...</small>
