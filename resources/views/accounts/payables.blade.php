@@ -17,13 +17,15 @@
             <div>
                 <h4 class="mb-0 text-danger">Account Payable</h4>
             </div>
+            @if (auth()->user()->role !== 3)
             <div>
-                <button type="button" class="btn btn-secondary btn-sm me-2" 
+                <button type="button" class="btn btn-secondary btn-sm me-2"
                         onclick="showToast('info', 'Operation cancelled'); setTimeout(function() { window.location.href='{{ route('accounts.payables') }}'; }, 1000);">
                     Cancel
                 </button>
                 <button type="submit" class="btn btn-primary btn-sm">Save</button>
             </div>
+            @endif
         </div>
         
         <!-- Main Card -->
@@ -107,14 +109,17 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <button type="button" 
+                                            @if (auth()->user()->role !== 3)
+                                            <button type="button"
                                             class="btn btn-link text-danger remove-line">
                                                 <i class="bi bi-trash"></i>
                                             </button>
+                                            @endif
                                         </td>
                                     </tr>
                                 </tbody>
                                 <tfoot>
+                                    @if (auth()->user()->role !== 3)
                                     <tr>
                                         <td>
                                             <button type="button" class="btn btn-link text-primary add-line">
@@ -122,6 +127,7 @@
                                             </button>
                                         </td>
                                     </tr>
+                                    @endif
                                     <tr>
                                         <td></td>
                                         <td colspan="2">

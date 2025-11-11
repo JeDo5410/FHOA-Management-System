@@ -35,6 +35,7 @@
                             </button>
                         </li>
                     </ul>                    
+                    @if (auth()->user()->role !== 3)
                     <div>
                         <button type="button" class="btn btn-info btn-sm me-2" id="editOrBtn">
                             <i class="bi bi-pencil-square me-1"></i>Edit OR
@@ -48,6 +49,7 @@
                         </button>
                         <button type="button" class="btn btn-primary btn-sm save-btn" id="accountSaveBtn">Save</button>
                     </div>
+                    @endif
                 </div>
                 <!-- Add a horizontal separator line -->
                 <hr class="mt-0 mb-3">

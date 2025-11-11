@@ -319,14 +319,20 @@ $isNgrok = str_contains(request()->getHost(), 'ngrok');
                             </li>
                         </ul>
                         <div>
-                            <button type="button" class="btn btn-secondary btn-sm me-2" 
+                            @if (auth()->user()->role !== 3)
+                            <button type="button" class="btn btn-secondary btn-sm me-2"
                                 onclick="showToast('info', 'Operation cancelled'); setTimeout(function() { window.location.href='{{ route('residents.residents_data') }}'; }, 1000);">
                                 Cancel
-                            </button>  
+                            </button>
                             <button type="button" class="btn btn-info btn-sm me-2" id="memberLookupBtn">
                                 <i class="bi bi-search"></i> Find
                             </button>
                             <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                            @else
+                            <button type="button" class="btn btn-info btn-sm" id="memberLookupBtn">
+                                <i class="bi bi-search"></i> Find
+                            </button>
+                            @endif
                         </div>
                     </div>
                     <!-- Add a horizontal separator line -->
