@@ -29,7 +29,7 @@ class UserController extends Controller
                 }
             ],
             'designation' => 'nullable|string|max:255',
-            'role' => 'required|in:1,2,3',
+            'role' => 'required|in:1,2,3,4',
             'is_active' => 'required|boolean'
         ]);
     
@@ -44,7 +44,7 @@ class UserController extends Controller
             'designation' => 'nullable|string|max:255',
             'is_active' => 'required|boolean',
             'clear_password' => 'boolean',
-            'role' => 'required|in:1,2,3'  
+            'role' => 'required|in:1,2,3,4'
         ];
     
         // Only validate username if it has changed

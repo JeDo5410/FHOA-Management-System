@@ -10,6 +10,7 @@ class User extends Authenticatable
     public const ROLE_ADMIN = 1;
     public const ROLE_EDITOR = 2;
     public const ROLE_VIEWER = 3;
+    public const ROLE_REPORT = 4;
 
     protected $fillable = [
         'fullname',
@@ -42,6 +43,11 @@ class User extends Authenticatable
     public function isViewer()
     {
         return $this->role === self::ROLE_VIEWER;
+    }
+
+    public function isReport()
+    {
+        return $this->role === self::ROLE_REPORT;
     }
 
     public function hasAccess($roles)

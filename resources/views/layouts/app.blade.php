@@ -205,12 +205,13 @@
             </a>
         @endif
 
-        {{-- Common Routes for All Roles --}}
+        {{-- Routes for Admin, Editor, and Viewer (Not Report) --}}
+        @if ($userRole !== 4)
         <a href="{{ route('residents.residents_data') }}" class="nav-link {{ request()->routeIs('residents.residents_data') ? 'active' : '' }}">
             <i class="bi bi-people"></i>
             <span>Member Data</span>
         </a>
-        
+
         <a href="{{ route('accounts.payables') }}" class="nav-link {{ request()->routeIs('accounts.payables') ? 'active' : '' }}">
             <i class="bi bi-cash-stack"></i>
             <span>Account Payable</span>
@@ -220,16 +221,22 @@
             <i class="bi bi-currency-dollar"></i>
             <span>Account Receivable</span>
         </a>
-        
+        @endif
+
+        {{-- Construction Permit - All roles can see --}}
         <a href="{{ route('construction-permit.index') }}" class="nav-link {{ request()->routeIs('construction-permit.*') ? 'active' : '' }}">
             <i class="bi bi-hammer"></i>
             <span>Construction Permit</span>
         </a>
-        
+
+        {{-- Statement of Account - Not for Report role --}}
+        @if ($userRole !== 4)
         <a href="{{ route('accounts.soa.index') }}" class="nav-link {{ request()->routeIs('accounts.soa.index') ? 'active' : '' }}">
             <i class="bi bi-file-text"></i>
             <span>Statement Of Account</span>
         </a>
+        @endif
+
         {{-- Arrear Management - Admin Only --}}
         @if ($userRole === 1)
         <a href="{{ route('arrears.index') }}" class="nav-link {{ request()->routeIs('arrears.*') ? 'active' : '' }}">
@@ -237,7 +244,8 @@
             <span>Arrear Management</span>
         </a>
         @endif
-        
+
+        {{-- Data Extraction - All roles can see --}}
         <a href="{{ route('reports.extraction') }}" class="nav-link {{ request()->routeIs('reports.extraction') ? 'active' : '' }}">
             <i class="bi bi-file-earmark-spreadsheet"></i>
             <span>Data Extraction</span>

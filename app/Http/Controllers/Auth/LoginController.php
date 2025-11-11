@@ -98,9 +98,15 @@ class LoginController extends Controller
                 Log::error('Error executing monthly dues procedure: ' . $e->getMessage());
             }
             
+            // Determine redirect based on user role
+            $user = auth()->user();
+            $redirect = $user->role == 4
+                ? route('reports.extraction')  // Report role goes to Data Extraction
+                : route('dashboard');          // All other roles go to Dashboard
+
             return response()->json([
                 'success' => true,
-                'redirect' => route('dashboard')
+                'redirect' => $redirect
             ]);
         }
 

@@ -41,7 +41,7 @@ Route::middleware(['auth', 'role:1'])->group(function () {
 
 });
 
-// Routes accessible by all authenticated users (Admin, Editor, Viewer)
+// Routes accessible by Admin, Editor, and Viewer only (Not Report role)
 Route::middleware(['auth', 'role:1,2,3'])->group(function () {
     // Dashboard
     Route::get('/', function () {
@@ -65,7 +65,7 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
         Route::post('/payables/store', [AccountPayableController::class, 'store'])->name('accounts.payables.store');
         Route::get('/payables/check-voucher/{voucherNumber}', [AccountPayableController::class, 'checkVoucher'])
             ->name('accounts.payables.check-voucher');
-        
+
         // Receivables routes
         Route::get('/receivables', [AccountReceivableController::class, 'index'])->name('accounts.receivables');
         Route::post('/receivables/store', [AccountReceivableController::class, 'store'])->name('accounts.receivables.store');
@@ -75,7 +75,7 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
             ->name('accounts.receivables.payment-history');
         Route::get('/receivables/check-invoice/{invoiceNumber}', [AccountReceivableController::class, 'checkInvoice'])
             ->name('accounts.receivables.check-invoice');
-        
+
         Route::get('/soa', [StatementOfAccountController::class, 'index'])
             ->name('accounts.soa.index');
         Route::get('/soa/member-counts', [StatementOfAccountController::class, 'getMemberCounts'])
@@ -85,7 +85,33 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
         Route::get('/soa/print-multiple', [StatementOfAccountController::class, 'printMultiple'])
             ->name('accounts.soa.print-multiple');
     });
+});
 
+// Construction Permit routes - accessible by ALL roles
+Route::middleware(['auth', 'role:1,2,3,4'])->group(function () {
+    Route::prefix('construction-permit')->group(function () {
+        Route::get('/', [ConstructionPermitController::class, 'index'])->name('construction-permit.index');
+        Route::get('/next-permit-number', [ConstructionPermitController::class, 'getNextPermitNumber'])->name('construction-permit.next-permit-number');
+        Route::get('/search/{permitNumber}', [ConstructionPermitController::class, 'search'])->name('construction-permit.search');
+        Route::get('/check-sin/{sinNumber}', [AccountReceivableController::class, 'checkConstructionPermitInvoice'])
+            ->name('construction-permit.check-sin');
+        Route::get('/get-permit-status-data', [ConstructionPermitController::class, 'getPermitStatusData'])
+            ->name('construction-permit.get-permit-status-data');
+        Route::get('/download/permit-status-data', [ConstructionPermitController::class, 'downloadPermitStatusData'])
+            ->name('construction-permit.download.permit-status-data');
+        Route::get('/status-counts', [ConstructionPermitController::class, 'getPermitStatusCounts'])
+            ->name('construction-permit.status-counts');
+
+        // Write operations - Admin, Editor, and Viewer only (not Report)
+        Route::middleware('role:1,2,3')->group(function () {
+            Route::post('/', [ConstructionPermitController::class, 'store'])->name('construction-permit.store');
+            Route::put('/{permitNumber}', [ConstructionPermitController::class, 'update'])->name('construction-permit.update');
+        });
+    });
+});
+
+// Data Extraction routes - accessible by ALL authenticated users (Admin, Editor, Viewer, Report)
+Route::middleware(['auth', 'role:1,2,3,4'])->group(function () {
     Route::prefix('reports')->group(function () {
         Route::get('/extraction', [ReportExtractionController::class, 'index'])
             ->name('reports.extraction');
@@ -105,22 +131,6 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
             ->name('reports.get-receivable-data');
         Route::get('/download/receivable-data', [ReportExtractionController::class, 'downloadReceivableData'])
             ->name('reports.download.receivable-data');
-    });
-
-    Route::prefix('construction-permit')->group(function () {
-        Route::get('/', [ConstructionPermitController::class, 'index'])->name('construction-permit.index');
-        Route::post('/', [ConstructionPermitController::class, 'store'])->name('construction-permit.store');
-        Route::get('/next-permit-number', [ConstructionPermitController::class, 'getNextPermitNumber'])->name('construction-permit.next-permit-number');
-        Route::get('/search/{permitNumber}', [ConstructionPermitController::class, 'search'])->name('construction-permit.search');
-        Route::put('/{permitNumber}', [ConstructionPermitController::class, 'update'])->name('construction-permit.update');
-        Route::get('/check-sin/{sinNumber}', [AccountReceivableController::class, 'checkConstructionPermitInvoice'])
-            ->name('construction-permit.check-sin');
-        Route::get('/get-permit-status-data', [ConstructionPermitController::class, 'getPermitStatusData'])
-            ->name('construction-permit.get-permit-status-data');
-        Route::get('/download/permit-status-data', [ConstructionPermitController::class, 'downloadPermitStatusData'])
-            ->name('construction-permit.download.permit-status-data');
-        Route::get('/status-counts', [ConstructionPermitController::class, 'getPermitStatusCounts'])
-            ->name('construction-permit.status-counts');
     });
 });
 

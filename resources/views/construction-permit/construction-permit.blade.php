@@ -30,7 +30,7 @@
                         </li>
                     </ul>                    
                     <div id="permitActionButtons">
-                        @if (auth()->user()->role !== 3)
+                        @if (auth()->user()->role !== 3 && auth()->user()->role !== 4)
                         <button type="button" class="btn btn-primary btn-sm me-2 permit-action-btn" id="newBtn">New</button>
                         <button type="button" class="btn btn-secondary btn-sm me-2 permit-action-btn" id="editBtn">Edit</button>
                         <button type="submit" class="btn btn-success btn-sm me-2 permit-action-btn" form="constructionPermitForm" id="saveBtn">Save</button>

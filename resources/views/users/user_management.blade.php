@@ -39,12 +39,21 @@
                             <td>{{ $user->username }}</td>
                             <td>{{ $user->designation ?? 'N/A' }}</td>
                             <td>
-                                <span class="badge 
+                                <span class="badge
                                     @if($user->role === 1) bg-primary
                                     @elseif($user->role === 2) bg-info
-                                    @else bg-secondary
+                                    @elseif($user->role === 3) bg-secondary
+                                    @else bg-warning
                                     @endif">
-                                    {{ $user->role === 1 ? 'Administrator' : ($user->role === 2 ? 'Editor' : 'Viewer') }}
+                                    @if($user->role === 1)
+                                        Administrator
+                                    @elseif($user->role === 2)
+                                        Editor
+                                    @elseif($user->role === 3)
+                                        Viewer
+                                    @else
+                                        Report
+                                    @endif
                                 </span>
                             </td>
                             <td>
@@ -103,12 +112,21 @@
                             <td>{{ $user->username }}</td>
                             <td>{{ $user->designation ?? 'N/A' }}</td>
                             <td>
-                                <span class="badge 
+                                <span class="badge
                                     @if($user->role === 1) bg-primary
                                     @elseif($user->role === 2) bg-info
-                                    @else bg-secondary
+                                    @elseif($user->role === 3) bg-secondary
+                                    @else bg-warning
                                     @endif">
-                                    {{ $user->role === 1 ? 'Administrator' : ($user->role === 2 ? 'Editor' : 'Viewer') }}
+                                    @if($user->role === 1)
+                                        Administrator
+                                    @elseif($user->role === 2)
+                                        Editor
+                                    @elseif($user->role === 3)
+                                        Viewer
+                                    @else
+                                        Report
+                                    @endif
                                 </span>
                             </td>
                             <td>
@@ -164,9 +182,10 @@
                     <div class="mb-3">
                         <label class="form-label">Role</label>
                         <select class="form-control" name="role" required>
+                            <option value="4">Report</option>
                             <option value="3">Viewer</option>
                             <option value="2">Editor</option>
-                            <option value="1">Admin</option>
+                            <option value="1">Administrator</option>
                         </select>
                     </div>                    
                     <div class="mb-3">
@@ -215,6 +234,7 @@
                     <div class="mb-3">
                         <label class="form-label">Role</label>
                         <select class="form-control" name="role" required>
+                            <option value="4">Report</option>
                             <option value="3">Viewer</option>
                             <option value="2">Editor</option>
                             <option value="1">Administrator</option>
