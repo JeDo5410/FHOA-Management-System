@@ -10,19 +10,22 @@ class ArrearController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('search');
-        
+
         $membersQuery = MemberSum::with('memberData');
-        
+
         if ($search) {
             $membersQuery->where(function($query) use ($search) {
                 $query->where('mem_id', 'LIKE', "%{$search}%")
                       ->orWhere('mem_add_id', 'LIKE', "%{$search}%");
             });
         }
-        
+
         $members = $membersQuery->orderBy('mem_id')->get();
-        
-        return view('arrears.index', compact('members', 'search'));
+
+        // Pass single member data if exactly one result is found
+        $singleMember = ($search && $members->count() == 1) ? $members->first() : null;
+
+        return view('arrears.index', compact('members', 'search', 'singleMember'));
     }
 
     public function edit(Request $request, $id)

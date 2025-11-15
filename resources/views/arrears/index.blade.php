@@ -42,13 +42,35 @@
                         @if($search)
                             <div class="col-md-6">
                                 <div class="alert alert-info mb-0">
-                                    <i class="bi bi-info-circle"></i> 
+                                    <i class="bi bi-info-circle"></i>
                                     Showing results for: <strong>"{{ $search }}"</strong>
                                     ({{ $members->count() }} {{ $members->count() == 1 ? 'result' : 'results' }} found)
                                 </div>
                             </div>
                         @endif
                     </div>
+
+                    @if($search && $members->count() == 1 && isset($singleMember))
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="member_name" class="form-label fw-bold">Member Name</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="member_name"
+                                   value="{{ $singleMember->memberData->first()->mem_name ?? 'N/A' }}"
+                                   readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="member_address" class="form-label fw-bold">Member Address</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="member_address"
+                                   value="@if($singleMember->mem_add_id && strlen($singleMember->mem_add_id) == 5)Phase {{ substr($singleMember->mem_add_id, 0, 1) }}, Block {{ substr($singleMember->mem_add_id, 1, 2) }}, Lot {{ substr($singleMember->mem_add_id, 3, 2) }}@else{{ $singleMember->mem_add_id ?? 'N/A' }}@endif"
+                                   readonly>
+                        </div>
+                    </div>
+                    @endif
+
                     <div class="table-responsive">
                         <table class="table table-striped table-hover">
                             <thead class="table-dark">
