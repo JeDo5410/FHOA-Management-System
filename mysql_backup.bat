@@ -67,12 +67,17 @@ if %ERRORLEVEL% == 0 (
     echo OneDrive backup failed.
 )
 
-REM Build dynamic log message with actual paths
-set LOG_MESSAGE=Database BACKUP: !BACKUP_PATH1!(!STATUS_PATH1!), !BACKUP_PATH2!(!STATUS_PATH2!), !BACKUP_PATH3!(!STATUS_PATH3!)
+REM Build log message
+set LOG_MESSAGE=Database BACKUP
 
 REM Insert log entry into activity_log table with dynamic status
 echo Logging backup status to database...
-"!MYSQL_PATH!\mysql" --user=!DB_USER! --password=!DB_PASSWORD! -e "INSERT INTO fhoa.activity_log (Process, timestamp) VALUES('!LOG_MESSAGE!', NOW());" >nul 2>&1
+"!MYSQL_PATH!\mysql" --user=!DB_USER! --password=!DB_PASSWORD! -e "INSERT INTO fhoa.activity_log (Process, timestamp) VALUES('!LOG_MESSAGE!', NOW());"
+if %ERRORLEVEL% == 0 (
+    echo Database log entry created successfully.
+) else (
+    echo Warning: Failed to create database log entry.
+)
 
 echo.
 echo ================================================
