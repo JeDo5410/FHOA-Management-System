@@ -15,17 +15,17 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <ul class="nav nav-tabs border-bottom-0" id="permitTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="construction-permit-tab" data-bs-toggle="tab" 
-                                    data-bs-target="#construction-permit" type="button" role="tab" 
-                                    aria-controls="construction-permit" aria-selected="true">
-                                Construction Permit
+                            <button class="nav-link active" id="permit-history-tab" data-bs-toggle="tab"
+                                    data-bs-target="#permit-history" type="button" role="tab"
+                                    aria-controls="permit-history" aria-selected="true">
+                                Permit Status
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="permit-history-tab" data-bs-toggle="tab" 
-                                    data-bs-target="#permit-history" type="button" role="tab" 
-                                    aria-controls="permit-history" aria-selected="false">
-                                Permit Status
+                            <button class="nav-link" id="construction-permit-tab" data-bs-toggle="tab"
+                                    data-bs-target="#construction-permit" type="button" role="tab"
+                                    aria-controls="construction-permit" aria-selected="false">
+                                Construction Permit Form
                             </button>
                         </li>
                     </ul>                    
@@ -33,7 +33,7 @@
                         @if (auth()->user()->role !== 3 && auth()->user()->role !== 4)
                         <button type="button" class="btn btn-primary btn-sm me-2 permit-action-btn" id="newBtn">New</button>
                         <button type="button" class="btn btn-secondary btn-sm me-2 permit-action-btn" id="editBtn">Edit</button>
-                        <button type="submit" class="btn btn-success btn-sm me-2 permit-action-btn" form="constructionPermitForm" id="saveBtn">Save</button>
+                        <button type="submit" class="btn btn-success btn-sm me-2 permit-action-btn" form="constructionPermitForm" id="saveBtn" style="display: none;">Save</button>
                         @endif
                         <button type="button" class="btn btn-success btn-sm permit-action-btn" id="downloadPermitBtn" style="display: none;">
                             <i class="bi bi-download me-1"></i> Download CSV
@@ -46,8 +46,101 @@
 
             <!-- Tab Content -->
             <div class="tab-content" id="permitTabsContent">
-                <!-- Construction Permit Tab -->
-                <div class="tab-pane fade show active" id="construction-permit" role="tabpanel" aria-labelledby="construction-permit-tab">
+                <!-- Permit Status Tab -->
+                <div class="tab-pane fade show active" id="permit-history" role="tabpanel" aria-labelledby="permit-history-tab">
+
+                    <!-- Filters and Actions Container -->
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-body p-3">
+                            <!-- Header with status counts -->
+                            <div class="mb-3">
+                                <h6 class="mb-2 text-muted">Permit Status Overview</h6>
+                                <div class="d-flex flex-wrap gap-2" id="statusCountsContainer">
+                                    <!-- Status counts will be populated by JavaScript -->
+                                    <span class="badge bg-secondary">Loading...</span>
+                                </div>
+                            </div>
+
+                            <!-- Inline Filter Options -->
+                            <div class="d-flex flex-wrap align-items-center gap-3">
+                                <!-- Permit ID Filter -->
+                                <div class="d-flex align-items-center flex-nowrap">
+                                    <div class="form-check mb-0 me-2">
+                                        <input class="form-check-input" type="radio" name="permitFilter" id="filterPermitId" value="permit_id">
+                                        <label class="form-check-label fw-semibold text-nowrap" for="filterPermitId">Permit ID</label>
+                                    </div>
+                                    <input type="text" class="form-control form-control-sm permit-filter-input" id="permitIdInput" placeholder="Enter Number" style="width: 150px;" disabled>
+                                    <button class="btn btn-sm bg-light permit-filter-btn" type="button" id="permitIdSearchBtn" disabled>
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Address ID Filter -->
+                                <div class="d-flex align-items-center flex-nowrap">
+                                    <div class="form-check mb-0 me-2">
+                                        <input class="form-check-input" type="radio" name="permitFilter" id="filterAddressId" value="address_id">
+                                        <label class="form-check-label fw-semibold text-nowrap" for="filterAddressId">Address ID</label>
+                                    </div>
+                                    <input type="text" class="form-control form-control-sm permit-filter-input" id="addressIdInput" placeholder="PhaseLotBlock" maxlength="5" pattern="[0-9]{5}" style="width: 150px;" disabled>
+                                    <button class="btn btn-sm bg-light permit-filter-btn" type="button" id="addressIdSearchBtn" disabled>
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table Container -->
+                    <div class="table-container">
+                        <div id="permitStatusTableContainer" class="table-responsive">
+                            <table class="table table-bordered table-striped" id="permitStatusTable">
+                                <thead>
+                                    <tr>
+                                        <th>No.</th>
+                                        <th>Permit No.</th>
+                                        <th>Permit Type</th>
+                                        <th>Permit Status</th>
+                                        <th>Permit Start Date</th>
+                                        <th>Permit End Date</th>
+                                        <th>HOA Address ID</th>
+                                        <th>HOA Name</th>
+                                        <th>Application Date</th>
+                                        <th>Applicant Name</th>
+                                        <th>Applicant Contact</th>
+                                        <th>Contractor Name</th>
+                                        <th>Contractor Contact</th>
+                                        <th>Payment SIN</th>
+                                        <th>SIN Date</th>
+                                        <th>Fee Amount</th>
+                                        <th>Bond ARN</th>
+                                        <th>Bond Amount</th>
+                                        <th>Bond Date</th>
+                                        <th>Inspector</th>
+                                        <th>Inspection Date</th>
+                                        <th>Inspector Note</th>
+                                        <th>Bond Release Type</th>
+                                        <th>Bond Receiver</th>
+                                        <th>Bond Release Date</th>
+                                        <th>Remarks</th>
+                                        <th>User Fullname</th>
+                                        <th>Time Entry</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data will be loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Sticky Scrollbar -->
+                        <div class="sticky-scrollbar-container" id="permitStickyScrollbar">
+                            <div class="scrollbar-content" id="permitScrollbarContent"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Construction Permit Form Tab -->
+                <div class="tab-pane fade" id="construction-permit" role="tabpanel" aria-labelledby="construction-permit-tab">
 <form action="{{ route('construction-permit.store') }}" method="POST" id="constructionPermitForm" style="display: none;">
             @csrf
 
@@ -279,99 +372,6 @@
                         </div>
                     </div>
                 </form>
-                </div>
-
-                <!-- Permit Status Tab -->
-                <div class="tab-pane fade" id="permit-history" role="tabpanel" aria-labelledby="permit-history-tab">
-                    
-                    <!-- Filters and Actions Container -->
-                    <div class="card border-0 shadow-sm mb-3">
-                        <div class="card-body p-3">
-                            <!-- Header with status counts -->
-                            <div class="mb-3">
-                                <h6 class="mb-2 text-muted">Permit Status Overview</h6>
-                                <div class="d-flex flex-wrap gap-2" id="statusCountsContainer">
-                                    <!-- Status counts will be populated by JavaScript -->
-                                    <span class="badge bg-secondary">Loading...</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Inline Filter Options -->
-                            <div class="d-flex flex-wrap align-items-center gap-3">
-                                <!-- Permit ID Filter -->
-                                <div class="d-flex align-items-center flex-nowrap">
-                                    <div class="form-check mb-0 me-2">
-                                        <input class="form-check-input" type="radio" name="permitFilter" id="filterPermitId" value="permit_id">
-                                        <label class="form-check-label fw-semibold text-nowrap" for="filterPermitId">Permit ID</label>
-                                    </div>
-                                    <input type="text" class="form-control form-control-sm permit-filter-input" id="permitIdInput" placeholder="Enter Number" style="width: 150px;" disabled>
-                                    <button class="btn btn-sm bg-light permit-filter-btn" type="button" id="permitIdSearchBtn" disabled>
-                                        <i class="bi bi-search"></i>
-                                    </button>
-                                </div>
-
-                                <!-- Address ID Filter -->
-                                <div class="d-flex align-items-center flex-nowrap">
-                                    <div class="form-check mb-0 me-2">
-                                        <input class="form-check-input" type="radio" name="permitFilter" id="filterAddressId" value="address_id">
-                                        <label class="form-check-label fw-semibold text-nowrap" for="filterAddressId">Address ID</label>
-                                    </div>
-                                    <input type="text" class="form-control form-control-sm permit-filter-input" id="addressIdInput" placeholder="PhaseLotBlock" maxlength="5" pattern="[0-9]{5}" style="width: 150px;" disabled>
-                                    <button class="btn btn-sm bg-light permit-filter-btn" type="button" id="addressIdSearchBtn" disabled>
-                                        <i class="bi bi-search"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Table Container -->
-                    <div class="table-container">
-                        <div id="permitStatusTableContainer" class="table-responsive">
-                            <table class="table table-bordered table-striped" id="permitStatusTable">
-                                <thead>
-                                    <tr>
-                                        <th>No.</th>
-                                        <th>Permit No.</th>
-                                        <th>Permit Type</th>
-                                        <th>Permit Status</th>
-                                        <th>Permit Start Date</th>
-                                        <th>Permit End Date</th>
-                                        <th>HOA Address ID</th>
-                                        <th>HOA Name</th>
-                                        <th>Application Date</th>
-                                        <th>Applicant Name</th>
-                                        <th>Applicant Contact</th>
-                                        <th>Contractor Name</th>
-                                        <th>Contractor Contact</th>
-                                        <th>Payment SIN</th>
-                                        <th>SIN Date</th>
-                                        <th>Fee Amount</th>
-                                        <th>Bond ARN</th>
-                                        <th>Bond Amount</th>
-                                        <th>Bond Date</th>
-                                        <th>Inspector</th>
-                                        <th>Inspection Date</th>
-                                        <th>Inspector Note</th>
-                                        <th>Bond Release Type</th>
-                                        <th>Bond Receiver</th>
-                                        <th>Bond Release Date</th>
-                                        <th>Remarks</th>
-                                        <th>User Fullname</th>
-                                        <th>Time Entry</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Data will be loaded dynamically -->
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <!-- Sticky Scrollbar -->
-                        <div class="sticky-scrollbar-container" id="permitStickyScrollbar">
-                            <div class="scrollbar-content" id="permitScrollbarContent"></div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -842,7 +842,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const newBtn = document.getElementById('newBtn');
             const editBtn = document.getElementById('editBtn');
             const saveBtn = document.getElementById('saveBtn');
-            
+
             // Show/hide specific buttons based on active tab
             if (e.target.id === 'permit-history-tab') {
                 // Hide construction permit buttons and show download button
@@ -854,10 +854,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show construction permit buttons and hide download button
                 if (newBtn) newBtn.style.display = '';
                 if (editBtn) editBtn.style.display = '';
-                if (saveBtn) saveBtn.style.display = '';
+                // Only show Save button if form is visible
+                if (saveBtn) {
+                    const form = document.getElementById('constructionPermitForm');
+                    saveBtn.style.display = (form && form.style.display === 'block') ? '' : 'none';
+                }
                 if (downloadPermitBtn) downloadPermitBtn.style.display = 'none';
             }
-            
+
             // Set focus on the first input field when switching to construction permit tab
             setTimeout(() => {
                 if (e.target.id === 'construction-permit-tab') {
@@ -961,7 +965,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show the form
             form.style.display = 'block';
             isFormVisible = true;
-            
+
+            // Show the Save button
+            if (saveBtn) {
+                saveBtn.style.display = '';
+            }
+
             // Clear all form fields
             clearForm();
             
@@ -1071,7 +1080,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 const form = document.getElementById('constructionPermitForm');
                 form.style.display = 'block';
                 isFormVisible = true;
-                
+
+                // Show the Save button
+                const saveBtn = document.getElementById('saveBtn');
+                if (saveBtn) {
+                    saveBtn.style.display = '';
+                }
+
                 showToast('success', 'Permit loaded successfully for editing');
             } else {
                 // Show error
@@ -1255,6 +1270,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 formHasChanges = false;
                 isFormVisible = false;
                 if (form) form.style.display = 'none';
+
+                // Hide the Save button
+                if (saveBtn) {
+                    saveBtn.style.display = 'none';
+                }
             }
         });
     });
@@ -1402,12 +1422,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     showToast('success', data.message + ' Status counts updated.');
                     formHasChanges = false;
-                    
+
                     // Reset form and hide it
                     clearForm();
                     form.style.display = 'none';
                     isFormVisible = false;
-                    
+
+                    // Hide the Save button
+                    if (saveBtn) {
+                        saveBtn.style.display = 'none';
+                    }
+
                     // Refresh status counts to reflect new/updated permit
                     if (typeof loadPermitStatusCounts === 'function') {
                         loadPermitStatusCounts();
