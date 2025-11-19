@@ -62,6 +62,7 @@ class ConstructionPermitController extends Controller
                 'inspector' => 'nullable|string|max:255',
                 'inspector_note' => 'nullable|string|max:255',
                 'inspection_date' => 'nullable|date',
+                'inspection_form' => 'nullable|boolean',
                 'bond_receiver' => 'nullable|string|max:255',
                 'bond_release_date' => 'nullable|date',
                 'payment_type' => 'nullable|string|max:255',
@@ -97,6 +98,7 @@ class ConstructionPermitController extends Controller
                 'permit_end_date' => $validatedData['permit_end_date'],
                 'status_type' => 1, // Set to 1 for "On-Going" status
                 'remarks' => $validatedData['remarks'],
+                'inspection_form' => $request->has('inspection_form') ? 1 : 0,
                 'user_id' => Auth::id(),
                 'timestamp' => now(),
             ];
@@ -195,11 +197,16 @@ public function search(string $permitNumber): JsonResponse
                 ], 404);
             }
 
+            // Get status description from status_type table
+            $statusType = StatusType::where('statuscode', $permit->statuscode)->first();
+            $statusDescription = $statusType ? $statusType->statusdescription : 'Unknown';
+
             // Map the view's aliased columns to the desired JSON response keys.
             $permitData = [
                 // CORRECTED: Access the property using the correct alias.
                 'permit_no' => $permit->{'Permit No.'},
                 'status_type' => $permit->{'statuscode'},
+                'status_description' => $statusDescription,
                 'address_id' => $permit->{'HOA Address ID.'},
                 'member_name' => $permit->{'HOA Name'},
                 'address' => $this->formatAddressId($permit->{'HOA Address ID.'}),
@@ -226,6 +233,7 @@ public function search(string $permitNumber): JsonResponse
                 'bond_release_type' => $permit->{'Bond Release Type'},
                 'payment_type' => $permit->{'Payment Type'},
                 'remarks' => $permit->Remarks,
+                'inspection_form' => $permit->inspection_form ?? 0,
             ];
 
             Log::info('Construction permit found', [
@@ -283,7 +291,10 @@ public function search(string $permitNumber): JsonResponse
     {
         try {
             // Find the existing construction permit to get the original data
-            $existingPermit = ConstructionPermit::where('permit_no', $permitNumber)->first();
+            // Get the latest record by timestamp since new records are created on update
+            $existingPermit = ConstructionPermit::where('permit_no', $permitNumber)
+                ->orderBy('timestamp', 'desc')
+                ->first();
 
             if (!$existingPermit) {
                 return response()->json([
@@ -319,6 +330,7 @@ public function search(string $permitNumber): JsonResponse
                 'inspector' => 'nullable|string|max:255',
                 'inspector_note' => 'nullable|string|max:255',
                 'inspection_date' => 'nullable|date',
+                'inspection_form' => 'nullable|boolean',
                 'bond_receiver' => 'nullable|string|max:255',
                 'bond_release_date' => 'nullable|date',
                 'bond_release_type' => 'nullable|string|max:255',
@@ -406,7 +418,7 @@ public function search(string $permitNumber): JsonResponse
             // Rule 2: Check if permit end date is extended (only if not bond release/forfeiture)
             $newEndDate = \Carbon\Carbon::parse($validatedData['permit_end_date']);
             $originalEndDateCarbon = \Carbon\Carbon::parse($originalEndDate);
-            
+
             // Only allow extension if inspector_note is not for bond release or forfeiture
             if ($newEndDate->gt($originalEndDateCarbon)) {
                 if (empty($validatedData['inspector_note']) || 
@@ -448,7 +460,22 @@ public function search(string $permitNumber): JsonResponse
                 }
             }
 
-            // Rule 4: Status reversion logic when fields are cleared or note changes
+            // Rule 4: Check if inspection form is created for On-Going permits
+            // If inspection_form checkbox is checked and permit was On-Going, change to For Inspection
+            // Only applies if inspector_note is not set (inspector_note has higher priority)
+            if ($request->has('inspection_form') &&
+                $existingPermit->status_type == 1 &&
+                empty($validatedData['inspector_note'])) {
+                $statusType = 2; // For Inspection
+                Log::info('Auto-setting status to For Inspection - inspection form created', [
+                    'permit_no' => $validatedData['permit_number'],
+                    'original_status' => $existingPermit->status_type,
+                    'new_status' => $statusType,
+                    'inspection_form' => 1
+                ]);
+            }
+
+            // Rule 5: Status reversion logic when fields are cleared or note changes
             // If current permit was status 5 (Close - Bond Released) but conditions no longer met, revert status
             if ($existingPermit->status_type == 5) {
                 $inspector = $validatedData['inspector'] ?? null;
@@ -482,6 +509,18 @@ public function search(string $permitNumber): JsonResponse
                 }
             }
 
+            // Final status determination log
+            Log::info('Final status determined for permit update', [
+                'permit_no' => $validatedData['permit_number'],
+                'original_status' => $existingPermit->status_type,
+                'final_status' => $statusType,
+                'inspection_form_checked' => $request->has('inspection_form'),
+                'inspection_form_value' => $request->has('inspection_form') ? 1 : 0,
+                'inspector_note' => $validatedData['inspector_note'] ?? null,
+                'end_date_extended' => $newEndDate->gt($originalEndDateCarbon)
+            ]);
+
+
             Log::info('Validated data for update', $validatedData);
 
             // Prepare data for new record insertion
@@ -504,6 +543,7 @@ public function search(string $permitNumber): JsonResponse
                 'permit_end_date' => $validatedData['permit_end_date'],
                 'status_type' => $statusType,
                 'remarks' => $validatedData['remarks'],
+                'inspection_form' => $request->has('inspection_form') ? 1 : 0,
                 'user_id' => Auth::id(),
                 'timestamp' => now(),
             ];

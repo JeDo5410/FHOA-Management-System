@@ -250,7 +250,13 @@ function loadPermitData(filterType, params) {
             // Add rows
             data.forEach(permit => {
                 const row = document.createElement('tr');
-                
+
+                // Highlight rows where status is "For Inspection" but inspection form not created
+                if (permit.statuscode == 2 && (permit.inspection_form == 0 || !permit.inspection_form)) {
+                    row.classList.add('needs-inspection-form');
+                    console.log('Highlighting permit:', permit.permit_no, 'statuscode:', permit.statuscode, 'inspection_form:', permit.inspection_form);
+                }
+
                 // Format date fields
                 const permitStartDate = permit['Permit Start Date'] ? new Date(permit['Permit Start Date']).toLocaleDateString() : '';
                 const permitEndDate = permit['Permit End Date'] ? new Date(permit['Permit End Date']).toLocaleDateString() : '';

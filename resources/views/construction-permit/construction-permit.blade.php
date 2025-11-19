@@ -290,7 +290,7 @@
                                 </div>
                             </div>
 
-                            <!-- Row 5: Permit Start Date, Permit End Date -->
+                            <!-- Row 5: Permit Start Date, Permit End Date, Inspection Form -->
                             <div class="row g-3 mb-3">
                                 <div class="col-md-4">
                                     <label for="permitStartDate" class="form-label">Permit Start Date</label>
@@ -300,9 +300,18 @@
                                     <label for="permitEndDate" class="form-label">Permit End Date</label>
                                     <input type="date" class="form-control form-control-sm" id="permitEndDate" name="permit_end_date">
                                 </div>
+                                <div class="col-md-4">
+                                    <label class="form-label d-block">&nbsp;</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="inspectionForm" name="inspection_form" value="1">
+                                        <label class="form-check-label" for="inspectionForm">
+                                            Inspection form created
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
 
-                            <!-- Inspector and Bond Information Container (Hidden by default, shown when status is 3,4,5) -->
+                            <!-- Inspector and Bond Information Container (Hidden by default, shown when status is 2,3,4,5) -->
                             <div class="inspector-bond-container border rounded p-3 mb-3" id="inspectorBondSection" style="display: none; background-color: #f8f9fa;">
                                 <h6 class="mb-3 text-muted" style="font-size: 0.875rem; font-weight: 500;">
                                     <i class="bi bi-clipboard-check me-1"></i> Inspector & Bond Information
@@ -811,6 +820,17 @@ h4.text-success {
 .permit-filter-btn:hover:not(:disabled) {
     background-color: #e9ecef !important;
 }
+
+/* Highlight rows for permits needing inspection form */
+#permitStatusTable tbody tr.needs-inspection-form,
+#permitStatusTable tbody tr.needs-inspection-form td {
+    background-color: #ffcccc !important; /* Darker red */
+}
+
+#permitStatusTable tbody tr.needs-inspection-form:hover,
+#permitStatusTable tbody tr.needs-inspection-form:hover td {
+    background-color: #ffb3b3 !important; /* Even darker on hover */
+}
 </style>
 
 <script>
@@ -834,33 +854,44 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Function to update button visibility based on active tab
+    function updateButtonVisibility(activeTabId) {
+        const downloadPermitBtn = document.getElementById('downloadPermitBtn');
+        const newBtn = document.getElementById('newBtn');
+        const editBtn = document.getElementById('editBtn');
+        const saveBtn = document.getElementById('saveBtn');
+
+        // Show/hide specific buttons based on active tab
+        if (activeTabId === 'permit-history-tab') {
+            // Hide construction permit buttons and show download button
+            if (newBtn) newBtn.style.display = 'none';
+            if (editBtn) editBtn.style.display = 'none';
+            if (saveBtn) saveBtn.style.display = 'none';
+            if (downloadPermitBtn) downloadPermitBtn.style.display = '';
+        } else {
+            // Show construction permit buttons and hide download button
+            if (newBtn) newBtn.style.display = '';
+            if (editBtn) editBtn.style.display = '';
+            // Only show Save button if form is visible
+            if (saveBtn) {
+                const form = document.getElementById('constructionPermitForm');
+                saveBtn.style.display = (form && form.style.display === 'block') ? '' : 'none';
+            }
+            if (downloadPermitBtn) downloadPermitBtn.style.display = 'none';
+        }
+    }
+
+    // Initialize button visibility on page load
+    const activeTab = document.querySelector('button[data-bs-toggle="tab"].active');
+    if (activeTab) {
+        updateButtonVisibility(activeTab.id);
+    }
+
     // Tab switching functionality
     document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
         tab.addEventListener('shown.bs.tab', function(e) {
-            const permitActionButtons = document.getElementById('permitActionButtons');
-            const downloadPermitBtn = document.getElementById('downloadPermitBtn');
-            const newBtn = document.getElementById('newBtn');
-            const editBtn = document.getElementById('editBtn');
-            const saveBtn = document.getElementById('saveBtn');
-
-            // Show/hide specific buttons based on active tab
-            if (e.target.id === 'permit-history-tab') {
-                // Hide construction permit buttons and show download button
-                if (newBtn) newBtn.style.display = 'none';
-                if (editBtn) editBtn.style.display = 'none';
-                if (saveBtn) saveBtn.style.display = 'none';
-                if (downloadPermitBtn) downloadPermitBtn.style.display = '';
-            } else {
-                // Show construction permit buttons and hide download button
-                if (newBtn) newBtn.style.display = '';
-                if (editBtn) editBtn.style.display = '';
-                // Only show Save button if form is visible
-                if (saveBtn) {
-                    const form = document.getElementById('constructionPermitForm');
-                    saveBtn.style.display = (form && form.style.display === 'block') ? '' : 'none';
-                }
-                if (downloadPermitBtn) downloadPermitBtn.style.display = 'none';
-            }
+            // Update button visibility
+            updateButtonVisibility(e.target.id);
 
             // Set focus on the first input field when switching to construction permit tab
             setTimeout(() => {
@@ -1153,7 +1184,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Populate all form fields
         document.getElementById('permitNumber').value = permit.permit_no || '';
-        document.getElementById('status').value = getStatusText(permit.status_type) || '';
+        document.getElementById('status').value = permit.status_description || '';
         document.getElementById('addressId').value = permit.address_id || '';
         document.getElementById('memberName').value = permit.member_name || '';
         document.getElementById('address').value = permit.address || '';
@@ -1181,10 +1212,23 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('bondReleaseDate').value = permit.bond_release_date || '';
         document.getElementById('paymentType').value = permit.bond_release_type || '';
         document.getElementById('remarks').value = permit.remarks || '';
-        
-        // Show inspector and bond section for editing
+
+        // Set inspection form checkbox
+        const inspectionFormCheckbox = document.getElementById('inspectionForm');
+        if (inspectionFormCheckbox) {
+            inspectionFormCheckbox.checked = permit.inspection_form == 1 || permit.inspection_form === true;
+        }
+
+        // Show inspector and bond section only for status 2,3,4,5
         const inspectorBondSection = document.getElementById('inspectorBondSection');
-        if (inspectorBondSection) inspectorBondSection.style.display = 'block';
+        if (inspectorBondSection) {
+            const statusType = permit.status_type;
+            if (statusType === 2 || statusType === 3 || statusType === 4 || statusType === 5) {
+                inspectorBondSection.style.display = 'block';
+            } else {
+                inspectorBondSection.style.display = 'none';
+            }
+        }
         
         // Enable amount paid and paid date fields for editing
         document.getElementById('amountPaid').disabled = false;
@@ -1192,19 +1236,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         formHasChanges = false;
     }
-    
-    // Function to get status text from status type
-    function getStatusText(statusType) {
-        const statusMap = {
-            1: 'On-Going',
-            2: 'Denied',
-            3: 'For Bond Release',
-            4: 'Close (Forfeited Bond)',
-            5: 'Close (Bond Released)'
-        };
-        return statusMap[statusType] || 'Unknown';
-    }
-    
+
     // Function to clear form
     function clearForm() {
         const form = document.getElementById('constructionPermitForm');
@@ -1255,25 +1287,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Tab change prevention
+    // Tab change prevention - only when leaving construction permit form tab
+    const constructionPermitTab = document.getElementById('construction-permit-tab');
     const tabButtons = document.querySelectorAll('button[data-bs-toggle="tab"]');
+
     tabButtons.forEach(tab => {
-        tab.addEventListener('click', function(e) {
-            if (formHasChanges && isFormVisible) {
+        tab.addEventListener('show.bs.tab', function(e) {
+            // Only check if we're currently on the construction permit tab and trying to leave it
+            const currentTab = document.querySelector('button[data-bs-toggle="tab"].active');
+            const isLeavingConstructionPermitTab = currentTab && currentTab.id === 'construction-permit-tab';
+
+            if (isLeavingConstructionPermitTab && formHasChanges && isFormVisible) {
                 const confirmed = confirm('You have unsaved changes. Are you sure you want to switch tabs? All changes will be lost.');
                 if (!confirmed) {
+                    // Prevent the tab switch - stay on construction permit form tab
                     e.preventDefault();
-                    e.stopPropagation();
                     return false;
-                }
-                // If confirmed, reset form state
-                formHasChanges = false;
-                isFormVisible = false;
-                if (form) form.style.display = 'none';
+                } else {
+                    // If confirmed, reset form state and allow tab switch
+                    formHasChanges = false;
+                    isFormVisible = false;
+                    if (form) form.style.display = 'none';
 
-                // Hide the Save button
-                if (saveBtn) {
-                    saveBtn.style.display = 'none';
+                    // Hide the Save button
+                    if (saveBtn) {
+                        saveBtn.style.display = 'none';
+                    }
                 }
             }
         });

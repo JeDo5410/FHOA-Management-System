@@ -30,6 +30,7 @@ class ConstructionPermit extends Model
         'permit_end_date',
         'status_type',
         'inspection_date',
+        'inspection_form',
         'Inspector',
         'inspector_note',
         'bond_release_type',
@@ -55,6 +56,7 @@ class ConstructionPermit extends Model
         'permit_end_date' => 'date',
         'status_type' => 'integer',
         'inspection_date' => 'date',
+        'inspection_form' => 'boolean',
         'bond_release_date' => 'date',
         'user_id' => 'integer',
         'timestamp' => 'datetime'
