@@ -102,7 +102,7 @@ function updateStatusCountsDisplay(totalCount, statusCounts) {
 
     // Add "All" count badge
     const allBadge = document.createElement('span');
-    allBadge.className = 'badge bg-dark fw-bold status-count-badge'; // Start as active (black)
+    allBadge.className = 'badge bg-primary fw-bold status-count-badge'; // Start as inactive (blue)
     allBadge.setAttribute('data-badge-type', 'all');
     allBadge.innerHTML = `<i class="bi bi-clipboard-data me-1"></i>All: ${totalCount}`;
     allBadge.title = 'Click to show all permits';
@@ -136,7 +136,9 @@ function updateStatusCountsDisplay(totalCount, statusCounts) {
     // Add status count badges
     statusCounts.forEach(status => {
         const badge = document.createElement('span');
-        badge.className = `badge bg-primary status-count-badge`;
+        // Mark "For Inspection" (status_id: 2) as active by default
+        const isForInspection = status.status_id === 2;
+        badge.className = `badge ${isForInspection ? 'bg-dark' : 'bg-primary'} status-count-badge`;
         badge.setAttribute('data-status-id', status.status_id);
         badge.setAttribute('data-badge-type', 'status');
         badge.innerHTML = `${status.status_name}: ${status.count}`;
@@ -454,8 +456,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Load initial status counts
         loadPermitStatusCounts();
-        
-        // Load initial data (all permits)
-        loadAllPermits();
+
+        // Load initial data (For Inspection permits)
+        loadPermitData('status', { status: 2 });
     }
 });

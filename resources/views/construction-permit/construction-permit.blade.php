@@ -34,6 +34,7 @@
                         <button type="button" class="btn btn-primary btn-sm me-2 permit-action-btn" id="newBtn">New</button>
                         <button type="button" class="btn btn-secondary btn-sm me-2 permit-action-btn" id="editBtn">Edit</button>
                         <button type="submit" class="btn btn-success btn-sm me-2 permit-action-btn" form="constructionPermitForm" id="saveBtn" style="display: none;">Save</button>
+                        <button type="button" class="btn btn-danger btn-sm me-2 permit-action-btn" id="cancelBtn" style="display: none;">Cancel</button>
                         @endif
                         <button type="button" class="btn btn-success btn-sm permit-action-btn" id="downloadPermitBtn" style="display: none;">
                             <i class="bi bi-download me-1"></i> Download CSV
@@ -860,6 +861,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const newBtn = document.getElementById('newBtn');
         const editBtn = document.getElementById('editBtn');
         const saveBtn = document.getElementById('saveBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
 
         // Show/hide specific buttons based on active tab
         if (activeTabId === 'permit-history-tab') {
@@ -867,15 +869,20 @@ document.addEventListener('DOMContentLoaded', function() {
             if (newBtn) newBtn.style.display = 'none';
             if (editBtn) editBtn.style.display = 'none';
             if (saveBtn) saveBtn.style.display = 'none';
+            if (cancelBtn) cancelBtn.style.display = 'none';
             if (downloadPermitBtn) downloadPermitBtn.style.display = '';
         } else {
             // Show construction permit buttons and hide download button
             if (newBtn) newBtn.style.display = '';
             if (editBtn) editBtn.style.display = '';
-            // Only show Save button if form is visible
+            // Only show Save and Cancel buttons if form is visible
             if (saveBtn) {
                 const form = document.getElementById('constructionPermitForm');
                 saveBtn.style.display = (form && form.style.display === 'block') ? '' : 'none';
+            }
+            if (cancelBtn) {
+                const form = document.getElementById('constructionPermitForm');
+                cancelBtn.style.display = (form && form.style.display === 'block') ? '' : 'none';
             }
             if (downloadPermitBtn) downloadPermitBtn.style.display = 'none';
         }
@@ -1002,6 +1009,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 saveBtn.style.display = '';
             }
 
+            // Show the Cancel button
+            const cancelBtn = document.getElementById('cancelBtn');
+            if (cancelBtn) {
+                cancelBtn.style.display = '';
+            }
+
             // Clear all form fields
             clearForm();
             
@@ -1044,7 +1057,37 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 500);
         });
     }
-    
+
+    // Cancel button functionality
+    const cancelBtn = document.getElementById('cancelBtn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            // Check if there are unsaved changes
+            if (formHasChanges) {
+                const confirmed = confirm('You have unsaved changes. Are you sure you want to cancel? All changes will be lost.');
+                if (!confirmed) {
+                    return; // User cancelled the cancel action
+                }
+            }
+
+            // Clear and hide the form
+            clearForm();
+            form.style.display = 'none';
+            isFormVisible = false;
+
+            // Hide both Save and Cancel buttons
+            if (saveBtn) {
+                saveBtn.style.display = 'none';
+            }
+            if (cancelBtn) {
+                cancelBtn.style.display = 'none';
+            }
+
+            // Show info message
+            showToast('info', 'Form cancelled and cleared');
+        });
+    }
+
     // Search permit functionality
     const searchPermitBtn = document.getElementById('searchPermitBtn');
     const editPermitNumberInput = document.getElementById('editPermitNumber');
@@ -1116,6 +1159,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const saveBtn = document.getElementById('saveBtn');
                 if (saveBtn) {
                     saveBtn.style.display = '';
+                }
+
+                // Show the Cancel button
+                const cancelBtn = document.getElementById('cancelBtn');
+                if (cancelBtn) {
+                    cancelBtn.style.display = '';
                 }
 
                 showToast('success', 'Permit loaded successfully for editing');
@@ -1309,9 +1358,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     isFormVisible = false;
                     if (form) form.style.display = 'none';
 
-                    // Hide the Save button
+                    // Hide the Save and Cancel buttons
                     if (saveBtn) {
                         saveBtn.style.display = 'none';
+                    }
+                    const cancelBtn = document.getElementById('cancelBtn');
+                    if (cancelBtn) {
+                        cancelBtn.style.display = 'none';
                     }
                 }
             }
@@ -1467,9 +1520,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     form.style.display = 'none';
                     isFormVisible = false;
 
-                    // Hide the Save button
+                    // Hide the Save and Cancel buttons
                     if (saveBtn) {
                         saveBtn.style.display = 'none';
+                    }
+                    const cancelBtn = document.getElementById('cancelBtn');
+                    if (cancelBtn) {
+                        cancelBtn.style.display = 'none';
                     }
 
                     // Refresh status counts to reflect new/updated permit
@@ -1517,7 +1574,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 @php
 // Update this version when you change your JS files
-$jsVersion = '1.0.2';
+$jsVersion = '1.0.3';
 @endphp
 <script src="{{ asset('assets/js/construction-permit-address-lookup.js') }}?v={{ $jsVersion }}"></script>
 <script src="{{ asset('assets/js/construction-permit-sin-lookup.js') }}?v={{ $jsVersion }}"></script>
