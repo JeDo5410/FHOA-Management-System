@@ -270,12 +270,50 @@ class AccountReceivableController extends Controller
             
             // Get payment amount from the single line item
             $paymentAmount = $validated['arrears_items'][0]['amount'];
-            
-            // Get the current arrear balance
+
+            // ===== DETAILED LOGGING: BEFORE PAYMENT CALCULATION =====
+            Log::info('=== STORE ARREARS RECEIVABLE - BEFORE PAYMENT CALCULATION ===', [
+                'sin_number' => $sinNumber,
+                'member_id' => $memberSum->mem_id,
+                'address_id' => $validated['arrears_address_id'],
+                'payment_amount' => $paymentAmount,
+                'current_arrear_from_db' => $memberSum->arrear,
+                'current_arrear_interest_from_db' => $memberSum->arrear_interest,
+                'current_arrear_total_from_db' => $memberSum->arrear_total,
+                'user_id' => Auth::id(),
+                'timestamp' => now()
+            ]);
+
+            // Get the current arrear balance (without interest)
             $currentArrear = $memberSum->arrear ?? 0;
-            
+
+            // Get the current arrear interest
+            $currentArrearInterest = $memberSum->arrear_interest ?? 0;
+
+            // Calculate the TOTAL arrear (principal + interest) BEFORE payment
+            $currentArrearTotal = $currentArrear + $currentArrearInterest;
+
+            Log::info('STORE ARREARS - Calculated current totals', [
+                'member_id' => $memberSum->mem_id,
+                'current_arrear' => $currentArrear,
+                'current_arrear_interest' => $currentArrearInterest,
+                'current_arrear_total_calculated' => $currentArrearTotal,
+                'payment_amount' => $paymentAmount
+            ]);
+
             // Calculate the new arrear balance
-            $newArrearBalance = $currentArrear - $paymentAmount;
+            // IMPORTANT: Payment applies to the TOTAL (principal + interest)
+            // After payment, interest is reset to 0, so all remaining balance becomes arrear
+            $newArrearTotal = $currentArrearTotal - $paymentAmount;
+            $newArrearBalance = $newArrearTotal; // All remaining balance goes to arrear (interest will be 0)
+
+            Log::info('STORE ARREARS - Calculated new balances', [
+                'member_id' => $memberSum->mem_id,
+                'payment_amount' => $paymentAmount,
+                'new_arrear_total' => $newArrearTotal,
+                'new_arrear_balance' => $newArrearBalance,
+                'calculation_formula' => "({$currentArrear} + {$currentArrearInterest}) - {$paymentAmount} = {$newArrearBalance}"
+            ]);
             
             // Create a new acct_receivable record for this payment
             $accountReceivable = new AcctReceivable();
@@ -294,36 +332,45 @@ class AccountReceivableController extends Controller
             $accountReceivable->user_id = Auth::id();
             
             $accountReceivable->save();
-            
+
+            Log::info('STORE ARREARS - AcctReceivable record saved', [
+                'ar_transno' => $accountReceivable->ar_transno,
+                'or_number' => $accountReceivable->or_number,
+                'ar_amount' => $accountReceivable->ar_amount,
+                'arrear_bal' => $accountReceivable->arrear_bal,
+                'member_id' => $accountReceivable->mem_id
+            ]);
+
             // Update member_sum record with the payment information
+            Log::info('STORE ARREARS - Before updating member_sum', [
+                'member_id' => $memberSum->mem_id,
+                'old_arrear' => $memberSum->arrear,
+                'old_arrear_interest' => $memberSum->arrear_interest,
+                'old_arrear_total' => $memberSum->arrear_total,
+                'new_arrear_to_set' => $newArrearBalance
+            ]);
+
             $memberSum->last_or = $sinNumber;
             $memberSum->last_paydate = $validated['arrears_date'];
             $memberSum->last_payamount = $paymentAmount;
             $memberSum->arrear = $newArrearBalance;
-            
-            // Log before arrear_total calculation
-            Log::info('STORE ARREARS - Before arrear_total calculation', [
-                'member_id' => $memberSum->mem_id,
-                'current_arrear' => $memberSum->arrear,
-                'current_arrear_interest' => $memberSum->arrear_interest,
-                'new_arrear_balance' => $newArrearBalance,
-                'payment_amount' => $paymentAmount
-            ]);
 
             // Reset arrear_interest to 0 when payment is made
             $memberSum->arrear_interest = 0;
 
             // Calculate and update arrear_total (arrear + arrear_interest)
-            $arrearInterest = $memberSum->arrear_interest ?? 0;
+            // Since interest is now 0, arrear_total = arrear
+            $arrearInterest = $memberSum->arrear_interest; // Should be 0
             $calculatedArrearTotal = $newArrearBalance + $arrearInterest;
             $memberSum->arrear_total = $calculatedArrearTotal;
-            
-            // Log after arrear_total calculation
-            Log::info('STORE ARREARS - After arrear_total calculation', [
+
+            Log::info('STORE ARREARS - After setting new values in member_sum object', [
                 'member_id' => $memberSum->mem_id,
-                'arrear_interest' => $arrearInterest,
+                'set_arrear' => $memberSum->arrear,
+                'set_arrear_interest' => $memberSum->arrear_interest,
                 'calculated_arrear_total' => $calculatedArrearTotal,
-                'assigned_arrear_total' => $memberSum->arrear_total
+                'set_arrear_total' => $memberSum->arrear_total,
+                'calculation_breakdown' => "arrear({$newArrearBalance}) + interest({$arrearInterest}) = {$calculatedArrearTotal}"
             ]);
 
             // Calculate arrear_count based on arrear_total
@@ -352,16 +399,38 @@ class AccountReceivableController extends Controller
 
             $memberSum->user_id = Auth::id();
             $memberSum->save();
-            
-            // Log after saving
-            Log::info('STORE ARREARS - After saving to database', [
+
+            // Verify what was actually saved to the database by re-fetching the record
+            $verifyMemberSum = MemberSum::find($memberSum->mem_id);
+
+            Log::info('=== STORE ARREARS - AFTER SAVING TO DATABASE (VERIFICATION) ===', [
                 'member_id' => $memberSum->mem_id,
                 'saved_arrear' => $memberSum->arrear,
-                'saved_arrear_total' => $memberSum->arrear_total
+                'saved_arrear_interest' => $memberSum->arrear_interest,
+                'saved_arrear_total' => $memberSum->arrear_total,
+                'saved_last_or' => $memberSum->last_or,
+                'saved_last_payamount' => $memberSum->last_payamount,
+                'saved_last_paydate' => $memberSum->last_paydate,
+                'verified_from_db_arrear' => $verifyMemberSum->arrear ?? 'null',
+                'verified_from_db_arrear_interest' => $verifyMemberSum->arrear_interest ?? 'null',
+                'verified_from_db_arrear_total' => $verifyMemberSum->arrear_total ?? 'null',
+                'values_match' => [
+                    'arrear' => ($memberSum->arrear == $verifyMemberSum->arrear),
+                    'arrear_interest' => ($memberSum->arrear_interest == $verifyMemberSum->arrear_interest),
+                    'arrear_total' => ($memberSum->arrear_total == $verifyMemberSum->arrear_total)
+                ]
             ]);
-            
+
             // Commit the transaction
             DB::commit();
+
+            Log::info('=== STORE ARREARS RECEIVABLE - TRANSACTION COMMITTED SUCCESSFULLY ===', [
+                'sin_number' => $sinNumber,
+                'member_id' => $memberSum->mem_id,
+                'final_arrear' => $verifyMemberSum->arrear,
+                'final_arrear_total' => $verifyMemberSum->arrear_total,
+                'timestamp' => now()
+            ]);
             
             return redirect()->route('accounts.receivables', ['tab' => $request->input('active_tab', 'arrears')])
                 ->with('success', 'HOA Monthly Dues payment recorded successfully');
@@ -969,7 +1038,22 @@ private function storeArrearsReceivableEdit(Request $request)
             ]);
 
             // STEP 3: Create new transaction for NEW member
-            $newArrearBalance = $newMemberSum->arrear - $newPaymentAmount;
+            // IMPORTANT FIX: Payment should apply to TOTAL arrear (principal + interest)
+            Log::info('EDIT ARREARS (Address Change) - Calculating new member balance', [
+                'new_member_id' => $newMemberSum->mem_id,
+                'new_member_current_arrear' => $newMemberSum->arrear,
+                'new_member_current_interest' => $newMemberSum->arrear_interest,
+                'new_member_current_total' => ($newMemberSum->arrear + $newMemberSum->arrear_interest),
+                'payment_amount' => $newPaymentAmount
+            ]);
+
+            $newMemberCurrentTotal = ($newMemberSum->arrear ?? 0) + ($newMemberSum->arrear_interest ?? 0);
+            $newArrearBalance = $newMemberCurrentTotal - $newPaymentAmount;
+
+            Log::info('EDIT ARREARS (Address Change) - New member balance calculated', [
+                'calculation' => "({$newMemberSum->arrear} + {$newMemberSum->arrear_interest}) - {$newPaymentAmount} = {$newArrearBalance}",
+                'new_arrear_balance' => $newArrearBalance
+            ]);
 
             $editedTransaction = new AcctReceivable();
             $editedTransaction->mem_id = $newMemberSum->mem_id; // New member
@@ -1021,11 +1105,20 @@ private function storeArrearsReceivableEdit(Request $request)
             $newMemberSum->user_id = Auth::id();
             $newMemberSum->save();
 
-            Log::info('New member balance updated', [
-                'member_id' => $newMemberSum->mem_id,
-                'new_arrear' => $newMemberSum->arrear,
-                'arrear_total' => $newMemberSum->arrear_total,
-                'arrear_count' => $newMemberSum->arrear_count
+            // Verify what was actually saved to the database by re-fetching the record
+            $verifyNewMemberSum = MemberSum::find($newMemberSum->mem_id);
+            $verifyOriginalMemberSum = MemberSum::find($originalMemberSum->mem_id);
+
+            Log::info('=== EDIT ARREARS (Address Change) - AFTER SAVING BOTH MEMBERS (VERIFICATION) ===', [
+                'new_member_id' => $newMemberSum->mem_id,
+                'new_member_saved_arrear' => $newMemberSum->arrear,
+                'new_member_saved_arrear_interest' => $newMemberSum->arrear_interest,
+                'new_member_saved_arrear_total' => $newMemberSum->arrear_total,
+                'new_member_verified_from_db_arrear' => $verifyNewMemberSum->arrear ?? 'null',
+                'new_member_verified_from_db_arrear_total' => $verifyNewMemberSum->arrear_total ?? 'null',
+                'original_member_id' => $originalMemberSum->mem_id,
+                'original_member_verified_from_db_arrear' => $verifyOriginalMemberSum->arrear ?? 'null',
+                'original_member_verified_from_db_arrear_total' => $verifyOriginalMemberSum->arrear_total ?? 'null'
             ]);
 
         } else {
@@ -1062,8 +1155,28 @@ private function storeArrearsReceivableEdit(Request $request)
             ]);
 
             // STEP 2: Create new transaction with updated details
-            $currentArrear = $originalMemberSum->arrear + abs($originalTransaction->ar_amount);
-            $newArrearBalance = $currentArrear - $newPaymentAmount;
+            // First, restore the balance (reverse the original payment)
+            $restoredArrear = $originalMemberSum->arrear + abs($originalTransaction->ar_amount);
+            $restoredArrearInterest = $originalMemberSum->arrear_interest ?? 0;
+            $restoredTotal = $restoredArrear + $restoredArrearInterest;
+
+            Log::info('EDIT ARREARS (No Address Change) - After reversing original payment', [
+                'member_id' => $originalMemberSum->mem_id,
+                'restored_arrear' => $restoredArrear,
+                'restored_interest' => $restoredArrearInterest,
+                'restored_total' => $restoredTotal,
+                'original_payment_reversed' => abs($originalTransaction->ar_amount)
+            ]);
+
+            // IMPORTANT FIX: Apply new payment to the TOTAL (principal + interest)
+            $newArrearTotal = $restoredTotal - $newPaymentAmount;
+            $newArrearBalance = $newArrearTotal; // Interest will be reset to 0, so all goes to arrear
+
+            Log::info('EDIT ARREARS (No Address Change) - New balance calculated', [
+                'member_id' => $originalMemberSum->mem_id,
+                'calculation' => "({$restoredArrear} + {$restoredArrearInterest}) - {$newPaymentAmount} = {$newArrearBalance}",
+                'new_arrear_balance' => $newArrearBalance
+            ]);
 
             $editedTransaction = new AcctReceivable();
             $editedTransaction->mem_id = $originalMemberSum->mem_id;
@@ -1088,15 +1201,34 @@ private function storeArrearsReceivableEdit(Request $request)
             ]);
 
             // STEP 3: Update member_sum with new payment information
+            Log::info('EDIT ARREARS (No Address Change) - Before updating member_sum', [
+                'member_id' => $originalMemberSum->mem_id,
+                'old_arrear' => $originalMemberSum->arrear,
+                'old_arrear_interest' => $originalMemberSum->arrear_interest,
+                'old_arrear_total' => $originalMemberSum->arrear_total,
+                'new_arrear_to_set' => $newArrearBalance
+            ]);
+
             $originalMemberSum->last_or = $originalSinNumber;
             $originalMemberSum->last_paydate = $validated['arrears_date'];
             $originalMemberSum->last_payamount = $newPaymentAmount;
             $originalMemberSum->arrear = $newArrearBalance;
 
-            // Calculate and update arrear_total
-            $arrearInterest = $originalMemberSum->arrear_interest ?? 0;
+            // IMPORTANT FIX: Reset arrear_interest to 0 when payment is made (edit scenario)
+            $originalMemberSum->arrear_interest = 0;
+
+            // Calculate and update arrear_total (interest is now 0, so arrear_total = arrear)
+            $arrearInterest = $originalMemberSum->arrear_interest; // Should be 0
             $calculatedArrearTotal = $newArrearBalance + $arrearInterest;
             $originalMemberSum->arrear_total = $calculatedArrearTotal;
+
+            Log::info('EDIT ARREARS (No Address Change) - After setting new values', [
+                'member_id' => $originalMemberSum->mem_id,
+                'set_arrear' => $originalMemberSum->arrear,
+                'set_arrear_interest' => $originalMemberSum->arrear_interest,
+                'calculated_arrear_total' => $calculatedArrearTotal,
+                'calculation_breakdown' => "arrear({$newArrearBalance}) + interest({$arrearInterest}) = {$calculatedArrearTotal}"
+            ]);
 
             // Calculate arrear_count based on arrear_total
             $memberData = $originalMemberSum->memberData()->latest('mem_transno')->first();
@@ -1112,11 +1244,23 @@ private function storeArrearsReceivableEdit(Request $request)
             $originalMemberSum->user_id = Auth::id();
             $originalMemberSum->save();
 
-            Log::info('Member summary updated', [
+            // Verify what was actually saved to the database by re-fetching the record
+            $verifyMemberSum = MemberSum::find($originalMemberSum->mem_id);
+
+            Log::info('=== EDIT ARREARS (No Address Change) - AFTER SAVING (VERIFICATION) ===', [
                 'member_id' => $originalMemberSum->mem_id,
-                'updated_arrear' => $originalMemberSum->arrear,
-                'arrear_total' => $originalMemberSum->arrear_total,
-                'arrear_count' => $originalMemberSum->arrear_count
+                'saved_arrear' => $originalMemberSum->arrear,
+                'saved_arrear_interest' => $originalMemberSum->arrear_interest,
+                'saved_arrear_total' => $originalMemberSum->arrear_total,
+                'saved_arrear_count' => $originalMemberSum->arrear_count,
+                'verified_from_db_arrear' => $verifyMemberSum->arrear ?? 'null',
+                'verified_from_db_arrear_interest' => $verifyMemberSum->arrear_interest ?? 'null',
+                'verified_from_db_arrear_total' => $verifyMemberSum->arrear_total ?? 'null',
+                'values_match' => [
+                    'arrear' => ($originalMemberSum->arrear == $verifyMemberSum->arrear),
+                    'arrear_interest' => ($originalMemberSum->arrear_interest == $verifyMemberSum->arrear_interest),
+                    'arrear_total' => ($originalMemberSum->arrear_total == $verifyMemberSum->arrear_total)
+                ]
             ]);
         }
 
