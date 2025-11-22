@@ -47,13 +47,8 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Check if notification has already been shown this session
-        const notificationShown = sessionStorage.getItem('inspection_notification_shown');
+        checkForPermitsNeedingInspectionForms();
 
-        // Only check and show notification if it hasn't been shown this session
-        if (!notificationShown) {
-            checkForPermitsNeedingInspectionForms();
-        }
     });
 
     function checkForPermitsNeedingInspectionForms() {
