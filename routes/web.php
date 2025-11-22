@@ -101,6 +101,8 @@ Route::middleware(['auth', 'role:1,2,3,4'])->group(function () {
             ->name('construction-permit.download.permit-status-data');
         Route::get('/status-counts', [ConstructionPermitController::class, 'getPermitStatusCounts'])
             ->name('construction-permit.status-counts');
+        Route::get('/check-inspection-forms-needed', [ConstructionPermitController::class, 'getPermitsNeedingInspectionForms'])
+            ->name('construction-permit.check-inspection-forms');
 
         // Write operations - Admin, Editor, and Viewer only (not Report)
         Route::middleware('role:1,2,3')->group(function () {

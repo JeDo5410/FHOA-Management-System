@@ -916,4 +916,42 @@ public function search(string $permitNumber): JsonResponse
             ], 500);
         }
     }
+
+    /**
+     * Check for permits needing inspection forms
+     * Returns count of permits with status "For Inspection" but no inspection form created
+     */
+    public function getPermitsNeedingInspectionForms()
+    {
+        try {
+            // Get count of permits with status "For Inspection" (statuscode = 2) but no inspection form
+            $count = ViewConstructionPermit::where('statuscode', 2)
+                ->where(function($query) {
+                    $query->where('inspection_form', 0)
+                          ->orWhereNull('inspection_form');
+                })
+                ->count();
+
+            Log::info('Checked permits needing inspection forms', [
+                'count' => $count,
+                'user_id' => Auth::id()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'count' => $count
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error checking permits needing inspection forms', [
+                'error' => $e->getMessage(),
+                'user_id' => Auth::id()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while checking inspection forms.',
+                'count' => 0
+            ], 500);
+        }
+    }
 }
