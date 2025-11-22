@@ -20,6 +20,10 @@ if not exist "!BACKUP_PATH1!" mkdir "!BACKUP_PATH1!"
 if not exist "!BACKUP_PATH2!" mkdir "!BACKUP_PATH2!"
 if not exist "!BACKUP_PATH3!" mkdir "!BACKUP_PATH3!"
 
+REM Pull latest changes from git
+echo Pulling latest changes from git...
+git pull
+
 REM Clean up old backups
 echo Cleaning up old backups...
 for %%P in ("!BACKUP_PATH1!" "!BACKUP_PATH2!" "!BACKUP_PATH3!") do (
