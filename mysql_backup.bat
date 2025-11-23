@@ -9,7 +9,6 @@ set DB_PASSWORD=1234
 set DB_NAME=fhoa
 set BACKUP_PATH1=C:\MySQL_Backup
 set BACKUP_PATH2=F:\MySQL_Backup
-set BACKUP_PATH3=C:\Users\Fortezza Admin\OneDrive
 set MYSQL_PATH=C:\Program Files\MySQL\MySQL Server 8.0\bin
 
 REM Local Backup Limit
@@ -32,7 +31,6 @@ set TIMESTAMP=!TIMESTAMP: =0!
 REM Create backup directories if they don't exist
 if not exist "!BACKUP_PATH1!" mkdir "!BACKUP_PATH1!" 2>nul
 if not exist "!BACKUP_PATH2!" mkdir "!BACKUP_PATH2!" 2>nul
-if not exist "!BACKUP_PATH3!" mkdir "!BACKUP_PATH3!" 2>nul
 
 REM Pull latest changes from git
 echo Pulling latest changes from git...
@@ -41,7 +39,6 @@ git pull
 REM Initialize status variables
 set STATUS_PATH1=FAILED
 set STATUS_PATH2=FAILED
-set STATUS_PATH3=FAILED
 set STATUS_GDRIVE=FAILED
 
 REM ============================================================================
@@ -73,20 +70,6 @@ if exist "!BACKUP_PATH2!" (
     echo Secondary backup failed ^(Path not found - Check F: Drive^).
 )
 
-REM Create backup in BACKUP_PATH3
-echo Creating backup in OneDrive location...
-if exist "!BACKUP_PATH3!" (
-    "!MYSQL_PATH!\mysqldump" --user=!DB_USER! --password=!DB_PASSWORD! --single-transaction --quick --databases %DB_NAME% --result-file="!BACKUP_PATH3!\%DB_NAME%_backup_%TIMESTAMP%.sql"
-    if !ERRORLEVEL! == 0 (
-        echo OneDrive backup successful.
-        set STATUS_PATH3=SUCCESS
-    ) else (
-        echo OneDrive backup failed.
-    )
-) else (
-    echo OneDrive backup failed ^(Path not found^).
-)
-
 REM ============================================================================
 REM LOCAL BACKUP CLEANUP
 REM ============================================================================
@@ -96,7 +79,7 @@ echo Cleaning up old local backups...
 echo ================================================
 
 REM Process each backup location
-for %%P in ("!BACKUP_PATH1!" "!BACKUP_PATH2!" "!BACKUP_PATH3!") do (
+for %%P in ("!BACKUP_PATH1!" "!BACKUP_PATH2!") do (
     if exist "%%~P" (
         echo Checking: %%~P
 
@@ -233,9 +216,7 @@ echo Backup Summary:
 echo ================================================
 echo Primary Location:    !STATUS_PATH1!
 echo Secondary Location:  !STATUS_PATH2!
-echo OneDrive Location:   !STATUS_PATH3!
 echo Google Drive:        !STATUS_GDRIVE!
 echo ================================================
 echo Backup process completed at: %time%
 endlocal
-pause
