@@ -28,6 +28,17 @@ REM Create timestamp for unique filename (YYYYMMDD_HHMMSS)
 set TIMESTAMP=%date:~10,4%%date:~4,2%%date:~7,2%_%time:~0,2%%time:~3,2%%time:~6,2%
 set TIMESTAMP=!TIMESTAMP: =0!
 
+REM Extract date-only portion for later use (YYYYMMDD)
+set TODAY_DATE=%date:~10,4%%date:~4,2%%date:~7,2%
+
+REM Extract current hour to determine if this is morning or afternoon run
+set CURRENT_HOUR=%time:~0,2%
+set CURRENT_HOUR=!CURRENT_HOUR: =0!
+
+REM Determine if this is an afternoon run (hour >= 12)
+set IS_AFTERNOON=0
+if !CURRENT_HOUR! geq 12 set IS_AFTERNOON=1
+
 REM Create backup directories if they don't exist
 if not exist "!BACKUP_PATH1!" mkdir "!BACKUP_PATH1!" 2>nul
 if not exist "!BACKUP_PATH2!" mkdir "!BACKUP_PATH2!" 2>nul
@@ -68,6 +79,65 @@ if exist "!BACKUP_PATH2!" (
     )
 ) else (
     echo Secondary backup failed ^(Path not found - Check F: Drive^).
+)
+
+REM ============================================================================
+REM MORNING BACKUP CLEANUP (Only runs in afternoon if backup succeeded)
+REM ============================================================================
+if !IS_AFTERNOON! == 1 (
+    if "!STATUS_PATH1!" == "SUCCESS" (
+        echo.
+        echo ================================================
+        echo Cleaning up this morning's backup...
+        echo ================================================
+        
+        REM Define the pattern for today's 9 AM backup
+        set MORNING_PATTERN=%DB_NAME%_backup_!TODAY_DATE!_09*.sql
+        
+        REM Clean from BACKUP_PATH1
+        echo Checking primary location for morning backup...
+        for %%F in ("!BACKUP_PATH1!\!MORNING_PATTERN!") do (
+            if exist "%%F" (
+                echo   Deleting: %%~nxF
+                del "%%F" >nul 2>&1
+            )
+        )
+        
+        REM Clean from BACKUP_PATH2
+        if exist "!BACKUP_PATH2!" (
+            echo Checking secondary location for morning backup...
+            for %%F in ("!BACKUP_PATH2!\!MORNING_PATTERN!") do (
+                if exist "%%F" (
+                    echo   Deleting: %%~nxF
+                    del "%%F" >nul 2>&1
+                )
+            )
+        )
+        
+        REM Clean from Google Drive (uses temp file for reliable command output capture)
+        echo Checking Google Drive for morning backup...
+        set GDRIVE_MORNING_LIST=%TEMP%\gdrive_morning_list.txt
+        
+        "!RCLONE_PATH!" lsf "gdrive:!GDRIVE_FOLDER!/" --files-only --include "!MORNING_PATTERN!" > "!GDRIVE_MORNING_LIST!" 2>nul
+        
+        for /f "usebackq tokens=*" %%F in ("!GDRIVE_MORNING_LIST!") do (
+            echo   Deleting from GDrive: %%F
+            "!RCLONE_PATH!" deletefile "gdrive:!GDRIVE_FOLDER!/%%F"
+        )
+        
+        if exist "!GDRIVE_MORNING_LIST!" del "!GDRIVE_MORNING_LIST!"
+        
+        echo Morning backup cleanup complete.
+        echo ================================================
+        echo.
+    ) else (
+        echo.
+        echo ================================================
+        echo Skipping morning backup cleanup...
+        echo ^(Afternoon backup failed - keeping morning backup as safety^)
+        echo ================================================
+        echo.
+    )
 )
 
 REM ============================================================================
