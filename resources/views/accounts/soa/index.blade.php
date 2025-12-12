@@ -384,34 +384,34 @@
                                         <input type="text" class="form-control" id="address_id" name="address_id" 
                                             value="{{ request('address_id') }}" placeholder="Address ID">
                                     </div>
-                                    <!-- Member Status Filter -->
-                                    <div id="memberStatusFilter">
+                                    <!-- Arrear Category Filter -->
+                                    <div id="arrearCategoryFilter">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <div class="column-title">Member Status</div>
+                                            <div class="column-title">Arrear Category</div>
                                             <span class="badge bg-primary" id="currentRecordCount">0</span>
                                         </div>
                                         <div class="form-check mb-2">
-                                            <input class="form-check-input" type="radio" name="memberStatus" id="statusAll" value="all" 
-                                                {{ request('member_status', 'all') === 'all' ? 'checked' : '' }} onclick="loadMemberData('all')">
-                                            <label class="form-check-label d-flex justify-content-between w-100" for="statusAll">
-                                                <span>All Members</span>
-                                                <small class="text-muted" id="allMembersCount">Loading...</small>
+                                            <input class="form-check-input" type="radio" name="arrearCategory" id="categorySoa" value="soa"
+                                                {{ request('arrear_category', 'soa') === 'soa' ? 'checked' : '' }} onclick="loadMemberData('soa')">
+                                            <label class="form-check-label d-flex justify-content-between w-100" for="categorySoa">
+                                                <span>SOA (All Members)</span>
+                                                <small class="text-muted" id="soaCount">Loading...</small>
                                             </label>
                                         </div>
                                         <div class="form-check mb-2">
-                                            <input class="form-check-input" type="radio" name="memberStatus" id="statusActive" value="active" 
-                                                {{ request('member_status') === 'active' ? 'checked' : '' }} onclick="loadMemberData('active')">
-                                            <label class="form-check-label d-flex justify-content-between w-100" for="statusActive">
-                                                <span>Active Members</span>
-                                                <small class="text-muted" id="activeMembersCount">Loading...</small>
+                                            <input class="form-check-input" type="radio" name="arrearCategory" id="categoryDemand" value="demand"
+                                                {{ request('arrear_category') === 'demand' ? 'checked' : '' }} onclick="loadMemberData('demand')">
+                                            <label class="form-check-label d-flex justify-content-between w-100" for="categoryDemand">
+                                                <span>Demand Letter (3-4 Months Unpaid)</span>
+                                                <small class="text-muted" id="demandCount">Loading...</small>
                                             </label>
                                         </div>
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="memberStatus" id="statusDelinquent" value="delinquent" 
-                                                {{ request('member_status') === 'delinquent' ? 'checked' : '' }} onclick="loadMemberData('delinquent')">
-                                            <label class="form-check-label d-flex justify-content-between w-100" for="statusDelinquent">
-                                                <span>Delinquent Members</span>
-                                                <small class="text-muted" id="delinquentMembersCount">Loading...</small>
+                                            <input class="form-check-input" type="radio" name="arrearCategory" id="categoryNncv" value="nncv"
+                                                {{ request('arrear_category') === 'nncv' ? 'checked' : '' }} onclick="loadMemberData('nncv')">
+                                            <label class="form-check-label d-flex justify-content-between w-100" for="categoryNncv">
+                                                <span>NNCV (5+ Months Unpaid)</span>
+                                                <small class="text-muted" id="nncvCount">Loading...</small>
                                             </label>
                                         </div>
                                     </div>
@@ -558,12 +558,21 @@
         // Initialize member counts
         loadMemberCounts();
         
-        // Clear address ID when delinquent status is selected
-        const statusDelinquentRadio = document.getElementById('statusDelinquent');
+        // Clear address ID when Demand or NNCV category is selected
+        const categoryDemandRadio = document.getElementById('categoryDemand');
+        const categoryNncvRadio = document.getElementById('categoryNncv');
         const addressIdInput = document.getElementById('address_id');
 
-        if(statusDelinquentRadio && addressIdInput) {
-            statusDelinquentRadio.addEventListener('change', function() {
+        if(categoryDemandRadio && addressIdInput) {
+            categoryDemandRadio.addEventListener('change', function() {
+                if(this.checked) {
+                    addressIdInput.value = '';
+                }
+            });
+        }
+
+        if(categoryNncvRadio && addressIdInput) {
+            categoryNncvRadio.addEventListener('change', function() {
                 if(this.checked) {
                     addressIdInput.value = '';
                 }
@@ -576,10 +585,10 @@
             addressIdInput.addEventListener('input', function() {
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(() => {
-                    // Get current selected member status
-                    const selectedStatus = document.querySelector('input[name="memberStatus"]:checked');
-                    const status = selectedStatus ? selectedStatus.value : 'all';
-                    loadMemberData(status);
+                    // Get current selected arrear category
+                    const selectedCategory = document.querySelector('input[name="arrearCategory"]:checked');
+                    const category = selectedCategory ? selectedCategory.value : 'soa';
+                    loadMemberData(category);
                 }, 500); // Wait 500ms after user stops typing
             });
         }
@@ -600,45 +609,45 @@
         fetch('{{ route("accounts.soa.member-counts") }}')
             .then(response => response.json())
             .then(data => {
-                const allMembersCount = document.getElementById('allMembersCount');
-                const activeMembersCount = document.getElementById('activeMembersCount');
-                const delinquentMembersCount = document.getElementById('delinquentMembersCount');
-                
-                if (allMembersCount) allMembersCount.textContent = data.all;
-                if (activeMembersCount) activeMembersCount.textContent = data.active;
-                if (delinquentMembersCount) delinquentMembersCount.textContent = data.delinquent;
+                const soaCount = document.getElementById('soaCount');
+                const demandCount = document.getElementById('demandCount');
+                const nncvCount = document.getElementById('nncvCount');
+
+                if (soaCount) soaCount.textContent = data.soa;
+                if (demandCount) demandCount.textContent = data.demand;
+                if (nncvCount) nncvCount.textContent = data.nncv;
             })
             .catch(error => {
                 console.error('Error fetching member counts:', error);
                 // Set fallback values
-                const allMembersCount = document.getElementById('allMembersCount');
-                const activeMembersCount = document.getElementById('activeMembersCount');
-                const delinquentMembersCount = document.getElementById('delinquentMembersCount');
-                
-                if (allMembersCount) allMembersCount.textContent = 'Error';
-                if (activeMembersCount) activeMembersCount.textContent = 'Error';
-                if (delinquentMembersCount) delinquentMembersCount.textContent = 'Error';
+                const soaCount = document.getElementById('soaCount');
+                const demandCount = document.getElementById('demandCount');
+                const nncvCount = document.getElementById('nncvCount');
+
+                if (soaCount) soaCount.textContent = 'Error';
+                if (demandCount) demandCount.textContent = 'Error';
+                if (nncvCount) nncvCount.textContent = 'Error';
             });
     }
     
-    // Function to load member data based on status
-    function loadMemberData(status) {
-        console.log('Loading member data for status:', status);
-        
+    // Function to load member data based on arrear category
+    function loadMemberData(category) {
+        console.log('Loading member data for category:', category);
+
         // Show loading state
         const tbody = document.querySelector('#mainTable tbody');
         if (tbody) {
             tbody.innerHTML = '<tr><td colspan="17" class="text-center">Loading...</td></tr>';
         }
-        
+
         // Get current address ID filter
         const addressIdInput = document.getElementById('address_id');
         const addressId = addressIdInput ? addressIdInput.value : '';
-        
+
         // Build URL with parameters
         const params = new URLSearchParams();
-        if (status !== 'all') {
-            params.append('member_status', status);
+        if (category !== 'soa') {
+            params.append('arrear_category', category);
         }
         if (addressId) {
             params.append('address_id', addressId);

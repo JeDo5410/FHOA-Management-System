@@ -38,24 +38,24 @@ class StatementOfAccountController extends Controller
     {
         // Get query parameters for filtering
         $addressId = $request->input('address_id');
-        $memberStatus = $request->input('member_status', 'all');
-        
+        $arrearCategory = $request->input('arrear_category', 'soa');
+
         // Build the query for vw_arrear_staging
         $query = DB::table('vw_arrear_staging')->orderBy('mem_id', 'asc');
-        
+
         // Apply filters if provided
         if ($addressId) {
             $query->where('mem_add_id', $addressId);
         }
-        
-        // Filter by member status
-        if ($memberStatus !== 'all') {
-            if ($memberStatus === 'delinquent') {
-                $query->where('hoa_status', 'DELINQUENT');
-            } elseif ($memberStatus === 'active') {
-                $query->where('hoa_status', '!=', 'DELINQUENT');
-            }
+
+        // Filter by arrear category
+        if ($arrearCategory === 'demand') {
+            $query->whereBetween('arrear_count', [3, 4])
+                  ->orderBy('arrear_count', 'asc');  // 3 months first, then 4
+        } elseif ($arrearCategory === 'nncv') {
+            $query->where('arrear_count', '>=', 5);
         }
+        // If 'soa', no filter applied (shows all members)
         
         // Execute query and modify the result set to ensure consistent property naming
         $arrears = $query->get()->map(function($item) {
@@ -68,7 +68,9 @@ class StatementOfAccountController extends Controller
         
         // Prepare success message with count information
         $count = $arrears->count();
-        $statusText = $memberStatus === 'all' ? 'all members' : ($memberStatus === 'delinquent' ? 'delinquent members' : 'active members');
+        $statusText = $arrearCategory === 'soa' ? 'all members' :
+                     ($arrearCategory === 'demand' ? 'members with 3-4 months unpaid' :
+                      'members with 5+ months unpaid');
         $message = "{$count} record" . ($count != 1 ? "s" : "") . " found for {$statusText}";
         
         // Add filter information to the message if filters were applied
@@ -93,29 +95,29 @@ class StatementOfAccountController extends Controller
     }
 
     /**
-     * Get member counts by status
+     * Get member counts by arrear category
      *
      * @return \Illuminate\Http\JsonResponse
      */
     public function getMemberCounts()
     {
-        // Get all members count
-        $allCount = DB::table('vw_arrear_staging')->count();
-        
-        // Get active members count (not delinquent)
-        $activeCount = DB::table('vw_arrear_staging')
-            ->where('hoa_status', '!=', 'DELINQUENT')
+        // Get SOA count (all members)
+        $soaCount = DB::table('vw_arrear_staging')->count();
+
+        // Get Demand Letter count (3-4 months)
+        $demandCount = DB::table('vw_arrear_staging')
+            ->whereBetween('arrear_count', [3, 4])
             ->count();
-        
-        // Get delinquent members count
-        $delinquentCount = DB::table('vw_arrear_staging')
-            ->where('hoa_status', 'DELINQUENT')
+
+        // Get NNCV count (5+ months)
+        $nncvCount = DB::table('vw_arrear_staging')
+            ->where('arrear_count', '>=', 5)
             ->count();
-        
+
         return response()->json([
-            'all' => $allCount,
-            'active' => $activeCount,
-            'delinquent' => $delinquentCount
+            'soa' => $soaCount,
+            'demand' => $demandCount,
+            'nncv' => $nncvCount
         ]);
     }
 
