@@ -353,6 +353,17 @@
     .nncv-icon {
         color: #6610f2;
     }
+
+    /* Highlight rows for delinquent members */
+    #mainTable tbody tr.delinquent-member,
+    #mainTable tbody tr.delinquent-member td {
+        background-color: #ffcccc !important; /* Light red */
+    }
+
+    #mainTable tbody tr.delinquent-member:hover,
+    #mainTable tbody tr.delinquent-member:hover td {
+        background-color: #ffb3b3 !important; /* Darker red on hover */
+    }
 </style>
 <div class="container-fluid">
     <div class="row">
@@ -479,7 +490,7 @@
                                     </thead>
                                     <tbody>
                                         @foreach($arrears as $arrear)
-                                        <tr>
+                                        <tr class="{{ $arrear->hoa_status === 'DELINQUENT' ? 'delinquent-member' : '' }}">
                                             <td><input type="checkbox" class="member-checkbox" value="{{ $arrear->mem_id }}"></td>
                                             <td>{{ $arrear->mem_id }}</td>
                                             <td>{{ $arrear->mem_transno }}</td>
@@ -648,14 +659,22 @@
                 // Build table rows from JSON data
                 let tableHtml = '';
                 data.data.forEach(arrear => {
-                    const lastPayment = arrear.last_paydate ? 
+                    const lastPayment = arrear.last_paydate ?
                         `${new Date(arrear.last_paydate).toLocaleDateString('en-US', {month: 'short', day: '2-digit', year: 'numeric'})}<br>
                          OR#: ${arrear.last_or}<br>
-                         Amount: ₱${parseFloat(arrear.last_payamount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}` : 
+                         Amount: ₱${parseFloat(arrear.last_payamount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}` :
                         'No recent payment';
-                    
+
+                    // Check if member is delinquent (uppercase check)
+                    const isDelinquent = arrear.hoa_status === 'DELINQUENT';
+                    const rowClass = isDelinquent ? 'delinquent-member' : '';
+
+                    if (isDelinquent) {
+                        console.log('Highlighting delinquent member:', arrear.mem_id, 'status:', arrear.hoa_status);
+                    }
+
                     tableHtml += `
-                        <tr>
+                        <tr class="${rowClass}">
                             <td><input type="checkbox" class="member-checkbox" value="${arrear.mem_id}"></td>
                             <td>${arrear.mem_id}</td>
                             <td>${arrear.mem_transno}</td>
