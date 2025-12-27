@@ -244,12 +244,43 @@
                                                     </select>
                                                 </td>                            
                                                 <td>
-                                                    <input type="number" 
-                                                    class="form-control form-control-sm arrears-amount-input" 
+                                                    <input type="number"
+                                                    class="form-control form-control-sm arrears-amount-input"
                                                     name="arrears_items[0][amount]"
-                                                    step="0.01" 
+                                                    step="0.01"
                                                     min="0.01"
                                                     required>
+                                                </td>
+                                            </tr>
+                                            <!-- Discount Display Row (shown when Type 112 selected) -->
+                                            <tr id="discountRow" style="display: none;">
+                                                <td colspan="2">
+                                                    <div class="alert alert-success mb-0 py-2">
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <strong><i class="bi bi-gift"></i> Advance Payment Discount:</strong>
+                                                                <span class="fs-5 fw-bold text-success ms-2">₱<span id="discountAmountDisplay">0.00</span></span>
+                                                            </div>
+                                                            <div class="col-md-6 text-end">
+                                                                <small class="text-muted">
+                                                                    Member's Monthly Dues: ₱<span id="monthlyDuesDisplay">0.00</span>
+                                                                </small>
+                                                            </div>
+                                                        </div>
+                                                        <small class="d-block text-muted mt-1">
+                                                            <i class="bi bi-info-circle"></i> This discount (equal to 1 month's dues) will be automatically applied to reduce arrears.
+                                                        </small>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <!-- Total Deduction Summary Row -->
+                                            <tr id="totalDeductionRow" style="display: none;">
+                                                <td class="text-end fw-bold text-primary">Total Arrear Reduction:</td>
+                                                <td>
+                                                    <div class="fw-bold text-primary fs-5">
+                                                        ₱<span id="totalDeductionDisplay">0.00</span>
+                                                    </div>
+                                                    <small class="text-muted">(Payment + Discount)</small>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -1977,10 +2008,82 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // For HOA Monthly Dues tab
         if (e.target.matches('#arrearsLineItemsTable select[name^="arrears_items"]')) {
+            const selectedAccountTypeId = parseInt(e.target.value);
+            handleAccountTypeSelection(selectedAccountTypeId);
+
             const row = e.target.closest('tr');
             const amountInput = row.querySelector('.arrears-amount-input');
             if (amountInput && e.target.value) {
                 amountInput.focus();
+            }
+        }
+    });
+
+    /**
+     * Handle account type selection - show/hide discount calculation
+     */
+    function handleAccountTypeSelection(accountTypeId) {
+        const discountRow = document.getElementById('discountRow');
+        const totalDeductionRow = document.getElementById('totalDeductionRow');
+
+        if (accountTypeId === 112) {
+            calculateAndDisplayDiscount();
+        } else {
+            if (discountRow) discountRow.style.display = 'none';
+            if (totalDeductionRow) totalDeductionRow.style.display = 'none';
+        }
+    }
+
+    /**
+     * Calculate discount amount and display
+     */
+    function calculateAndDisplayDiscount() {
+        const memberData = window.currentMemberData;
+
+        if (!memberData || !memberData.monthly_dues) {
+            showToast('error', 'Unable to calculate discount: Member monthly dues not found. Please re-select the member.');
+            // Reset to Type 101
+            const accountTypeSelect = document.querySelector('#arrearsLineItemsTable select[name^="arrears_items"]');
+            if (accountTypeSelect) {
+                setDefaultAccountType();
+            }
+            return;
+        }
+
+        const monthlyDues = parseFloat(memberData.monthly_dues);
+
+        if (monthlyDues <= 0) {
+            showToast('error', 'Cannot apply discount: Member has no monthly dues set.');
+            setDefaultAccountType();
+            return;
+        }
+
+        const paymentInput = document.querySelector('.arrears-amount-input');
+        const paymentAmount = parseFloat(paymentInput.value) || 0;
+        const discountAmount = monthlyDues;
+        const totalDeduction = paymentAmount + discountAmount;
+
+        document.getElementById('discountAmountDisplay').textContent = formatNumberWithCommas(discountAmount);
+        document.getElementById('monthlyDuesDisplay').textContent = formatNumberWithCommas(monthlyDues);
+        document.getElementById('totalDeductionDisplay').textContent = formatNumberWithCommas(totalDeduction);
+
+        document.getElementById('discountRow').style.display = 'table-row';
+        document.getElementById('totalDeductionRow').style.display = 'table-row';
+
+        console.log('Discount calculated:', {
+            monthly_dues: monthlyDues,
+            payment_amount: paymentAmount,
+            discount_amount: discountAmount,
+            total_deduction: totalDeduction
+        });
+    }
+
+    // Update discount when payment amount changes
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('arrears-amount-input')) {
+            const accountTypeSelect = document.querySelector('#arrearsLineItemsTable select[name^="arrears_items"]');
+            if (accountTypeSelect && parseInt(accountTypeSelect.value) === 112) {
+                calculateAndDisplayDiscount();
             }
         }
     });

@@ -271,6 +271,48 @@ class AccountReceivableController extends Controller
             // Get payment amount from the single line item
             $paymentAmount = $validated['arrears_items'][0]['amount'];
 
+            // Detect if this is an advance payment discount transaction
+            $accountTypeId = $validated['arrears_items'][0]['coa'];
+            $isAdvancePaymentDiscount = ($accountTypeId == 112);
+            $discountAmount = 0;
+            $totalDeduction = $paymentAmount; // Default to payment only
+
+            if ($isAdvancePaymentDiscount) {
+                // Get member's monthly dues to calculate discount
+                $memberData = $memberSum->memberData()->latest('mem_transno')->first();
+
+                if (!$memberData || !$memberData->memberType) {
+                    DB::rollBack();
+                    return back()
+                        ->with('error', 'Cannot process advance payment discount: Member monthly dues not found. Please update member type first.')
+                        ->withInput();
+                }
+
+                $monthlyDues = $memberData->memberType->mem_monthlydues;
+
+                if ($monthlyDues <= 0) {
+                    DB::rollBack();
+                    return back()
+                        ->with('error', 'Cannot process advance payment discount: Invalid monthly dues amount.')
+                        ->withInput();
+                }
+
+                // Discount = 1 month's dues
+                $discountAmount = $monthlyDues;
+
+                // Total deduction = payment + discount
+                $totalDeduction = $paymentAmount + $discountAmount;
+
+                Log::info('ADVANCE PAYMENT DISCOUNT DETECTED', [
+                    'sin_number' => $sinNumber,
+                    'member_id' => $memberSum->mem_id,
+                    'monthly_dues' => $monthlyDues,
+                    'payment_amount' => $paymentAmount,
+                    'discount_amount' => $discountAmount,
+                    'total_deduction' => $totalDeduction
+                ]);
+            }
+
             // ===== DETAILED LOGGING: BEFORE PAYMENT CALCULATION =====
             Log::info('=== STORE ARREARS RECEIVABLE - BEFORE PAYMENT CALCULATION ===', [
                 'sin_number' => $sinNumber,
@@ -298,48 +340,107 @@ class AccountReceivableController extends Controller
                 'current_arrear' => $currentArrear,
                 'current_arrear_interest' => $currentArrearInterest,
                 'current_arrear_total_calculated' => $currentArrearTotal,
-                'payment_amount' => $paymentAmount
+                'payment_amount' => $paymentAmount,
+                'total_deduction' => $totalDeduction
             ]);
 
             // Calculate the new arrear balance
-            // IMPORTANT: Payment applies to the TOTAL (principal + interest)
+            // IMPORTANT: Payment (including discount for Type 112) applies to the TOTAL (principal + interest)
             // After payment, interest is reset to 0, so all remaining balance becomes arrear
-            $newArrearTotal = $currentArrearTotal - $paymentAmount;
+            $newArrearTotal = $currentArrearTotal - $totalDeduction;
             $newArrearBalance = $newArrearTotal; // All remaining balance goes to arrear (interest will be 0)
 
             Log::info('STORE ARREARS - Calculated new balances', [
                 'member_id' => $memberSum->mem_id,
-                'payment_amount' => $paymentAmount,
+                'total_deduction' => $totalDeduction,
                 'new_arrear_total' => $newArrearTotal,
                 'new_arrear_balance' => $newArrearBalance,
-                'calculation_formula' => "({$currentArrear} + {$currentArrearInterest}) - {$paymentAmount} = {$newArrearBalance}"
+                'calculation_formula' => "({$currentArrear} + {$currentArrearInterest}) - {$totalDeduction} = {$newArrearBalance}"
             ]);
-            
-            // Create a new acct_receivable record for this payment
-            $accountReceivable = new AcctReceivable();
-            $accountReceivable->mem_id = $memberSum->mem_id;
-            $accountReceivable->or_number = $sinNumber;
-            $accountReceivable->ar_date = $validated['arrears_date'];
-            $accountReceivable->ar_amount = $paymentAmount;
-            $accountReceivable->arrear_bal = $newArrearBalance; // The running balance after this payment
-            $accountReceivable->acct_type_id = $validated['arrears_items'][0]['coa'];
-            $accountReceivable->payor_name = strtoupper($validated['arrears_received_from']);
-            $accountReceivable->payor_address = $formattedAddress;
-            $accountReceivable->payment_type = $validated['arrears_payment_mode'];
-            $accountReceivable->payment_Ref = $validated['arrears_reference_no'] ?? null;
-            $accountReceivable->receive_by = $validated['arrears_received_by'];
-            $accountReceivable->ar_remarks = $validated['arrears_remarks'] ?? null;
-            $accountReceivable->user_id = Auth::id();
-            
-            $accountReceivable->save();
 
-            Log::info('STORE ARREARS - AcctReceivable record saved', [
-                'ar_transno' => $accountReceivable->ar_transno,
-                'or_number' => $accountReceivable->or_number,
-                'ar_amount' => $accountReceivable->ar_amount,
-                'arrear_bal' => $accountReceivable->arrear_bal,
-                'member_id' => $accountReceivable->mem_id
-            ]);
+            if ($isAdvancePaymentDiscount) {
+                // ===================================================================
+                // CREATE TWO TRANSACTIONS FOR ADVANCE PAYMENT DISCOUNT
+                // ===================================================================
+
+                // Transaction 1: Discount Entry (Type 112)
+                $discountTransaction = new AcctReceivable();
+                $discountTransaction->mem_id = $memberSum->mem_id;
+                $discountTransaction->or_number = $sinNumber; // SAME SIN
+                $discountTransaction->ar_date = $validated['arrears_date'];
+                $discountTransaction->ar_amount = $discountAmount;
+                $discountTransaction->arrear_bal = $newArrearBalance; // SAME final balance
+                $discountTransaction->acct_type_id = 112; // Discount account type
+                $discountTransaction->payor_name = strtoupper($validated['arrears_received_from']);
+                $discountTransaction->payor_address = $formattedAddress;
+                $discountTransaction->payment_type = $validated['arrears_payment_mode'];
+                $discountTransaction->payment_Ref = $validated['arrears_reference_no'] ?? null;
+                $discountTransaction->receive_by = $validated['arrears_received_by'];
+                $discountTransaction->ar_remarks = 'Advance Payment Discount (1 Year)' . ($validated['arrears_remarks'] ? ' - ' . $validated['arrears_remarks'] : '');
+                $discountTransaction->user_id = Auth::id();
+                $discountTransaction->save();
+
+                Log::info('Discount transaction created', [
+                    'ar_transno' => $discountTransaction->ar_transno,
+                    'or_number' => $sinNumber,
+                    'account_type_id' => 112,
+                    'ar_amount' => $discountAmount,
+                    'arrear_bal' => $newArrearBalance
+                ]);
+
+                // Transaction 2: Payment Entry (Type 101)
+                $paymentTransaction = new AcctReceivable();
+                $paymentTransaction->mem_id = $memberSum->mem_id;
+                $paymentTransaction->or_number = $sinNumber; // SAME SIN as discount
+                $paymentTransaction->ar_date = $validated['arrears_date'];
+                $paymentTransaction->ar_amount = $paymentAmount;
+                $paymentTransaction->arrear_bal = $newArrearBalance; // SAME final balance
+                $paymentTransaction->acct_type_id = 101; // Regular dues account type
+                $paymentTransaction->payor_name = strtoupper($validated['arrears_received_from']);
+                $paymentTransaction->payor_address = $formattedAddress;
+                $paymentTransaction->payment_type = $validated['arrears_payment_mode'];
+                $paymentTransaction->payment_Ref = $validated['arrears_reference_no'] ?? null;
+                $paymentTransaction->receive_by = $validated['arrears_received_by'];
+                $paymentTransaction->ar_remarks = $validated['arrears_remarks'] ?? null;
+                $paymentTransaction->user_id = Auth::id();
+                $paymentTransaction->save();
+
+                Log::info('Payment transaction created', [
+                    'ar_transno' => $paymentTransaction->ar_transno,
+                    'or_number' => $sinNumber,
+                    'account_type_id' => 101,
+                    'ar_amount' => $paymentAmount,
+                    'arrear_bal' => $newArrearBalance
+                ]);
+
+            } else {
+                // ===================================================================
+                // CREATE SINGLE TRANSACTION FOR NORMAL PAYMENT (Type 101)
+                // ===================================================================
+
+                $accountReceivable = new AcctReceivable();
+                $accountReceivable->mem_id = $memberSum->mem_id;
+                $accountReceivable->or_number = $sinNumber;
+                $accountReceivable->ar_date = $validated['arrears_date'];
+                $accountReceivable->ar_amount = $paymentAmount;
+                $accountReceivable->arrear_bal = $newArrearBalance;
+                $accountReceivable->acct_type_id = $validated['arrears_items'][0]['coa'];
+                $accountReceivable->payor_name = strtoupper($validated['arrears_received_from']);
+                $accountReceivable->payor_address = $formattedAddress;
+                $accountReceivable->payment_type = $validated['arrears_payment_mode'];
+                $accountReceivable->payment_Ref = $validated['arrears_reference_no'] ?? null;
+                $accountReceivable->receive_by = $validated['arrears_received_by'];
+                $accountReceivable->ar_remarks = $validated['arrears_remarks'] ?? null;
+                $accountReceivable->user_id = Auth::id();
+                $accountReceivable->save();
+
+                Log::info('Single payment transaction created', [
+                    'ar_transno' => $accountReceivable->ar_transno,
+                    'or_number' => $sinNumber,
+                    'ar_amount' => $paymentAmount,
+                    'arrear_bal' => $newArrearBalance
+                ]);
+            }
 
             // Update member_sum record with the payment information
             Log::info('STORE ARREARS - Before updating member_sum', [
@@ -352,7 +453,7 @@ class AccountReceivableController extends Controller
 
             $memberSum->last_or = $sinNumber;
             $memberSum->last_paydate = $validated['arrears_date'];
-            $memberSum->last_payamount = $paymentAmount;
+            $memberSum->last_payamount = $isAdvancePaymentDiscount ? $totalDeduction : $paymentAmount;
             $memberSum->arrear = $newArrearBalance;
 
             // Reset arrear_interest to 0 when payment is made

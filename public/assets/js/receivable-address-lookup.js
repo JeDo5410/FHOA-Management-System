@@ -624,7 +624,18 @@ class ArrearsAddressLookup {
             console.error('Invalid member data received');
             return;
         }
-    
+
+        // Store member data globally for discount calculation
+        window.currentMemberData = {
+            mem_id: memberSum?.mem_id,
+            mem_name: memberData?.mem_name,
+            mem_address: memberSum?.mem_add_id,
+            monthly_dues: data.monthly_dues || 0,
+            arrear_total: memberSum?.arrear_total || 0
+        };
+
+        console.log('Member data stored for discount calculation:', window.currentMemberData);
+
         // Populate Member Name
         if (this.memberNameField) {
             this.memberNameField.value = memberData.mem_name || '';

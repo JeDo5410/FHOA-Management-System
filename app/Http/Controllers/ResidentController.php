@@ -240,10 +240,17 @@ class ResidentController extends Controller
                 return response()->json(['error' => 'Member not found'], 404);
             }
 
+            // Get member type and monthly dues for discount calculation
+            $monthlyDues = 0;
+            if ($memberData && $memberData->memberType) {
+                $monthlyDues = $memberData->memberType->mem_monthlydues ?? 0;
+            }
+
             return response()->json([
                 'memberSum' => $memberSum,
                 'memberData' => $memberData,
-                'vehicles' => $vehicles
+                'vehicles' => $vehicles,
+                'monthly_dues' => $monthlyDues
             ]);
         } catch (\Exception $e) {
             Log::error('Member details fetch error: ' . $e->getMessage());
