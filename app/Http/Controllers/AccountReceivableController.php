@@ -453,7 +453,7 @@ class AccountReceivableController extends Controller
 
             $memberSum->last_or = $sinNumber;
             $memberSum->last_paydate = $validated['arrears_date'];
-            $memberSum->last_payamount = $isAdvancePaymentDiscount ? $totalDeduction : $paymentAmount;
+            $memberSum->last_payamount = $paymentAmount;
             $memberSum->arrear = $newArrearBalance;
 
             // Reset arrear_interest to 0 when payment is made
