@@ -57,7 +57,7 @@
                             <input type="text"
                                    class="form-control"
                                    id="member_name"
-                                   value="{{ $singleMember->memberData->first()->mem_name ?? 'N/A' }}"
+                                   value="{{ $singleMember->memberData->sortByDesc('mem_transno')->first()->mem_name ?? 'N/A' }}"
                                    readonly>
                         </div>
                         <div class="col-md-6">
