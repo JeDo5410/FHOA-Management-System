@@ -136,16 +136,14 @@ Route::middleware(['auth', 'role:1,2,3,4'])->group(function () {
     });
 });
 
-// Utility routes accessible to all authenticated users
-Route::middleware(['auth'])->group(function () {
-    Route::get('/refresh-csrf', function () {
-        return response()->json(['token' => csrf_token()]);
-    });
+// Utility routes accessible without authentication (needed for login page)
+Route::get('/refresh-csrf', function () {
+    return response()->json(['token' => csrf_token()]);
+})->middleware('web');
 
-    Route::get('/check-session', function () {
-        return response()->json(['status' => 'valid']);
-    });
-});
+Route::get('/check-session', function () {
+    return response()->json(['status' => 'valid']);
+})->middleware('web');
 
 // Logout route (unchanged)
 Route::post('/logout', [LoginController::class, 'logout'])
@@ -153,10 +151,9 @@ Route::post('/logout', [LoginController::class, 'logout'])
     ->withoutMiddleware(['auth'])
     ->middleware(['web']);
 
-    Route::get('/check-session-status', function () {
-        if (Auth::check()) {
-            return response()->json(['authenticated' => true]);
-        }
-        return response()->json(['authenticated' => false], 401);
-    })->middleware('web');
-    Route::get('/refresh-csrf', [App\Http\Controllers\Auth\LoginController::class, 'refreshToken'])->middleware('web');
+Route::get('/check-session-status', function () {
+    if (Auth::check()) {
+        return response()->json(['authenticated' => true]);
+    }
+    return response()->json(['authenticated' => false], 401);
+})->middleware('web');
