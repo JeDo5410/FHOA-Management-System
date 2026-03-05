@@ -492,7 +492,7 @@
                     <p style="margin-bottom: 4px;"><strong>- Section 18. Sanctions against a Delinquent Member or a Member Not in Good Standing.</strong></p>
                     <p style="margin-bottom: 4px; margin-left: 8px;">The rights and privileges of a member is suspended upon the declaration of delinquency by the Board. Such suspension shall extend to his/her co-owner extend to his/ her co-owner/ homeowners or co-lessees, as applicable, and all those residing in his/ her property.</p>
                     
-                    <p style="margin-bottom: 4px;"><strong>***FHOAI's By-Laws, Page 4 - Article V, Section 2.b:</strong> "…The Maintenance Dues will be payabe in full every five (5) calendar days of each month, if not paid within said period, the member shall be considered as delinquent and the amount due shall be charged with an interest in the amount of thirty (30%) percent per annum until fully paid; if not paid within thirty (30) calendar days from due date, the Association shall have the right to take necessary legal acti on against the delinquent members.</p>
+                    <p style="margin-bottom: 4px;"><strong>***FHOAI's  2025 Amended By-Laws, Page 7- Article V, Section 2.b:     "…The Monthly Maintenance Dues will be payabe in full every 10th calendar days of each month. Failure to pay for three (3) comulative months, the amount due shall be charged with an interest of thirty (30%) percent per annum until fully paid and the member shall be considered as In-active and may be declared as delinquent ; if not paid within thirty (30) calendar days from due date, the Association shall have the right to take necessary legal action against the delinquent members.</p>
                 </div>
             </div>
             
