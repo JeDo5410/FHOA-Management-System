@@ -1,0 +1,338 @@
+/* =========================================================
+   FHOA Analytics Dashboard — Scoped to .analytics-page
+   Aesthetic: Fintech Precision (cobalt + gold + cream)
+   Typography: Sora (headings) + IBM Plex Sans (body)
+   ========================================================= */
+
+.analytics-page {
+    --analytics-cobalt:       #1E4D8C;
+    --analytics-cobalt-light: #4A7DC4;
+    --analytics-cobalt-faint: #EBF1F9;
+    --analytics-gold:         #C9923A;
+    --analytics-gold-faint:   #FAF3E8;
+    --analytics-green:        #2E7D52;
+    --analytics-green-faint:  #E8F4EE;
+    --analytics-red:          #C0392B;
+    --analytics-red-faint:    #FAEAE8;
+    --analytics-amber:        #E8A87C;
+    --analytics-bg:           #F5F3EE;
+    --analytics-card-bg:      #FFFFFF;
+    --analytics-border:       #E8E3DA;
+    --analytics-text:         #1C1C1C;
+    --analytics-muted:        #7A7368;
+    --analytics-shadow:       0 2px 14px rgba(44, 30, 10, 0.07);
+    --analytics-shadow-hover: 0 6px 24px rgba(44, 30, 10, 0.12);
+    --analytics-radius:       10px;
+    --font-heading:           'Sora', 'Segoe UI', system-ui, sans-serif;
+    --font-body:              'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+
+    background-color: var(--analytics-bg);
+    font-family: var(--font-body);
+    color: var(--analytics-text);
+}
+
+/* ─── Page Header ─────────────────────────────────────────── */
+
+.analytics-page-header {
+    margin-bottom: 1.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--analytics-border);
+}
+
+.analytics-title {
+    font-family: var(--font-heading);
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--analytics-cobalt);
+    margin: 0 0 0.2rem 0;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+}
+
+.analytics-subtitle {
+    font-size: 0.82rem;
+    color: var(--analytics-muted);
+    margin: 0;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+/* ─── Entrance Animation ──────────────────────────────────── */
+
+@keyframes analyticsReveal {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.kpi-card-col {
+    animation: analyticsReveal 0.45s ease both;
+}
+
+.analytics-card-wrap {
+    animation: analyticsReveal 0.5s ease both;
+}
+
+/* ─── KPI Cards ───────────────────────────────────────────── */
+
+.kpi-card {
+    background: var(--analytics-card-bg);
+    border-radius: var(--analytics-radius);
+    border-left: 4px solid var(--analytics-gold);
+    box-shadow: var(--analytics-shadow);
+    padding: 1.25rem 1.4rem 1.1rem;
+    height: 100%;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card::after {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 80px;
+    height: 80px;
+    background: var(--analytics-gold-faint);
+    border-radius: 50%;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.kpi-card:hover {
+    box-shadow: var(--analytics-shadow-hover);
+    transform: translateY(-2px);
+}
+
+.kpi-card-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--analytics-muted);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.kpi-card-value {
+    font-family: var(--font-heading);
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: var(--analytics-cobalt);
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+    margin-bottom: 0.45rem;
+}
+
+.kpi-card-delta {
+    font-size: 0.78rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.kpi-card-delta.positive {
+    color: var(--analytics-green);
+}
+
+.kpi-card-delta.negative {
+    color: var(--analytics-red);
+}
+
+.kpi-card-delta.neutral {
+    color: var(--analytics-muted);
+}
+
+/* ─── Analytics Cards (chart containers) ─────────────────── */
+
+.analytics-card {
+    background: var(--analytics-card-bg);
+    border-radius: var(--analytics-radius);
+    box-shadow: var(--analytics-shadow);
+    padding: 1.25rem 1.4rem 1rem;
+    height: 100%;
+    border: 1px solid var(--analytics-border);
+    transition: box-shadow 0.2s ease;
+}
+
+.analytics-card:hover {
+    box-shadow: var(--analytics-shadow-hover);
+}
+
+.analytics-card-header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--analytics-border);
+}
+
+.analytics-card-title {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--analytics-cobalt);
+    margin: 0 0 0.1rem 0;
+    letter-spacing: -0.02em;
+}
+
+.analytics-card-subtitle {
+    font-size: 0.72rem;
+    color: var(--analytics-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+}
+
+/* ─── Arrear Aging Bars ───────────────────────────────────── */
+
+.aging-section {
+    margin-top: 0.25rem;
+}
+
+.aging-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.9rem;
+    gap: 0.75rem;
+}
+
+.aging-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--analytics-text);
+    white-space: nowrap;
+    min-width: 90px;
+}
+
+.aging-count-badge {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--analytics-text);
+    white-space: nowrap;
+    min-width: 60px;
+    text-align: right;
+}
+
+.aging-bar-track {
+    flex: 1;
+    background: #EAE6DF;
+    border-radius: 4px;
+    height: 20px;
+    overflow: hidden;
+}
+
+.aging-bar {
+    height: 100%;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    padding-left: 8px;
+    transition: width 0.6s ease;
+    min-width: 24px;
+}
+
+.aging-bar-text {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: white;
+    white-space: nowrap;
+}
+
+/* ─── Permit Info Panel ───────────────────────────────────── */
+
+.permit-stat-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.permit-stat-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--analytics-border);
+    gap: 0.75rem;
+}
+
+.permit-stat-list li:last-child {
+    border-bottom: none;
+}
+
+.permit-stat-label {
+    font-size: 0.83rem;
+    color: var(--analytics-text);
+    font-weight: 500;
+}
+
+.permit-stat-value {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--analytics-cobalt);
+}
+
+/* ─── Custom Badge Variants ───────────────────────────────── */
+
+.badge-cobalt {
+    background-color: var(--analytics-cobalt);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.3em 0.65em;
+    border-radius: 20px;
+}
+
+.badge-gold {
+    background-color: var(--analytics-gold);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.3em 0.65em;
+    border-radius: 20px;
+}
+
+.badge-green {
+    background-color: var(--analytics-green);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.3em 0.65em;
+    border-radius: 20px;
+}
+
+/* ─── Row spacing helpers ─────────────────────────────────── */
+
+.analytics-section {
+    margin-bottom: 1.25rem;
+}
+
+/* ─── Responsive ──────────────────────────────────────────── */
+
+@media (max-width: 992px) {
+    .kpi-card-value {
+        font-size: 1.6rem;
+    }
+
+    .analytics-title {
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .aging-label {
+        min-width: 70px;
+        font-size: 0.72rem;
+    }
+
+    .kpi-card {
+        padding: 1rem 1.1rem 0.9rem;
+    }
+}

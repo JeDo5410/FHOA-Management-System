@@ -136,6 +136,15 @@ Route::middleware(['auth', 'role:1,2,3,4'])->group(function () {
     });
 });
 
+// Analytics Dashboard - accessible by ALL authenticated roles
+Route::middleware(['auth', 'role:1,2,3,4'])->group(function () {
+    Route::prefix('analytics')->group(function () {
+        Route::get('/dashboard', function () {
+            return view('analytics.dashboard');
+        })->name('analytics.dashboard');
+    });
+});
+
 // Utility routes accessible without authentication (needed for login page)
 Route::get('/refresh-csrf', function () {
     return response()->json(['token' => csrf_token()]);

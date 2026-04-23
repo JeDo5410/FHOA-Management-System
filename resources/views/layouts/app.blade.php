@@ -14,6 +14,8 @@
     {{-- <script href="{{ $isNgrok ? secure_asset('assets/jquery/jquery-3.7.1.min.js') : asset('assets/jquery/jquery-3.7.1.min.js') }}"></script>
     <link href="{{ $isNgrok ? secure_asset('assets/select2/css/select2.min.css') : asset('assets/select2/css/select2.min.css') }}" rel="stylesheet"> --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <link href="{{ $isNgrok ? secure_asset('assets/lib/tabulator/css/tabulator_bootstrap5.min.css') : asset('assets/lib/tabulator/css/tabulator_bootstrap5.min.css') }}" rel="stylesheet">
+    <link href="{{ $isNgrok ? secure_asset('assets/css/tables.css') : asset('assets/css/tables.css') }}" rel="stylesheet">
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -245,6 +247,12 @@
         </a>
         @endif
 
+        {{-- Analytics Dashboard - All roles can see --}}
+        <a href="{{ route('analytics.dashboard') }}" class="nav-link {{ request()->routeIs('analytics.dashboard') ? 'active' : '' }}">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span>Analytics</span>
+        </a>
+
         {{-- Data Extraction - All roles can see --}}
         <a href="{{ route('reports.extraction') }}" class="nav-link {{ request()->routeIs('reports.extraction') ? 'active' : '' }}">
             <i class="bi bi-file-earmark-spreadsheet"></i>
@@ -258,6 +266,8 @@
 
     <script src="{{ $isNgrok ? secure_asset('assets/lib/bootstrap/js/bootstrap.bundle.min.js') : asset('assets/lib/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ $isNgrok ? secure_asset('assets/lib/sweetalert2/js/sweetalert2.all.min.js') : asset('assets/lib/sweetalert2/js/sweetalert2.all.min.js') }}"></script>
+    <script src="{{ $isNgrok ? secure_asset('assets/lib/tabulator/js/tabulator.min.js') : asset('assets/lib/tabulator/js/tabulator.min.js') }}"></script>
+    <script src="{{ $isNgrok ? secure_asset('assets/js/tabulator-config.js') : asset('assets/js/tabulator-config.js') }}"></script>
     @stack('scripts')
     
     @if(session('success'))
