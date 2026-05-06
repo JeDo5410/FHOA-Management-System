@@ -199,6 +199,12 @@
             $userRole = auth()->user()->role;
         @endphp
 
+        {{-- Analytics Dashboard - All roles can see --}}
+        <a href="{{ route('analytics.dashboard') }}" class="nav-link {{ request()->routeIs('analytics.dashboard') ? 'active' : '' }}">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span>Analytics</span>
+        </a>
+
         {{-- User Management - Admin Only --}}
         @if ($userRole === 1)
             <a href="{{ route('users.users_management') }}" class="nav-link {{ request()->routeIs('users.users_management') ? 'active' : '' }}">
@@ -246,12 +252,6 @@
             <span>Arrear Management</span>
         </a>
         @endif
-
-        {{-- Analytics Dashboard - All roles can see --}}
-        <a href="{{ route('analytics.dashboard') }}" class="nav-link {{ request()->routeIs('analytics.dashboard') ? 'active' : '' }}">
-            <i class="bi bi-graph-up-arrow"></i>
-            <span>Analytics</span>
-        </a>
 
         {{-- Data Extraction - All roles can see --}}
         <a href="{{ route('reports.extraction') }}" class="nav-link {{ request()->routeIs('reports.extraction') ? 'active' : '' }}">

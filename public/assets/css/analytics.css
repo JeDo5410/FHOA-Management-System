@@ -26,7 +26,7 @@
     --font-heading:           'Sora', 'Segoe UI', system-ui, sans-serif;
     --font-body:              'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
 
-    background-color: var(--analytics-bg);
+    /* background-color: var(--analytics-bg); */
     font-family: var(--font-body);
     color: var(--analytics-text);
 }
@@ -95,13 +95,13 @@
 .kpi-card::after {
     content: '';
     position: absolute;
-    top: -20px;
-    right: -20px;
+    top: -35px;
+    right: -35px;
     width: 80px;
     height: 80px;
     background: var(--analytics-gold-faint);
     border-radius: 50%;
-    opacity: 0.6;
+    opacity: 0.7;
     pointer-events: none;
 }
 
