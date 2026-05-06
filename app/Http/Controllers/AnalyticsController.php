@@ -30,7 +30,7 @@ class AnalyticsController extends Controller
     {
         try {
             $year  = (int) $request->get('year',  now()->year);
-            $month = (int) $request->get('month', now()->month);
+            $month = max(1, min(12, (int) $request->get('month', now()->month)));
 
             $totalCollection = DB::table('vw_acct_receivable')
                 ->whereYear('ar_date', $year)
@@ -134,7 +134,9 @@ class AnalyticsController extends Controller
             }
 
             Log::info('[Analytics] Monthly Trend', [
-                'range'    => $labels[0] . ' → ' . $labels[11],
+                'range' => $labels[0] . ' → ' . $labels[11],
+            ]);
+            Log::debug('[Analytics] Monthly Trend data', [
                 'income'   => $income,
                 'expenses' => $expenses,
             ]);

@@ -44,10 +44,6 @@ Route::middleware(['auth', 'role:1'])->group(function () {
 
 // Routes accessible by Admin, Editor, and Viewer only (Not Report role)
 Route::middleware(['auth', 'role:1,2,3'])->group(function () {
-    // Dashboard
-    Route::get('/', function () {
-        return view('dashboard');
-    })->name('dashboard');
 
     // Residents routes
     Route::prefix('residents')->group(function () {

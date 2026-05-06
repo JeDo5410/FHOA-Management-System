@@ -359,14 +359,30 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!ul) return;
             ul.innerHTML = '';
             data.stats.forEach(s => {
-                const li = document.createElement('li');
-                li.innerHTML = '<span class="permit-stat-label">' + s.label + '</span>'
-                             + '<span class="permit-stat-value">' + s.count + '</span>';
+                const li    = document.createElement('li');
+                const label = document.createElement('span');
+                const value = document.createElement('span');
+                label.className   = 'permit-stat-label';
+                value.className   = 'permit-stat-value';
+                label.textContent = s.label;
+                value.textContent = s.count;
+                li.appendChild(label);
+                li.appendChild(value);
                 ul.appendChild(li);
             });
-            const totalLi = document.createElement('li');
-            totalLi.innerHTML = '<span class="permit-stat-label"><strong>Total</strong></span>'
-                              + '<span class="permit-stat-value"><strong>' + data.total + '</strong></span>';
+            const totalLi    = document.createElement('li');
+            const totalLabel = document.createElement('span');
+            const totalValue = document.createElement('span');
+            const bold1      = document.createElement('strong');
+            const bold2      = document.createElement('strong');
+            totalLabel.className = 'permit-stat-label';
+            totalValue.className = 'permit-stat-value';
+            bold1.textContent    = 'Total';
+            bold2.textContent    = data.total;
+            totalLabel.appendChild(bold1);
+            totalValue.appendChild(bold2);
+            totalLi.appendChild(totalLabel);
+            totalLi.appendChild(totalValue);
             ul.appendChild(totalLi);
         })
         .catch(() => console.error('Permit stats fetch failed'));
