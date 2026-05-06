@@ -101,8 +101,8 @@ class LoginController extends Controller
             // Determine redirect based on user role
             $user = auth()->user();
             $redirect = $user->role == 4
-                ? route('reports.extraction')  // Report role goes to Data Extraction
-                : route('dashboard');          // All other roles go to Dashboard
+                ? route('reports.extraction')    // Report role goes to Data Extraction
+                : route('analytics.dashboard');  // All other roles go to Analytics
 
             return response()->json([
                 'success' => true,

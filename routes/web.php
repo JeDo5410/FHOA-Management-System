@@ -10,11 +10,12 @@ use App\Http\Controllers\ReportExtractionController;
 use App\Http\Controllers\StatementOfAccountController;
 use App\Http\Controllers\ArrearController;
 use App\Http\Controllers\ConstructionPermitController;
+use App\Http\Controllers\AnalyticsController;
 use Illuminate\Support\Facades\Auth;
 
-// Root URL will redirect to dashboard
+// Root URL will redirect to analytics dashboard
 Route::get('/', function () {
-    return redirect()->route('dashboard');
+    return redirect()->route('analytics.dashboard');
 });
 
 // Guest middleware group (unchanged)
@@ -43,10 +44,6 @@ Route::middleware(['auth', 'role:1'])->group(function () {
 
 // Routes accessible by Admin, Editor, and Viewer only (Not Report role)
 Route::middleware(['auth', 'role:1,2,3'])->group(function () {
-    // Dashboard
-    Route::get('/', function () {
-        return view('dashboard');
-    })->name('dashboard');
 
     // Residents routes
     Route::prefix('residents')->group(function () {
@@ -133,6 +130,20 @@ Route::middleware(['auth', 'role:1,2,3,4'])->group(function () {
             ->name('reports.get-receivable-data');
         Route::get('/download/receivable-data', [ReportExtractionController::class, 'downloadReceivableData'])
             ->name('reports.download.receivable-data');
+    });
+});
+
+// Analytics Dashboard - accessible by ALL authenticated roles
+Route::middleware(['auth', 'role:1,2,3,4'])->group(function () {
+    Route::prefix('analytics')->group(function () {
+        Route::get('/dashboard', [AnalyticsController::class, 'index'])->name('analytics.dashboard');
+
+        Route::prefix('data')->name('analytics.data.')->group(function () {
+            Route::get('/kpis',          [AnalyticsController::class, 'getKpis'])->name('kpis');
+            Route::get('/monthly-trend', [AnalyticsController::class, 'getMonthlyTrend'])->name('monthly-trend');
+            Route::get('/arrear-aging',  [AnalyticsController::class, 'getArrearAging'])->name('arrear-aging');
+            Route::get('/permit-stats',  [AnalyticsController::class, 'getPermitStats'])->name('permit-stats');
+        });
     });
 });
 
