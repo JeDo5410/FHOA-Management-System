@@ -353,11 +353,11 @@ function validateAccountEditForm(form) {
     
     // Check payment mode and reference number
     const paymentMode = form.querySelector('input[name="payment_mode"]:checked')?.value;
-    const referenceNo = form.querySelector('#referenceNo')?.value;
-    
+    const referenceNo = form.querySelector('#reference')?.value;
+
     if (paymentMode && paymentMode !== 'CASH' && !referenceNo) {
         showToast('error', 'Reference number is required for ' + paymentMode + ' payments');
-        const refField = form.querySelector('#referenceNo');
+        const refField = form.querySelector('#reference');
         if (refField) {
             refField.focus();
         }
