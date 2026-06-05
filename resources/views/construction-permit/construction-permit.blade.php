@@ -91,8 +91,53 @@
                         </div>
                     </div>
 
-                    <!-- Tabulator Table -->
-                    <div id="permitStatusTable"></div>
+                    <!-- Table Container -->
+                    <div class="table-container">
+                        <div id="permitStatusTableContainer" class="table-responsive">
+                            <table class="table table-bordered table-striped" id="permitStatusTable">
+                                <thead>
+                                    <tr>
+                                        <th>No.</th>
+                                        <th>Permit No.</th>
+                                        <th>Permit Type</th>
+                                        <th>Permit Status</th>
+                                        <th>Permit Start Date</th>
+                                        <th>Permit End Date</th>
+                                        <th>HOA Address ID</th>
+                                        <th>HOA Name</th>
+                                        <th>Application Date</th>
+                                        <th>Applicant Name</th>
+                                        <th>Applicant Contact</th>
+                                        <th>Contractor Name</th>
+                                        <th>Contractor Contact</th>
+                                        <th>Payment SIN</th>
+                                        <th>SIN Date</th>
+                                        <th>Fee Amount</th>
+                                        <th>Bond ARN</th>
+                                        <th>Bond Amount</th>
+                                        <th>Bond Date</th>
+                                        <th>Inspector</th>
+                                        <th>Inspection Date</th>
+                                        <th>Inspector Note</th>
+                                        <th>Bond Release Type</th>
+                                        <th>Bond Receiver</th>
+                                        <th>Bond Release Date</th>
+                                        <th>Remarks</th>
+                                        <th>User Fullname</th>
+                                        <th>Time Entry</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data will be loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Sticky Scrollbar -->
+                        <div class="sticky-scrollbar-container" id="permitStickyScrollbar">
+                            <div class="scrollbar-content" id="permitScrollbarContent"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Construction Permit Form Tab -->
@@ -777,7 +822,16 @@ h4.text-success {
     background-color: #e9ecef !important;
 }
 
-/* Row highlights are handled by Tabulator's rowFormatter + tables.css */
+/* Highlight rows for permits needing inspection form */
+#permitStatusTable tbody tr.needs-inspection-form,
+#permitStatusTable tbody tr.needs-inspection-form td {
+    background-color: #ffcccc !important; /* Darker red */
+}
+
+#permitStatusTable tbody tr.needs-inspection-form:hover,
+#permitStatusTable tbody tr.needs-inspection-form:hover td {
+    background-color: #ffb3b3 !important; /* Even darker on hover */
+}
 </style>
 
 <script>
